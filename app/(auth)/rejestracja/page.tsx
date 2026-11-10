@@ -5,6 +5,9 @@ import { AuthHeading } from "../_components/auth-heading";
 import { appConfig } from "@/lib/config";
 import { t } from "@/lib/i18n";
 
+// Настройка REGISTRATION_OPEN читается при запросе, а не при сборке.
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = { title: t("auth.register.title") };
 
 export default function RegisterPage() {
