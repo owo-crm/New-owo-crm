@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { docxToPdf, fillDocxTemplate } from "./docx-template";
 import { contractSnapshot, contractTemplateValues, type ContractValues } from "./barowo/contract";
+import { barowoSchedule, listPayments, savePaymentPlan } from "@/lib/finance/payments";
 import {
   barowoEngine,
   legacyLeadRow,
@@ -281,6 +282,10 @@ export type DocumentRow = {
   files: { id: string; format: "pdf" | "docx" }[];
 };
 
+export function leadPayments(tx: Queryable, orgId: string, leadId: string) {
+  return listPayments(tx, orgId, leadId);
+}
+
 export async function listDocuments(tx: Queryable, orgId: string, leadId: string) {
   const { rows } = await tx.query<DocumentRow>(
     `select d.id, d.kind, d.number, d.status, d.created_at,
@@ -372,6 +377,20 @@ export async function generateContract(
     client_full_name: snapshot.clientName,
     client_address: snapshot.address,
   });
+  // План платежей из договора: 500 при подписании, 1000 за 7 дней, остаток в день события.
+  const iso = (pl: string) => pl.split(".").reverse().join("-");
+  await savePaymentPlan(
+    tx,
+    actor.orgId,
+    leadId,
+    barowoSchedule({
+      priceGrosze: Math.round(snapshot.price * 100),
+      depositGrosze: Math.round(snapshot.deposit * 100),
+      depositDate: iso(snapshot.depositDate),
+      eventDate: iso(snapshot.eventDate),
+      today: iso(snapshot.today),
+    }),
+  );
   await stageForward(tx, actor.orgId, leadId, "contract_sent");
   return saved;
 }

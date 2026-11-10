@@ -77,7 +77,8 @@
     "documents": "Dokumenty",
     "settings": "Ustawienia",
     "more": "Więcej",
-    "newLead": "Nowy lead"
+    "newLead": "Nowy lead",
+    "finance": "Finanse"
   },
   "today": {
     "title": "Dzisiaj",
@@ -279,7 +280,8 @@
     "account": "Konto",
     "signedInAs": "Zalogowano jako {email}",
     "import": "Import leadów",
-    "importText": "Przenieś leady z arkusza bota."
+    "importText": "Przenieś leady z arkusza bota.",
+    "finance": "Finanse"
   },
   "presets": {
     "event-services": "Usługi na wydarzenia (wesela, urodziny, eventy firmowe)"
@@ -312,7 +314,10 @@
     },
     "connectTelegram": "Połącz Telegram",
     "openTelegram": "Otwórz Telegram i naciśnij Start (link ważny 10 minut)",
-    "linkFailed": "Nie udało się utworzyć połączenia. Spróbuj ponownie."
+    "linkFailed": "Nie udało się utworzyć połączenia. Spróbuj ponownie.",
+    "payment3d": "Wpłata za 3 dni",
+    "paymentToday": "Wpłata dziś",
+    "paymentOverdue": "Wpłata po terminie"
   },
   "pwa": {
     "description": "Zapytania, oferty i umowy w jednym miejscu.",
@@ -456,5 +461,36 @@
     "hours": "{count} godz.",
     "day": "1 dzień",
     "days": "{count} dni"
+  },
+  "finance": {
+    "title": "Płatności",
+    "empty": "Brak płatności. Pojawią się po wygenerowaniu umowy.",
+    "paidOf": "Wpłacono {paid} z {total}",
+    "due": "termin {date}",
+    "wasDue": "termin minął {date}",
+    "paid": "Wpłacone",
+    "markPaid": "Wpłacone",
+    "undo": "Cofnij",
+    "pageTitle": "Finanse",
+    "pageIntro": "Pieniądze z podpisanych umów: co wpłynęło, co czeka i co się spóźnia.",
+    "statPaid": "Wpłynęło w tym miesiącu",
+    "statExpected": "Spodziewane w tym miesiącu",
+    "statOverdue": "Po terminie",
+    "statSigned": "Wartość umów",
+    "overdueTitle": "Po terminie",
+    "overdueEmpty": "Nic nie jest spóźnione.",
+    "upcomingTitle": "Najbliższe wpłaty",
+    "upcomingEmpty": "Brak zaplanowanych wpłat.",
+    "sourcesTitle": "Skąd przychodzą pieniądze",
+    "sourcesEmpty": "Brak danych — pojawią się po pierwszych wpłatach.",
+    "colSource": "Źródło",
+    "colLeads": "Leady",
+    "colPaid": "Wpłacone",
+    "colOpen": "W toku",
+    "funnelTitle": "Lejek",
+    "monthsTitle": "Ostatnie miesiące",
+    "prev": "Poprzedni miesiąc",
+    "next": "Następny miesiąc",
+    "current": "Ten miesiąc"
   }
 }

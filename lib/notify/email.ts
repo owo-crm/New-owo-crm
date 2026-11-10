@@ -1,19 +1,28 @@
 import { z } from "zod";
 import { t } from "../i18n.ts";
 import { escapeHtml, leadUrl, type NotificationLead } from "./telegram.ts";
-export type NotificationKind = "new_lead" | "unanswered_15m" | "unanswered_2h";
+export type NotificationKind =
+  | "new_lead"
+  | "unanswered_15m"
+  | "unanswered_2h"
+  | "payment_3d"
+  | "payment_today"
+  | "payment_overdue";
+
+const TITLES: Record<NotificationKind, string> = {
+  new_lead: "notifications.emailNew",
+  unanswered_15m: "notifications.reminder15",
+  unanswered_2h: "notifications.reminder2h",
+  payment_3d: "notifications.payment3d",
+  payment_today: "notifications.paymentToday",
+  payment_overdue: "notifications.paymentOverdue",
+};
 export function emailContent(
   lead: NotificationLead,
   siteUrl: string,
   kind: NotificationKind = "new_lead",
 ) {
-  const title = t(
-    kind === "new_lead"
-      ? "notifications.emailNew"
-      : kind === "unanswered_15m"
-        ? "notifications.reminder15"
-        : "notifications.reminder2h",
-  );
+  const title = t(TITLES[kind] as "notifications.emailNew");
   const name = lead.client_name.replace(/[\r\n]+/g, " ").slice(0, 200);
   const details = [
     lead.event_type,

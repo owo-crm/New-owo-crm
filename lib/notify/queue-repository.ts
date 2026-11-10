@@ -44,6 +44,21 @@ export function createQueueRepository(db: Queryable): QueueRepository {
         return null;
       if (delivery.kind === "new_lead" && Date.now() - Date.parse(delivery.created_at) > 86400000)
         return null;
+      // Напоминание о деньгах живо, пока платёж не оплачен, а лид не закрыт как потерянный.
+      if (delivery.kind.startsWith("payment_")) {
+        const stage = await one<{ kind: string }>(
+          db,
+          "select kind from public.pipeline_stages where organization_id=$1 and key=$2",
+          [delivery.organization_id, lead.stage_key],
+        );
+        if (stage?.kind === "lost") return null;
+        const payment = await one<{ id: string }>(
+          db,
+          "select id from public.lead_payments where id=$1 and paid_at is null",
+          [delivery.payment_id],
+        );
+        return payment ? lead : null;
+      }
       if (delivery.kind !== "new_lead") {
         if (
           Date.now() - Date.parse(lead.created_at) > 7 * 86400000 ||

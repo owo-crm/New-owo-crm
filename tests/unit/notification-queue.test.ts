@@ -23,6 +23,7 @@ const job: Delivery = {
   user_id: ID,
   channel: "telegram",
   kind: "new_lead",
+  payment_id: null,
   lease_token: ID,
   attempts: 1,
   created_at: new Date().toISOString(),

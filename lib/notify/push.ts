@@ -33,7 +33,19 @@ export function pushPayload(
   kind: import("./email.ts").NotificationKind = "new_lead",
 ) {
   return {
-    title: `${t(kind === "new_lead" ? "notifications.newLead" : kind === "unanswered_15m" ? "notifications.reminder15" : "notifications.reminder2h")}: ${lead.client_name.slice(0, 120)}`,
+    title: `${t(
+      kind === "new_lead"
+        ? "notifications.newLead"
+        : kind === "unanswered_15m"
+          ? "notifications.reminder15"
+          : kind === "unanswered_2h"
+            ? "notifications.reminder2h"
+            : kind === "payment_3d"
+              ? "notifications.payment3d"
+              : kind === "payment_today"
+                ? "notifications.paymentToday"
+                : "notifications.paymentOverdue",
+    )}: ${lead.client_name.slice(0, 120)}`,
     body: [lead.event_type, lead.event_date?.split("-").reverse().join("."), lead.event_city]
       .filter(Boolean)
       .join(" · ")

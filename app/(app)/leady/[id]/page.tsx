@@ -5,7 +5,8 @@ import { DocumentsCard } from "@/components/documents/documents-card";
 import { getLead, getLeadHistory, getLeadOptions } from "@/lib/leads/queries";
 import { LiveUpdates } from "@/components/leads/live-updates";
 import { withOrg } from "@/lib/db/user";
-import { listDocuments } from "@/lib/documents/service";
+import { leadPayments, listDocuments } from "@/lib/documents/service";
+import { PaymentsCard } from "@/components/finance/payments-card";
 export default async function LeadPage({ params, searchParams }: PageProps<"/leady/[id]">) {
   const { id } = await params;
   const { dokument } = await searchParams;
@@ -18,6 +19,7 @@ export default async function LeadPage({ params, searchParams }: PageProps<"/lea
     withOrg(async (tx, { organization }) => ({
       enabled: organization.documentEngine === "barowo",
       list: await listDocuments(tx, organization.id, id),
+      payments: await leadPayments(tx, organization.id, id),
     })),
   ]);
   return (
@@ -28,12 +30,15 @@ export default async function LeadPage({ params, searchParams }: PageProps<"/lea
         team={options.team}
         history={history}
         documents={
-          <DocumentsCard
-            leadId={id}
-            enabled={docs.enabled}
-            documents={docs.list}
-            flash={typeof dokument === "string" ? dokument.slice(0, 60) : undefined}
-          />
+          <>
+            <PaymentsCard payments={docs.payments} />
+            <DocumentsCard
+              leadId={id}
+              enabled={docs.enabled}
+              documents={docs.list}
+              flash={typeof dokument === "string" ? dokument.slice(0, 60) : undefined}
+            />
+          </>
         }
       />
       <div className="mt-5">

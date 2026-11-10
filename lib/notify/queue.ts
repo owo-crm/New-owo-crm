@@ -7,6 +7,7 @@ export type Delivery = {
   user_id: string;
   channel: "telegram" | "push" | "email";
   kind: NotificationKind;
+  payment_id: string | null;
   lease_token: string;
   attempts: number;
   created_at: string;

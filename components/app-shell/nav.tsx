@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarDays, FileText, Inbox, Menu, Plus, Settings, Sun } from "lucide-react";
+import { CalendarDays, FileText, Inbox, Menu, Plus, Settings, Sun, Wallet } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { t, type MessageKey } from "@/lib/i18n";
 
@@ -12,6 +12,7 @@ const MAIN: Item[] = [
   { href: "/dzisiaj", label: "nav.today", icon: Sun },
   { href: "/leady", label: "nav.leads", icon: Inbox },
   { href: "/kalendarz", label: "nav.calendar", icon: CalendarDays },
+  { href: "/finanse", label: "nav.finance", icon: Wallet },
   { href: "/dokumenty", label: "nav.documents", icon: FileText },
   { href: "/ustawienia", label: "nav.settings", icon: Settings },
 ];
