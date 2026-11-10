@@ -1,0 +1,78 @@
+@import "tailwindcss";
+
+/*
+  Дизайн-токены CRM — направление «Sezon» (решение 011 в docs/decisions.md).
+  Тёмная тема. Главная идея: субботы — товар фирмы, новые лиды — «боны» с таймером.
+  Красный — проданная дата и срочное (лид ждёт ответа). Янтарный — предварительная бронь.
+  --brand = цвет фирмы из настроек (по умолчанию красный Barowo).
+*/
+:root {
+  color-scheme: dark;
+  --bg: #111315;
+  --surface: #191c1f;
+  --surface-2: #202428;
+  --line: #2a2e33;
+  --line-strong: #3a3f45;
+  --ink: #f2f1ee;
+  --ink-soft: #9ba1a8;
+  --ink-faint: #6c737b;
+  --urgent: #ff2a2f;
+  --hold: #f5b651;
+  --ok: #4cc28a;
+  --brand: #ff2a2f;
+  --focus: #7aa5ff;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-faint: var(--ink-faint);
+  --color-urgent: var(--urgent);
+  --color-hold: var(--hold);
+  --color-ok: var(--ok);
+  --color-brand: var(--brand);
+  --color-focus: var(--focus);
+  --font-sans: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-clash), var(--font-satoshi), ui-sans-serif, sans-serif;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* «Бон»: нижний край зубчиками, как у чека с барного принтера. */
+.ticket-edge {
+  -webkit-mask:
+    linear-gradient(#000 0 0) top / 100% calc(100% - 9px) no-repeat,
+    conic-gradient(from -45deg at bottom, #0000, #000 1deg 90deg, #0000 91deg) bottom / 14px 10px
+      repeat-x;
+  mask:
+    linear-gradient(#000 0 0) top / 100% calc(100% - 9px) no-repeat,
+    conic-gradient(from -45deg at bottom, #0000, #000 1deg 90deg, #0000 91deg) bottom / 14px 10px
+      repeat-x;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

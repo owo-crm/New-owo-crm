@@ -1,0 +1,31 @@
+import Link from "next/link";
+import { Card, PageHeader } from "@/components/app-shell/page";
+import { NotificationPreferences } from "@/components/notifications/preferences";
+import { withOrg } from "@/lib/db/user";
+import { t } from "@/lib/i18n";
+export default async function NotificationSettingsPage() {
+  const data = await withOrg(async (tx, { user, organization }) => {
+    const { rows } = await tx.query<{ channel: "telegram" | "push" | "email"; enabled: boolean }>(
+      "select channel,enabled from public.notification_settings where organization_id=$1 and user_id=$2",
+      [organization.id, user.id],
+    );
+    return rows;
+  });
+  return (
+    <div className="max-w-2xl">
+      <PageHeader title={t("settings.notifications")} />
+      <Card>
+        <NotificationPreferences
+          initial={data ?? []}
+          telegramReady={
+            process.env.OUTBOUND_NOTIFICATIONS_ENABLED === "true" &&
+            Boolean(process.env.TELEGRAM_BOT_USERNAME)
+          }
+        />
+        <Link href="/zainstaluj" className="mt-6 inline-flex min-h-11 items-center underline">
+          {t("pwa.title")}
+        </Link>
+      </Card>
+    </div>
+  );
+}

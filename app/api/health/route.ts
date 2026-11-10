@@ -1,0 +1,11 @@
+import { getDb } from "@/lib/db";
+export const dynamic = "force-dynamic";
+// Railway healthcheck: приложение живо и база отвечает.
+export async function GET() {
+  try {
+    await getDb().query("select 1");
+    return Response.json({ ok: true });
+  } catch {
+    return Response.json({ ok: false }, { status: 503 });
+  }
+}

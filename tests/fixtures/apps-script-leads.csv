@@ -1,0 +1,4 @@
+uid,name,phone,email,event_date,city,stage,created_at,budget,message
+L-001,Łucja Żółć 🎉,600 100 200,,12.06.2027,Gdynia,Nowy,2026-01-01T12:00:00Z,"1250,05","Dzień dobry,
+proszę o ofertę."
+L-002,Anna Nowak,,ANNA@example.com,2027-06-19,Gdańsk,contacted,2026-02-01T12:00:00+01:00,,Test
