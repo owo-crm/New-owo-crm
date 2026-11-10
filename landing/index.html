@@ -1,0 +1,956 @@
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>OWO Ads — marketing i narzędzia dla firm z Trójmiasta</title>
+    <meta
+      name="description"
+      content="Lokalna agencja z Trójmiasta. Prowadzimy social media, reklamę w Meta i Google, budujemy strony i narzędzia dla małych firm. Przyjeżdżamy, nagrywamy u Ciebie, uruchamiamy kampanie."
+    />
+    <meta name="theme-color" content="#11201c" />
+    <meta property="og:title" content="OWO Ads — marketing i narzędzia dla firm z Trójmiasta" />
+    <meta
+      property="og:description"
+      content="Przyjeżdżamy, kręcimy, włączamy reklamę. Gdańsk, Gdynia, Sopot."
+    />
+    <meta property="og:locale" content="pl_PL" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --ink: #11201c;
+        --sea: #0f4d43;
+        --mist: #e4e9e4;
+        --amber: #f2b705;
+        --white: #ffffff;
+        --ink-70: rgba(17, 32, 28, 0.68);
+        --white-70: rgba(255, 255, 255, 0.7);
+        --measure: 62ch;
+        --gutter: clamp(1.25rem, 5vw, 5rem);
+        --band: clamp(3.5rem, 7vw, 6.5rem);
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        background: var(--mist);
+        color: var(--ink);
+        font-family: Archivo, system-ui, sans-serif;
+        font-size: clamp(1rem, 0.95rem + 0.3vw, 1.125rem);
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+        font-weight: 800;
+        letter-spacing: -0.025em;
+        line-height: 1.02;
+        text-wrap: balance;
+      }
+
+      p {
+        margin: 0;
+        max-width: var(--measure);
+      }
+
+      a {
+        color: inherit;
+      }
+
+      :focus-visible {
+        outline: 3px solid var(--amber);
+        outline-offset: 3px;
+      }
+
+      .wrap {
+        width: 100%;
+        max-width: 72rem;
+        margin-inline: auto;
+        padding-inline: var(--gutter);
+      }
+
+      /* ---------- masthead ---------- */
+
+      .masthead {
+        background: var(--ink);
+        color: var(--white);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+
+      .masthead__inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1.5rem;
+        min-height: 4.25rem;
+      }
+
+      .logo {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 0.4rem;
+        font-weight: 800;
+        font-size: 1.3rem;
+        letter-spacing: -0.03em;
+        text-decoration: none;
+      }
+
+      .logo b {
+        color: var(--amber);
+      }
+
+      .masthead nav {
+        display: flex;
+        align-items: center;
+        gap: clamp(0.9rem, 2vw, 2rem);
+        font-size: 0.95rem;
+      }
+
+      .masthead nav a {
+        text-decoration: none;
+        color: var(--white-70);
+        padding-block: 0.4rem;
+      }
+
+      .masthead nav a:hover {
+        color: var(--white);
+      }
+
+      .masthead nav a.is-call {
+        color: var(--amber);
+        font-weight: 600;
+      }
+
+      @media (max-width: 34rem) {
+        .masthead nav a:not(.is-call) {
+          display: none;
+        }
+      }
+
+      /* ---------- hero ---------- */
+
+      .hero {
+        background: var(--mist);
+        padding-block: clamp(2.5rem, 6vw, 4.5rem) var(--band);
+        border-bottom: 1px solid rgba(17, 32, 28, 0.14);
+      }
+
+      .hero__grid {
+        display: grid;
+        gap: clamp(2.5rem, 5vw, 4rem);
+        align-items: end;
+      }
+
+      @media (min-width: 62rem) {
+        .hero__grid {
+          grid-template-columns: minmax(0, 1.55fr) minmax(16rem, 1fr);
+        }
+      }
+
+      .hero h1 {
+        font-size: clamp(2.6rem, 6.6vw, 4.5rem);
+      }
+
+      .hero h1 span {
+        display: block;
+      }
+
+      .hero__lede {
+        margin-top: 1.75rem;
+        font-size: clamp(1.05rem, 1rem + 0.5vw, 1.3rem);
+        color: var(--ink-70);
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-top: 2.25rem;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 3.25rem;
+        padding-inline: 1.6rem;
+        font: inherit;
+        font-weight: 600;
+        text-decoration: none;
+        border: 2px solid var(--ink);
+        border-radius: 0;
+        cursor: pointer;
+        transition:
+          transform 0.12s ease,
+          background-color 0.12s ease;
+      }
+
+      .btn--primary {
+        background: var(--amber);
+        color: var(--ink);
+      }
+
+      .btn--primary:hover {
+        background: var(--ink);
+        color: var(--amber);
+      }
+
+      .btn--ghost {
+        background: transparent;
+        color: var(--ink);
+      }
+
+      .btn--ghost:hover {
+        background: var(--ink);
+        color: var(--mist);
+      }
+
+      .btn:active {
+        transform: translateY(1px);
+      }
+
+      /* the plate: an enamel street sign, not a feature card */
+      .plate {
+        background: var(--sea);
+        color: var(--white);
+        padding: clamp(1.5rem, 3vw, 2rem);
+        box-shadow: 0.6rem 0.6rem 0 var(--ink);
+      }
+
+      .plate__cities {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        font-size: clamp(1.5rem, 3.4vw, 2rem);
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        line-height: 1.12;
+      }
+
+      .plate__cities li + li {
+        border-top: 1px solid rgba(255, 255, 255, 0.22);
+        margin-top: 0.5rem;
+        padding-top: 0.5rem;
+      }
+
+      .plate p {
+        margin-top: 1.25rem;
+        padding-top: 1.25rem;
+        border-top: 3px solid var(--amber);
+        font-size: 0.98rem;
+        color: var(--white-70);
+      }
+
+      /* ---------- services ---------- */
+
+      .services {
+        background: var(--ink);
+        color: var(--white);
+        padding-block: var(--band);
+      }
+
+      .section-head {
+        display: grid;
+        gap: 1rem;
+        margin-bottom: clamp(2rem, 4vw, 3rem);
+      }
+
+      .section-head h2 {
+        font-size: clamp(1.9rem, 4.5vw, 2.9rem);
+      }
+
+      .section-head p {
+        color: var(--white-70);
+      }
+
+      .services__list {
+        border-top: 1px solid rgba(255, 255, 255, 0.18);
+      }
+
+      .svc {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+      }
+
+      .svc > summary {
+        display: flex;
+        align-items: baseline;
+        gap: 1rem;
+        padding-block: clamp(1.1rem, 2.4vw, 1.6rem);
+        cursor: pointer;
+        list-style: none;
+        font-size: clamp(1.3rem, 3.4vw, 2rem);
+        font-weight: 800;
+        letter-spacing: -0.03em;
+      }
+
+      .svc > summary::-webkit-details-marker {
+        display: none;
+      }
+
+      .svc > summary::after {
+        content: "+";
+        margin-left: auto;
+        color: var(--amber);
+        font-weight: 500;
+        font-size: 1.6rem;
+        line-height: 1;
+      }
+
+      .svc[open] > summary::after {
+        content: "–";
+      }
+
+      .svc > summary:hover {
+        color: var(--amber);
+      }
+
+      .svc__body {
+        padding-bottom: clamp(1.2rem, 2.4vw, 1.8rem);
+        display: grid;
+        gap: 0.9rem;
+      }
+
+      .svc__body p {
+        color: var(--white-70);
+      }
+
+      .svc__body ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem 0.5rem;
+        font-size: 0.92rem;
+      }
+
+      .svc__body li {
+        border: 1px solid rgba(255, 255, 255, 0.28);
+        padding: 0.3rem 0.65rem;
+      }
+
+      /* ---------- process (a real sequence, so it is numbered) ---------- */
+
+      .process {
+        background: var(--mist);
+        padding-block: var(--band);
+      }
+
+      .process .section-head p {
+        color: var(--ink-70);
+      }
+
+      .steps {
+        display: grid;
+        gap: clamp(1.75rem, 3vw, 2.5rem);
+        counter-reset: step;
+      }
+
+      @media (min-width: 52rem) {
+        .steps {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+      }
+
+      .step {
+        counter-increment: step;
+        border-top: 3px solid var(--ink);
+        padding-top: 1rem;
+      }
+
+      .step::before {
+        content: counter(step);
+        display: block;
+        font-size: clamp(2.6rem, 6vw, 3.6rem);
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.04em;
+        color: var(--sea);
+      }
+
+      .step h3 {
+        font-size: 1.35rem;
+        margin-top: 0.4rem;
+      }
+
+      .step p {
+        margin-top: 0.5rem;
+        color: var(--ink-70);
+      }
+
+      /* ---------- reasons ---------- */
+
+      .reasons {
+        background: var(--sea);
+        color: var(--white);
+        padding-block: var(--band);
+      }
+
+      .reasons dl {
+        margin: 0;
+        display: grid;
+        gap: clamp(1.75rem, 3vw, 2.5rem);
+      }
+
+      @media (min-width: 52rem) {
+        .reasons dl {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+      }
+
+      .reasons dt {
+        font-weight: 800;
+        font-size: clamp(1.2rem, 2.6vw, 1.5rem);
+        letter-spacing: -0.025em;
+        border-bottom: 3px solid var(--amber);
+        padding-bottom: 0.75rem;
+      }
+
+      .reasons dd {
+        margin: 0.9rem 0 0;
+        color: var(--white-70);
+      }
+
+      /* ---------- contact ---------- */
+
+      .contact {
+        background: var(--amber);
+        color: var(--ink);
+        padding-block: var(--band);
+      }
+
+      .contact__grid {
+        display: grid;
+        gap: clamp(2.5rem, 5vw, 4rem);
+      }
+
+      @media (min-width: 62rem) {
+        .contact__grid {
+          grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+          align-items: start;
+        }
+      }
+
+      .contact h2 {
+        font-size: clamp(2rem, 5.5vw, 3.4rem);
+      }
+
+      .contact__aside p {
+        margin-top: 1.25rem;
+      }
+
+      .contact__phone {
+        display: inline-block;
+        margin-top: 1.75rem;
+        font-size: clamp(1.5rem, 4vw, 2.2rem);
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        text-decoration: none;
+        border-bottom: 4px solid var(--ink);
+      }
+
+      form {
+        display: grid;
+        gap: 1rem;
+      }
+
+      .field {
+        display: grid;
+        gap: 0.4rem;
+      }
+
+      .field > span {
+        font-size: 0.95rem;
+        font-weight: 600;
+      }
+
+      .field input,
+      .field select,
+      .field textarea {
+        font: inherit;
+        color: var(--ink);
+        background: var(--white);
+        border: 2px solid var(--ink);
+        border-radius: 0;
+        padding: 0.8rem 0.9rem;
+        min-height: 3.1rem;
+      }
+
+      .field textarea {
+        min-height: 6rem;
+        resize: vertical;
+      }
+
+      .field--pair {
+        display: grid;
+        gap: 1rem;
+      }
+
+      @media (min-width: 34rem) {
+        .field--pair {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      .consent {
+        display: flex;
+        gap: 0.65rem;
+        align-items: flex-start;
+        font-size: 0.9rem;
+        line-height: 1.5;
+      }
+
+      .consent input {
+        margin-top: 0.2rem;
+        width: 1.15rem;
+        height: 1.15rem;
+        accent-color: var(--ink);
+        flex: none;
+      }
+
+      .hp {
+        position: absolute;
+        left: -9999px;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+      }
+
+      form .btn--primary {
+        background: var(--ink);
+        color: var(--amber);
+        justify-self: start;
+      }
+
+      form .btn--primary:hover {
+        background: var(--white);
+        color: var(--ink);
+      }
+
+      .form-note {
+        font-size: 0.95rem;
+        font-weight: 600;
+        min-height: 1.5rem;
+      }
+
+      .form-note[data-state="error"] {
+        color: #7a1c10;
+      }
+
+      /* ---------- footer ---------- */
+
+      footer {
+        background: var(--ink);
+        color: var(--white-70);
+        padding-block: 2.5rem;
+        font-size: 0.92rem;
+      }
+
+      footer .wrap {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem 2rem;
+        justify-content: space-between;
+      }
+
+      /* ---------- one orchestrated entrance ---------- */
+
+      @media (prefers-reduced-motion: no-preference) {
+        .reveal {
+          animation: rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
+        }
+        .hero h1 span:nth-child(1) {
+          animation-delay: 0.05s;
+        }
+        .hero h1 span:nth-child(2) {
+          animation-delay: 0.14s;
+        }
+        .hero h1 span:nth-child(3) {
+          animation-delay: 0.23s;
+        }
+        .hero__lede {
+          animation-delay: 0.34s;
+        }
+        .hero .actions {
+          animation-delay: 0.42s;
+        }
+        .hero .plate {
+          animation-delay: 0.5s;
+        }
+      }
+
+      @keyframes rise {
+        from {
+          opacity: 0;
+          transform: translateY(0.9rem);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="masthead">
+      <div class="wrap masthead__inner">
+        <a class="logo" href="#top">OWO<b>ADS</b></a>
+        <nav aria-label="Menu">
+          <a href="#uslugi">Usługi</a>
+          <a href="#jak-pracujemy">Jak pracujemy</a>
+          <a class="is-call" href="tel:+48000000000" data-phone-link>Zadzwoń</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="top">
+      <section class="hero">
+        <div class="wrap hero__grid">
+          <div>
+            <h1>
+              <span class="reveal">Przyjeżdżamy,</span>
+              <span class="reveal">kręcimy,</span>
+              <span class="reveal">włączamy reklamę.</span>
+            </h1>
+            <p class="hero__lede reveal">
+              Jesteśmy agencją z Trójmiasta. Prowadzimy social media, reklamę w Meta i Google,
+              budujemy strony i wewnętrzne narzędzia dla małych firm — od pierwszej rozmowy do liczb
+              na koniec miesiąca.
+            </p>
+            <div class="actions reveal">
+              <a class="btn btn--primary" href="tel:+48000000000" data-phone-link>Zadzwoń teraz</a>
+              <a class="btn btn--ghost" href="#kontakt">Umów spotkanie</a>
+            </div>
+          </div>
+
+          <aside class="plate reveal">
+            <ul class="plate__cities">
+              <li>Gdańsk</li>
+              <li>Gdynia</li>
+              <li>Sopot</li>
+            </ul>
+            <p>
+              Pracujemy na miejscu. Spotykamy się u Ciebie, a zdjęcia i filmy nagrywamy w Twoim
+              lokalu — nie w studiu i nie ze zdjęć z internetu.
+            </p>
+          </aside>
+        </div>
+      </section>
+
+      <section class="services" id="uslugi">
+        <div class="wrap">
+          <div class="section-head">
+            <h2>Co bierzemy na siebie</h2>
+            <p>
+              Każdą usługę można zamówić osobno. Zwykle zaczynamy od jednej rzeczy, która przynosi
+              klientów najszybciej, i dopiero potem dokładamy kolejne.
+            </p>
+          </div>
+
+          <div class="services__list">
+            <details class="svc" open>
+              <summary>Social media i treści</summary>
+              <div class="svc__body">
+                <p>
+                  Prowadzimy profile, planujemy publikacje i nagrywamy materiał u Ciebie. Montaż,
+                  grafiki i teksty są po naszej stronie — Ty zatwierdzasz gotowe posty.
+                </p>
+                <ul>
+                  <li>Instagram, Facebook, TikTok</li>
+                  <li>zdjęcia i filmy na miejscu</li>
+                  <li>Reels i Shorts</li>
+                  <li>plan publikacji</li>
+                  <li>odpowiedzi na wiadomości</li>
+                </ul>
+              </div>
+            </details>
+
+            <details class="svc">
+              <summary>Reklama w Meta i Google</summary>
+              <div class="svc__body">
+                <p>
+                  Zakładamy konta reklamowe, podłączamy pomiar konwersji, przygotowujemy kreacje i
+                  prowadzimy kampanie. Raz w miesiącu pokazujemy, ile kosztuje jedno zapytanie i
+                  jedna sprzedaż. Budżet reklamowy płacisz bezpośrednio platformie — nasza praca
+                  jest wyceniona osobno.
+                </p>
+                <ul>
+                  <li>Meta Ads</li>
+                  <li>Google Search</li>
+                  <li>Performance Max</li>
+                  <li>remarketing</li>
+                  <li>pomiar konwersji</li>
+                  <li>testy A/B</li>
+                </ul>
+              </div>
+            </details>
+
+            <details class="svc">
+              <summary>Strony, sklepy i rezerwacje</summary>
+              <div class="svc__body">
+                <p>
+                  Strony wizytówki, strony usługowe, sklepy i rezerwacje online. Szybkie, czytelne
+                  na telefonie, widoczne w Google — z formularzem, którego zgłoszenia trafiają tam,
+                  gdzie naprawdę pracujesz.
+                </p>
+                <ul>
+                  <li>landing page</li>
+                  <li>strona firmowa</li>
+                  <li>sklep</li>
+                  <li>rezerwacje online</li>
+                  <li>Google Business Profile</li>
+                  <li>lokalne SEO</li>
+                </ul>
+              </div>
+            </details>
+
+            <details class="svc">
+              <summary>Narzędzia, których nie ma w gotowych programach</summary>
+              <div class="svc__body">
+                <p>
+                  Budujemy własne oprogramowanie dla firmy: obsługę zgłoszeń, kartotekę klientów,
+                  grafiki pracy, automatyczne powiadomienia, dokumenty generowane jednym
+                  kliknięciem. Zaczynamy od sprawdzenia, czy problemu nie rozwiąże szybciej i taniej
+                  gotowe narzędzie.
+                </p>
+                <ul>
+                  <li>CRM</li>
+                  <li>obsługa zapytań</li>
+                  <li>umowy i oferty</li>
+                  <li>grafik pracy</li>
+                  <li>powiadomienia</li>
+                  <li>integracje</li>
+                </ul>
+              </div>
+            </details>
+          </div>
+        </div>
+      </section>
+
+      <section class="process" id="jak-pracujemy">
+        <div class="wrap">
+          <div class="section-head">
+            <h2>Jak to wygląda</h2>
+            <p>Trzy kroki. Pierwsze dwa nic nie kosztują.</p>
+          </div>
+          <div class="steps">
+            <article class="step">
+              <h3>Rozmowa</h3>
+              <p>
+                Pół godziny przez telefon albo u Ciebie. Pytamy, skąd dziś przychodzą klienci, co
+                się zacina i czego próbowałeś wcześniej.
+              </p>
+            </article>
+            <article class="step">
+              <h3>Plan i wycena</h3>
+              <p>
+                Dostajesz na piśmie zakres pracy, termin i cenę. Widzisz, co dokładnie robimy w
+                danym miesiącu i z czego możesz zrezygnować.
+              </p>
+            </article>
+            <article class="step">
+              <h3>Robota</h3>
+              <p>
+                Nagrywamy, publikujemy, uruchamiamy kampanie i poprawiamy to, co nie działa. Na
+                koniec miesiąca dostajesz liczby i wnioski, nie zrzuty ekranu.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="reasons">
+        <div class="wrap">
+          <div class="section-head">
+            <h2>Dlaczego warto z nami pogadać</h2>
+          </div>
+          <dl>
+            <div>
+              <dt>Jesteśmy stąd</dt>
+              <dd>
+                Przyjeżdżamy, siadamy i oglądamy lokal. Dzięki temu materiał wygląda jak Twoja
+                firma, a nie jak zdjęcia ze stocku.
+              </dd>
+            </div>
+            <div>
+              <dt>Marketing i technologia razem</dt>
+              <dd>
+                Reklama, strona i wewnętrzne narzędzia robi ten sam zespół, więc nic nie ginie
+                między dwiema firmami, które się nie dogadują.
+              </dd>
+            </div>
+            <div>
+              <dt>Liczby, nie wrażenia</dt>
+              <dd>
+                Mówimy, ile kosztuje jedno zapytanie i co z tego zostaje po kosztach. Jeśli coś się
+                nie opłaca, powiemy wprost.
+              </dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+
+      <section class="contact" id="kontakt">
+        <div class="wrap contact__grid">
+          <div class="contact__aside">
+            <h2>Umówmy rozmowę</h2>
+            <p>
+              Napisz w dwóch zdaniach, czym się zajmujesz i co chcesz poprawić. Odpowiadamy tego
+              samego dnia roboczego i proponujemy termin — telefonicznie albo u Ciebie na miejscu.
+            </p>
+            <a class="contact__phone" href="tel:+48000000000" data-phone-link>+48 000 000 000</a>
+            <p>Gdańsk, Gdynia, Sopot i okolice.</p>
+          </div>
+
+          <form id="lead-form" novalidate>
+            <div class="field--pair">
+              <label class="field">
+                <span>Imię</span>
+                <input name="name" type="text" autocomplete="name" required />
+              </label>
+              <label class="field">
+                <span>Telefon</span>
+                <input name="phone" type="tel" autocomplete="tel" required />
+              </label>
+            </div>
+            <div class="field--pair">
+              <label class="field">
+                <span>Firma</span>
+                <input name="company" type="text" autocomplete="organization" />
+              </label>
+              <label class="field">
+                <span>Co Cię interesuje</span>
+                <select name="service">
+                  <option>Social media i treści</option>
+                  <option>Reklama Meta i Google</option>
+                  <option>Strona lub sklep</option>
+                  <option>Narzędzia dla firmy</option>
+                  <option>Jeszcze nie wiem</option>
+                </select>
+              </label>
+            </div>
+            <label class="field">
+              <span>Krótko o firmie i o tym, co chcesz poprawić</span>
+              <textarea name="message" rows="4"></textarea>
+            </label>
+            <label class="consent">
+              <input name="privacy_consent" type="checkbox" value="1" required />
+              <span>
+                Zgadzam się na kontakt w sprawie mojego zapytania i na przetwarzanie podanych danych
+                w tym celu.
+              </span>
+            </label>
+            <div class="hp" aria-hidden="true">
+              <label>Nie wypełniaj <input name="website_url" type="text" tabindex="-1" /></label>
+            </div>
+            <button class="btn btn--primary" type="submit">Wyślij zgłoszenie</button>
+            <p class="form-note" id="form-note" role="status" aria-live="polite"></p>
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="wrap">
+        <span>OWO Ads — Gdańsk, Gdynia, Sopot</span>
+        <span><a href="#kontakt">Kontakt</a></span>
+      </div>
+    </footer>
+
+    <script>
+      /* ---------------------------------------------------------------
+         Dwa miejsca do uzupełnienia:
+         PHONE       — numer telefonu agencji (podmienia wszystkie linki)
+         INTAKE_URL  — adres formularza z CRM:
+                       Ustawienia → Źródła leadów → nowy kanał → skopiuj URL.
+                       Puste = formularz otwiera program pocztowy.
+         --------------------------------------------------------------- */
+      const PHONE = "+48 000 000 000";
+      const INTAKE_URL = "";
+      const EMAIL = "kontakt@owoads.pl";
+
+      const telHref = "tel:" + PHONE.replace(/[^+\d]/g, "");
+      document.querySelectorAll("[data-phone-link]").forEach((el) => {
+        el.href = telHref;
+        if (el.classList.contains("contact__phone")) el.textContent = PHONE;
+      });
+
+      const form = document.getElementById("lead-form");
+      const note = document.getElementById("form-note");
+
+      function say(text, state) {
+        note.textContent = text;
+        if (state) note.dataset.state = state;
+        else delete note.dataset.state;
+      }
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const data = new FormData(form);
+
+        if (!String(data.get("name") || "").trim() || !String(data.get("phone") || "").trim()) {
+          say("Podaj imię i numer telefonu.", "error");
+          return;
+        }
+        if (!data.get("privacy_consent")) {
+          say("Potrzebujemy zgody na kontakt.", "error");
+          return;
+        }
+
+        const button = form.querySelector("button[type=submit]");
+
+        if (!INTAKE_URL) {
+          const lines = [
+            "Imię: " + data.get("name"),
+            "Telefon: " + data.get("phone"),
+            "Firma: " + (data.get("company") || "—"),
+            "Usługa: " + data.get("service"),
+            "",
+            data.get("message") || "",
+          ];
+          window.location.href =
+            "mailto:" +
+            EMAIL +
+            "?subject=" +
+            encodeURIComponent("Zapytanie ze strony — " + data.get("name")) +
+            "&body=" +
+            encodeURIComponent(lines.join("\n"));
+          say("Otwieramy Twój program pocztowy.");
+          return;
+        }
+
+        button.disabled = true;
+        say("Wysyłamy…");
+        try {
+          const response = await fetch(INTAKE_URL, { method: "POST", body: data });
+          if (!response.ok) throw new Error(String(response.status));
+          form.reset();
+          say("Dzięki, mamy zgłoszenie. Oddzwonimy w godzinach pracy.");
+        } catch {
+          say("Nie udało się wysłać. Zadzwoń: " + PHONE, "error");
+        } finally {
+          button.disabled = false;
+        }
+      });
+    </script>
+  </body>
+</html>
