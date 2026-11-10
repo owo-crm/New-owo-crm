@@ -17,12 +17,13 @@
       "forgot": "Nie pamiętasz hasła?",
       "noAccount": "Nie masz konta?",
       "toRegister": "Załóż konto",
-      "invalid": "Nieprawidłowy e-mail lub hasło.",
-      "notConfirmed": "Potwierdź adres e-mail — wysłaliśmy link na Twoją skrzynkę."
+      "invalid": "Nieprawidłowy login lub hasło.",
+      "notConfirmed": "Potwierdź adres e-mail — wysłaliśmy link na Twoją skrzynkę.",
+      "identifier": "Login lub e-mail"
     },
     "register": {
       "title": "Załóż konto",
-      "subtitle": "14 dni za darmo. Bez karty.",
+      "subtitle": "Login i hasło — e-mail nie jest potrzebny.",
       "fullName": "Imię i nazwisko",
       "passwordHint": "Minimum 10 znaków.",
       "terms": "Akceptuję regulamin i politykę prywatności oraz umowę powierzenia przetwarzania danych.",
@@ -31,7 +32,9 @@
       "toLogin": "Zaloguj się",
       "checkEmail": "Gotowe! Sprawdź skrzynkę i kliknij link, aby potwierdzić adres e-mail.",
       "alreadyRegistered": "Konto z tym adresem już istnieje. Zaloguj się lub zresetuj hasło.",
-      "closed": "Rejestracja jest zamknięta. Konto zakłada Twój opiekun z OWO Ads."
+      "closed": "Rejestracja jest zamknięta. Konto zakłada Twój opiekun z OWO Ads.",
+      "login": "Login",
+      "loginHint": "3–32 znaki: litery, cyfry, kropka, myślnik. Możesz też podać e-mail."
     },
     "reset": {
       "title": "Reset hasła",
@@ -52,7 +55,8 @@
       "passwordShort": "Hasło musi mieć co najmniej 10 znaków.",
       "passwordRequired": "Podaj hasło.",
       "nameRequired": "Podaj imię i nazwisko.",
-      "termsRequired": "Aby założyć konto, zaakceptuj warunki."
+      "termsRequired": "Aby założyć konto, zaakceptuj warunki.",
+      "loginInvalid": "Login: 3–32 znaki (a–z, 0–9, . _ -) albo poprawny e-mail."
     }
   },
   "onboarding": {

@@ -29,6 +29,11 @@ export default defineConfig({
     url: "http://localhost:3200/api/health",
     reuseExistingServer: !process.env.CI,
     timeout: 240_000,
-    env: { INTAKE_IP_SALT: "e2e-salt", NOTIFICATION_WORKER: "off", REGISTRATION_OPEN: "true" },
+    env: {
+      INTAKE_IP_SALT: "e2e-salt",
+      NOTIFICATION_WORKER: "off",
+      REGISTRATION_OPEN: "true",
+      DEFAULT_DOCUMENT_ENGINE: "barowo",
+    },
   },
 });

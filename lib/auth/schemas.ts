@@ -10,8 +10,17 @@ const email = z
   .toLowerCase()
   .pipe(z.email({ error: t("auth.validation.emailInvalid") }));
 
+/** Логин: имя пользователя (a–z, 0–9, . _ -) или e-mail. Хранится в auth.users.email. */
+const login = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .refine((v) => /^[a-z0-9._-]{3,32}$/.test(v) || z.email().safeParse(v).success, {
+    error: t("auth.validation.loginInvalid"),
+  });
+
 export const signInSchema = z.object({
-  email,
+  email: login,
   password: z.string().min(1, { error: t("auth.validation.passwordRequired") }),
   next: z.string().optional(),
 });
@@ -24,12 +33,7 @@ export const newPasswordSchema = z.object({
 });
 
 export const signUpSchema = z.object({
-  fullName: z
-    .string()
-    .trim()
-    .min(2, { error: t("auth.validation.nameRequired") })
-    .max(120),
-  email,
+  email: login,
   password: newPasswordSchema.shape.password,
   terms: z.literal("on", { error: t("auth.validation.termsRequired") }),
 });

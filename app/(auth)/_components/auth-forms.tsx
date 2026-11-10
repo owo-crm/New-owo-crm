@@ -23,11 +23,10 @@ export function SignInForm({ next, canRegister }: { next?: string; canRegister: 
       {next ? <input type="hidden" name="next" value={next} /> : null}
       {state.message ? <Notice tone="error">{state.message}</Notice> : null}
       <Field
-        label={t("common.email")}
+        label={t("auth.login.identifier")}
         name="email"
-        type="email"
-        autoComplete="email"
-        inputMode="email"
+        autoComplete="username"
+        autoCapitalize="none"
         defaultValue={state.email}
         error={state.errors?.email}
         required
@@ -68,18 +67,11 @@ export function SignUpForm() {
     <form action={action} className="grid gap-5" noValidate>
       {state.message ? <Notice tone="error">{state.message}</Notice> : null}
       <Field
-        label={t("auth.register.fullName")}
-        name="fullName"
-        autoComplete="name"
-        error={state.errors?.fullName}
-        required
-      />
-      <Field
-        label={t("common.email")}
+        label={t("auth.register.login")}
         name="email"
-        type="email"
-        autoComplete="email"
-        inputMode="email"
+        autoComplete="username"
+        autoCapitalize="none"
+        hint={t("auth.register.loginHint")}
         defaultValue={state.email}
         error={state.errors?.email}
         required

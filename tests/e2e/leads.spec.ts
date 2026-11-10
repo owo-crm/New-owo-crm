@@ -24,10 +24,10 @@ test("заявка с сайта → вход → лид в списке, пов
   }
 
   await page.goto("/logowanie");
-  await page.getByLabel("E-mail").fill("e2e@owo.test");
+  await page.getByLabel("Login lub e-mail").fill("e2e@owo.test");
   await page.getByLabel("Hasło").fill("zle-haslo-123");
   await page.getByRole("button", { name: "Zaloguj się" }).click();
-  await expect(page.getByText("Nieprawidłowy e-mail lub hasło.")).toBeVisible();
+  await expect(page.getByText("Nieprawidłowy login lub hasło.")).toBeVisible();
   await page.getByLabel("Hasło").fill("e2e-haslo-123");
   await page.getByRole("button", { name: "Zaloguj się" }).click();
   await expect(page).toHaveURL(/\/dzisiaj/);

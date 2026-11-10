@@ -35,15 +35,20 @@ describe("схемы форм", () => {
   });
 
   it("регистрация: польские ошибки по каждому полю", () => {
-    const res = signUpSchema.safeParse({ fullName: "", email: "zly", password: "krotkie" });
+    const res = signUpSchema.safeParse({ email: "a b", password: "krotkie" });
     expect(res.success).toBe(false);
     if (!res.success) {
       const errors = fieldErrors(res.error);
-      expect(errors.fullName).toBe(t("auth.validation.nameRequired"));
-      expect(errors.email).toBe(t("auth.validation.emailInvalid"));
+      expect(errors.email).toBe(t("auth.validation.loginInvalid"));
       expect(errors.password).toBe(t("auth.validation.passwordShort"));
       expect(errors.terms).toBe(t("auth.validation.termsRequired"));
     }
+  });
+
+  it("login: nazwa użytkownika albo e-mail", () => {
+    expect(signInSchema.parse({ email: " Ivan.Barowo ", password: "x" }).email).toBe("ivan.barowo");
+    expect(signInSchema.safeParse({ email: "iv", password: "x" }).success).toBe(false);
+    expect(signInSchema.safeParse({ email: "ivan@barowo.com", password: "x" }).success).toBe(true);
   });
 
   it("регистрация: корректные данные проходят", () => {

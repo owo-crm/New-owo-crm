@@ -17,7 +17,7 @@ test("oferta → menu → umowa: PDF + Word, dane wracają do karty, etap rośni
     headers: ip(),
   });
   await page.goto("/logowanie");
-  await page.getByLabel("E-mail").fill("e2e@owo.test");
+  await page.getByLabel("Login lub e-mail").fill("e2e@owo.test");
   await page.getByLabel("Hasło").fill("e2e-haslo-123");
   await page.getByRole("button", { name: "Zaloguj się" }).click();
   await expect(page).toHaveURL(/\/dzisiaj/);

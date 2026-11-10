@@ -44,7 +44,7 @@ export function createDeliverySender(db: Queryable, config: DeliveryConfig): Del
         "select email from auth.users where id=$1",
         [delivery.user_id],
       );
-      if (!recipient?.email) return "skipped";
+      if (!recipient?.email || !recipient.email.includes("@")) return "skipped"; // login bez e-maila
       await paceEmail();
       await sendEmailLead({
         lead,

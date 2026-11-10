@@ -31,6 +31,12 @@ export async function createOrganization(
       ]),
     );
     orgId = row!.id;
+    // Пока регистрация открыта для Barowo: новая фирма сразу получает генератор документов.
+    if (process.env.DEFAULT_DOCUMENT_ENGINE)
+      await getDb().query(
+        "update public.organizations set document_engine=$1 where id=$2 and document_engine is null",
+        [process.env.DEFAULT_DOCUMENT_ENGINE, orgId],
+      );
   } catch (error) {
     console.error("[org] create", (error as Error).message);
     return { message: t("common.unknownError"), name };

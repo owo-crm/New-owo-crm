@@ -67,7 +67,7 @@ export async function signUp(_prev: FormState, formData: FormData): Promise<Form
   if (!parsed.success) return { errors: fieldErrors(parsed.error), email };
 
   try {
-    const userId = await createUser(getDb(), parsed.data);
+    const userId = await createUser(getDb(), { ...parsed.data, fullName: parsed.data.email });
     await startSession(userId);
   } catch (error) {
     if (error instanceof EmailTakenError)
