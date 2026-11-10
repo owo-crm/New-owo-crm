@@ -149,3 +149,37 @@ describe("konta i sesje", () => {
     await fresh.close();
   });
 });
+
+describe("bootstrap pierwszego administratora", () => {
+  it("tworzy admina i firmę Barowo tylko w pustej bazie", async () => {
+    const { PGlite } = await import("@electric-sql/pglite");
+    const { bootstrapAdmin } = await import("@/lib/db/bootstrap");
+    const fresh = new PGlite();
+    const wrap = (q: { query: PGlite["query"]; exec: PGlite["exec"] }) => ({
+      query: (s: string, p?: unknown[]) => q.query(s, p) as never,
+      exec: (s: string) => q.exec(s),
+    });
+    const clean: Database = {
+      ...wrap(fresh),
+      transaction: (fn) => fresh.transaction((tx) => fn(wrap(tx as never))),
+    };
+    await migrate(clean, path.resolve(__dirname, "../../db/migrations"));
+    const env = {
+      BOOTSTRAP_ADMIN_EMAIL: "Ivan@Barowo.com",
+      BOOTSTRAP_ADMIN_PASSWORD: "dlugie-haslo-1",
+      BOOTSTRAP_ORG_EMAIL: "barowo.pl@gmail.com",
+    };
+    await expect(
+      bootstrapAdmin(clean, { ...env, BOOTSTRAP_ADMIN_PASSWORD: "krotkie" }, () => {}),
+    ).rejects.toThrow(/10 znaków/);
+    const first = await bootstrapAdmin(clean, env, () => {});
+    expect(first?.org).toBeTruthy();
+    expect(await bootstrapAdmin(clean, env, () => {})).toBeNull();
+    const org = await clean.query<{ document_engine: string; slug: string }>(
+      "select document_engine, slug from public.organizations",
+    );
+    expect(org.rows).toEqual([{ document_engine: "barowo", slug: "barowo" }]);
+    expect(await authenticate(clean, "ivan@barowo.com", "dlugie-haslo-1")).toBe(first?.userId);
+    await fresh.close();
+  });
+});

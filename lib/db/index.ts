@@ -16,8 +16,9 @@ export function getPool() {
       connectionString,
       max: Number(process.env.DATABASE_POOL_SIZE ?? 10),
       ssl: process.env.DATABASE_SSL === "true" ? { rejectUnauthorized: false } : undefined,
+      // Часовой пояс сессии задаётся при подключении (без лишнего запроса).
+      options: "-c timezone=UTC",
     });
-    pool.on("connect", (client) => void client.query("set timezone to 'UTC'"));
     globalForDb.__owoPool = pool;
   }
   return globalForDb.__owoPool;
