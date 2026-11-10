@@ -4,6 +4,7 @@ const PUBLIC_PREFIXES = [
   "/rejestracja",
   "/reset-hasla",
   "/nowe-haslo",
+  "/zaproszenie",
   "/o/",
   "/api/",
   "/sw.js",

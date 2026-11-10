@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { cookies } from "next/headers";
 import "./globals.css";
 import { clash, satoshi } from "./fonts";
 import { t } from "@/lib/i18n";
@@ -13,13 +14,23 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#111315",
-  colorScheme: "dark",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f5f4f1" },
+    { media: "(prefers-color-scheme: dark)", color: "#111315" },
+  ],
+  colorScheme: "light dark",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  // Тема: cookie owo_theme = light | dark; без cookie — как в системе.
+  const stored = (await cookies()).get("owo_theme")?.value;
+  const theme = stored === "light" || stored === "dark" ? stored : undefined;
   return (
-    <html lang="pl" className={`${clash.variable} ${satoshi.variable} h-full antialiased`}>
+    <html
+      lang="pl"
+      data-theme={theme}
+      className={`${clash.variable} ${satoshi.variable} h-full antialiased`}
+    >
       <body className="min-h-full">{children}</body>
     </html>
   );

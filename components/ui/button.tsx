@@ -6,14 +6,14 @@ export const buttonVariants = cva(
   {
     variants: {
       variant: {
-        primary: "bg-ink text-bg hover:bg-white",
+        primary: "bg-ink text-bg hover:opacity-85",
         secondary: "border-[1.5px] border-line-strong text-ink hover:border-ink-soft",
         ghost: "text-ink-soft hover:bg-surface-2 hover:text-ink",
         brand: "bg-brand text-white hover:brightness-110",
         urgent: "bg-urgent text-white hover:brightness-110",
       },
       size: {
-        md: "h-11 px-4 text-[15px]",
+        md: "h-10 px-4 text-sm",
         lg: "h-12 px-5 text-base",
         sm: "h-9 px-3 text-sm",
         icon: "size-11",

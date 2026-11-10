@@ -2,7 +2,7 @@ import { useId } from "react";
 import { cn } from "@/lib/utils";
 
 const inputClass =
-  "h-12 w-full rounded-[10px] border-[1.5px] border-line-strong bg-surface-2 px-3.5 text-base text-ink placeholder:text-ink-faint transition-colors hover:border-ink-soft focus:border-ink focus:outline-none aria-invalid:border-urgent";
+  "h-10 w-full rounded-[10px] border border-line-strong bg-surface px-3 text-sm text-ink placeholder:text-ink-faint transition-colors hover:border-ink-soft focus:border-ink focus:outline-none aria-invalid:border-urgent";
 
 type FieldProps = React.ComponentProps<"input"> & {
   label: string;

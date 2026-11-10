@@ -70,7 +70,7 @@ export function NewLeadForm() {
             rows={4}
             maxLength={10000}
             disabled={pending}
-            className="border-line-strong bg-surface-2 rounded-[10px] border p-3 text-base font-normal"
+            className="border-line-strong bg-surface rounded-[10px] border p-3 text-sm font-normal"
           />
         </label>
         <Button disabled={pending} type="submit">

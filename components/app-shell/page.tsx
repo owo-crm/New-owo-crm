@@ -10,13 +10,13 @@ export function PageHeader({
   aside?: React.ReactNode;
 }) {
   return (
-    <header className="mb-6 flex flex-wrap items-end justify-between gap-x-8 gap-y-4 lg:mb-7">
+    <header className="mb-5 flex flex-wrap items-end justify-between gap-x-8 gap-y-3">
       <div className="max-w-full min-w-0">
-        <h1 className="font-display text-[clamp(2.1rem,4.5vw,2.75rem)] leading-none font-semibold tracking-[-0.01em] break-words">
+        <h1 className="font-display text-[clamp(1.6rem,3vw,2rem)] leading-tight font-semibold tracking-[-0.01em] break-words">
           {title}
         </h1>
         {subtitle ? (
-          <p className="text-ink-soft mt-2.5 max-w-[40rem] text-base">{subtitle}</p>
+          <p className="text-ink-soft mt-1.5 max-w-[44rem] text-[15px]">{subtitle}</p>
         ) : null}
       </div>
       {aside}
@@ -55,9 +55,9 @@ export function Card({
 }) {
   return (
     <section
-      className={cn("border-line bg-surface rounded-[22px] border px-5 py-5 sm:px-6", className)}
+      className={cn("border-line bg-surface card-shadow rounded-2xl border px-5 py-5", className)}
     >
-      {title ? <h2 className="font-display mb-2 text-xl font-medium">{title}</h2> : null}
+      {title ? <h2 className="mb-3 text-[15px] font-bold">{title}</h2> : null}
       {children}
     </section>
   );

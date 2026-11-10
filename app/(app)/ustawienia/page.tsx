@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { Bell, Building2, FileStack, LogOut, PlugZap, Users } from "lucide-react";
+import { Bell, Building2, FileStack, LogOut, PlugZap, Users, Upload } from "lucide-react";
 import { PageHeader } from "@/components/app-shell/page";
 import { Button } from "@/components/ui/button";
 import { requireOrganization } from "@/lib/auth/session";
@@ -19,7 +19,15 @@ const SECTIONS: {
   { title: "settings.channels", text: "settings.channelsText", icon: PlugZap },
   { title: "settings.notifications", text: "settings.notificationsText", icon: Bell },
   { title: "settings.team", text: "settings.teamText", icon: Users },
+  { title: "settings.import", text: "settings.importText", icon: Upload },
 ];
+
+const LINKS: Partial<Record<string, string>> = {
+  "settings.notifications": "/ustawienia/powiadomienia",
+  "settings.channels": "/ustawienia/zrodla",
+  "settings.team": "/ustawienia/zespol",
+  "settings.import": "/ustawienia/import",
+};
 
 export default async function SettingsPage() {
   const { user } = await requireOrganization();
@@ -34,12 +42,10 @@ export default async function SettingsPage() {
               <p className="font-semibold">{t(title)}</p>
               <p className="text-ink-soft text-sm">{t(text)}</p>
             </div>
-            {title === "settings.notifications" || title === "settings.channels" ? (
+            {LINKS[title] ? (
               <Link
-                href={
-                  title === "settings.channels" ? "/ustawienia/zrodla" : "/ustawienia/powiadomienia"
-                }
-                className="inline-flex min-h-11 items-center underline"
+                href={LINKS[title]!}
+                className="text-ink-soft hover:text-ink inline-flex min-h-11 items-center text-sm font-bold"
               >
                 {t("leads.open")}
               </Link>

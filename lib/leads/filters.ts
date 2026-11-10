@@ -14,6 +14,8 @@ export const leadFiltersSchema = z.object({
   from: z.iso.date().optional().catch(undefined),
   to: z.iso.date().optional().catch(undefined),
   view: z.enum(["list", "board"]).catch("list"),
+  /** Быстрый фильтр: ждут ответа / мои / этот месяц. */
+  quick: z.enum(["waiting", "mine", "month"]).optional().catch(undefined),
   page: z.coerce.number().int().min(1).max(10000).catch(1),
 });
 export type LeadFilters = z.infer<typeof leadFiltersSchema>;
@@ -23,6 +25,13 @@ export function parseLeadFilters(params: Record<string, string | string[] | unde
       Object.entries(params).map(([key, value]) => [key, Array.isArray(value) ? value[0] : value]),
     ),
   );
+}
+/** Адрес списка с изменёнными фильтрами (страница сбрасывается). */
+export function leadFilterUrl(filters: LeadFilters, patch: Partial<LeadFilters>) {
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries({ ...filters, ...patch, page: 1 }))
+    if (value && key !== "page") params.set(key, String(value));
+  return `/leady${params.size ? `?${params}` : ""}`;
 }
 export function leadPageUrl(filters: LeadFilters, page: number) {
   const params = new URLSearchParams();

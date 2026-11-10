@@ -28,26 +28,39 @@ export const getLeadOptions = cache(() =>
   }),
 );
 export function getLeads(filters: LeadFilters) {
-  return withOrg(async (tx, { organization }) => {
+  return withOrg(async (tx, { user, organization }) => {
+    const month = filters.quick === "month";
     const args = [
       organization.id,
       filters.q,
       filters.stage ?? null,
       filters.source ?? null,
-      filters.assigned ?? null,
+      filters.quick === "mine" ? user.id : (filters.assigned ?? null),
       filters.from ?? null,
       filters.to ?? null,
     ];
+    // «Ждут ответа» и «этот месяц» — надстройка над общим поиском.
+    const extra = [
+      filters.quick === "waiting"
+        ? "first_response_at is null and stage_key in (select key from public.pipeline_stages where organization_id = $1 and kind = 'open')"
+        : null,
+      month
+        ? "created_at >= date_trunc('month', now() at time zone 'Europe/Warsaw') at time zone 'Europe/Warsaw'"
+        : null,
+    ]
+      .filter(Boolean)
+      .join(" and ");
+    const where = extra ? `where ${extra}` : "";
     const { rows } = await tx.query<Lead & { total: number }>(
       `select ${COLUMNS}, count(*) over() as total
-       from public.search_leads($1,$2,$3,$4,$5,$6,$7) limit 50 offset $8`,
+       from public.search_leads($1,$2,$3,$4,$5,$6,$7) ${where} limit 50 offset $8`,
       [...args, (filters.page - 1) * 50],
     );
     let total = rows[0]?.total ?? 0;
     if (!rows.length && filters.page > 1) {
       total = (await one<{ n: number }>(
         tx,
-        "select count(*) as n from public.search_leads($1,$2,$3,$4,$5,$6,$7)",
+        `select count(*) as n from public.search_leads($1,$2,$3,$4,$5,$6,$7) ${where}`,
         args,
       ))!.n;
     }

@@ -59,6 +59,47 @@ export async function undoLead(id: string, eventId: string): Promise<LeadActionR
   refreshLead(id);
   return {};
 }
+/** «Skontaktowano»: отмечает первый ответ и двигает этап new → contacted. */
+export async function markContacted(id: string): Promise<LeadActionResult> {
+  if (!z.uuid().safeParse(id).success) return { error: t("leads.saveError") };
+  try {
+    await withOrg(async (tx, { organization, user }) => {
+      const lead = await one<{
+        updated_at: string;
+        stage_key: string;
+        first_response_at: string | null;
+      }>(
+        tx,
+        "select updated_at, stage_key, first_response_at from public.leads where organization_id=$1 and id=$2 and deleted_at is null",
+        [organization.id, id],
+      );
+      if (!lead) throw new Error("not_found");
+      if (lead.stage_key === "new")
+        await tx.query("select public.change_lead($1,$2,$3,$4)", [
+          organization.id,
+          id,
+          lead.updated_at,
+          { stage_key: "contacted" },
+        ]);
+      else if (!lead.first_response_at) {
+        await tx.query(
+          "update public.leads set first_response_at = now() where organization_id=$1 and id=$2",
+          [organization.id, id],
+        );
+        await tx.query(
+          "insert into public.lead_events (organization_id, lead_id, type, actor_user_id, payload) values ($1,$2,'contacted',$3,'{}')",
+          [organization.id, id, user.id],
+        );
+      }
+    });
+  } catch {
+    return { error: t("leads.saveError") };
+  }
+  revalidatePath("/", "layout");
+  revalidatePath(`/leady/${id}`);
+  return {};
+}
+
 export async function addLeadNote(id: string, text: string): Promise<LeadActionResult> {
   const note = z.string().trim().min(1).max(5000).safeParse(text);
   if (!z.uuid().safeParse(id).success || !note.success || !(await getLead(id)))

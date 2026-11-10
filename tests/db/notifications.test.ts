@@ -238,13 +238,13 @@ it("legacy RPC preserves original timestamps and edits, stays silent and forbids
   expect(
     (await db.query(`select id from public.notification_deliveries where lead_id=$1`, [id])).rows,
   ).toHaveLength(0);
-  const dashboard = await asUser(db, A, () =>
-    db.query<{ data: { waiting: { id: string }[] } }>(
-      `select public.lead_dashboard($1,2027) as data`,
-      [orgA],
-    ),
+  const queue = await asUser(db, A, () =>
+    db.query<{ data: { waiting: { id: string }[] } }>(`select public.work_queue($1,$2) as data`, [
+      orgA,
+      A,
+    ]),
   );
-  expect(dashboard.rows[0].data.waiting.some((row) => row.id === id)).toBe(false);
+  expect(queue.rows[0].data.waiting.some((row) => row.id === id)).toBe(false);
   await expect(
     asUser(db, A, () =>
       db.query(`select public.import_legacy_lead($1,$2,$3,$4,$5,$6,$7,$8)`, args),

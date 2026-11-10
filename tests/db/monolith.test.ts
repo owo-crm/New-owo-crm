@@ -144,7 +144,7 @@ describe("konta i sesje", () => {
         ),
     };
     const dir = path.resolve(__dirname, "../../db/migrations");
-    expect((await migrate(clean, dir)).length).toBe(16);
+    expect((await migrate(clean, dir)).length).toBe(18);
     expect(await migrate(clean, dir)).toEqual([]);
     await fresh.close();
   });
