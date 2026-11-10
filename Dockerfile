@@ -11,6 +11,9 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 FROM deps AS build
+# Railway передаёт переменные сервиса как build-args; NEXT_PUBLIC_* вшиваются в сборку.
+ARG NEXT_PUBLIC_SITE_URL NEXT_PUBLIC_PRODUCT_NAME NEXT_PUBLIC_VAPID_PUBLIC_KEY
+ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL NEXT_PUBLIC_PRODUCT_NAME=$NEXT_PUBLIC_PRODUCT_NAME NEXT_PUBLIC_VAPID_PUBLIC_KEY=$NEXT_PUBLIC_VAPID_PUBLIC_KEY
 COPY . .
 RUN npm run build && npm prune --omit=dev
 
