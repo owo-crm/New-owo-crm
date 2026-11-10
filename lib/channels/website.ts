@@ -5,7 +5,13 @@ export type WebsiteChannel = {
   id: string;
   organization_id: string;
   name: string;
-  config: { allowedOrigins?: string[] };
+  config: {
+    allowedOrigins?: string[];
+    /** Имя скрытого поля-ловушки на сайте клиента (по умолчанию "website"). */
+    honeypotField?: string;
+    /** Куда дублировать заявку (старая система на время перехода). */
+    forwardUrl?: string;
+  };
 };
 export type IntakeDependencies = {
   findChannel(key: string): Promise<WebsiteChannel | null>;
@@ -20,7 +26,11 @@ export type IntakeDependencies = {
   /** IP клиента от доверенного прокси (Railway: x-real-ip). */
   clientIp?: (request: Request) => string | null;
   now?: () => Date;
-  afterIngest?: (result: IngestResult, channel: WebsiteChannel) => Promise<void>;
+  afterIngest?: (
+    result: IngestResult,
+    channel: WebsiteChannel,
+    raw: Record<string, unknown>,
+  ) => Promise<void>;
   waitUntil?: (promise: Promise<unknown>) => void;
 };
 
@@ -42,8 +52,45 @@ const knownFields = new Set([
   "page_url",
   "referrer",
   "submission_id",
+  "privacy_consent",
+  "return_url",
 ]);
-export function adaptWebsite(value: Record<string, unknown>) {
+
+const PL_DATE = /^(\d{1,2})\.(\d{1,2})\.(\d{4})$/;
+
+/**
+ * Совместимость с реальными формами сайтов: дата «12.06.2027», гости «30–50 osób»,
+ * согласие privacy_consent. Заявка не должна теряться из-за формата — непонятное значение
+ * уходит в custom_fields как есть, а поле остаётся пустым.
+ */
+export function tolerantWebsiteFields(value: Record<string, unknown>) {
+  const out: Record<string, unknown> = { ...value };
+  const extra: Record<string, unknown> = {};
+  const date = typeof value.event_date === "string" ? value.event_date.trim() : "";
+  if (date) {
+    const m = date.match(PL_DATE);
+    const iso = m ? `${m[3]}-${m[2].padStart(2, "0")}-${m[1].padStart(2, "0")}` : date;
+    const ok = /^\d{4}-\d{2}-\d{2}$/.test(iso) && new Date(iso).toISOString().slice(0, 10) === iso;
+    if (ok) out.event_date = iso;
+    else {
+      extra.event_date_raw = date;
+      out.event_date = "";
+    }
+  }
+  const guests = typeof value.guests === "string" ? value.guests.trim() : value.guests;
+  if (typeof guests === "string" && guests && !/^\d+$/.test(guests)) {
+    const numbers =
+      guests
+        .match(/\d+/g)
+        ?.map(Number)
+        .filter((n) => n <= 100000) ?? [];
+    extra.guests_raw = guests;
+    out.guests = numbers.length ? String(Math.max(...numbers)) : "";
+  }
+  return { fields: out, extra };
+}
+export function adaptWebsite(input: Record<string, unknown>) {
+  const { fields: value, extra: tolerated } = tolerantWebsiteFields(input);
   const extra = Object.fromEntries(
     Object.entries(value).filter(([key]) => !knownFields.has(key) && !key.startsWith("utm_")),
   );
@@ -55,7 +102,7 @@ export function adaptWebsite(value: Record<string, unknown>) {
   );
   return {
     ...value,
-    custom_fields: { ...extra, ...custom },
+    custom_fields: { ...extra, ...tolerated, ...custom },
     utm: { ...utm, ...z.record(z.string(), z.string()).parse(value.utm ?? {}) },
   };
 }
@@ -155,8 +202,11 @@ export function createIntakeHandler(deps: IntakeDependencies) {
           "invalid_body",
         );
       }
-      if (typeof body.website === "string" && body.website.trim()) return finish(200, "honeypot");
-      if (![true, "true", "on", "1"].includes(body.consent as string | boolean))
+      const trap = body[channel.config.honeypotField ?? "website"];
+      if (typeof trap === "string" && trap.trim()) return finish(200, "honeypot");
+      if (channel.config.honeypotField) delete body[channel.config.honeypotField];
+      const consent = body.consent ?? body.privacy_consent;
+      if (![true, "true", "on", "1", "yes", "tak"].includes(consent as string | boolean))
         return finish(422, "consent_required");
       const rawSubmission = request.headers.get("idempotency-key") ?? body.submission_id;
       const submissionId =
@@ -183,11 +233,24 @@ export function createIntakeHandler(deps: IntakeDependencies) {
       }
       await deps.finishAttempt(attempt.id, true, null);
       if (deps.afterIngest) {
-        const task = deps.afterIngest(result, channel).catch(() => {
+        const task = deps.afterIngest(result, channel, body).catch(() => {
           /* Delivery retry is owned by the notification queue. */
         });
         if (deps.waitUntil) deps.waitUntil(task);
         else await task;
+      }
+      const back = typeof body.return_url === "string" ? body.return_url : "";
+      if (back && !(request.headers.get("accept") ?? "").includes("json")) {
+        try {
+          const url = new URL(back);
+          if ((channel.config.allowedOrigins ?? []).includes(url.origin))
+            return new Response(null, {
+              status: 303,
+              headers: { ...headers, Location: url.toString() },
+            });
+        } catch {
+          /* niepoprawny adres — zwykła odpowiedź JSON */
+        }
       }
       return reply(200);
     } catch {

@@ -138,3 +138,64 @@ describe("website intake", () => {
     expect(deps.hashIp).toHaveBeenCalledWith("203.0.113.1");
   });
 });
+
+describe("formularze barowo.com (zgodność)", () => {
+  function siteRequest(fields: Record<string, string>, accept = "application/json") {
+    return new Request(`https://crm.test/api/intake/${KEY}`, {
+      method: "POST",
+      headers: {
+        origin: "https://example.com",
+        accept,
+        "content-type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams(fields).toString(),
+    });
+  }
+  const site = {
+    name: "Anna Nowak",
+    phone: "500 100 200",
+    event_date: "12.06.2027",
+    guests: "50–100 osób",
+    privacy_consent: "on",
+    company: "",
+    package: "Premium",
+    return_url: "https://example.com/dziekujemy",
+  };
+  const barowoChannel = {
+    ...channel,
+    config: { allowedOrigins: ["https://example.com"], honeypotField: "company" },
+  };
+
+  it("privacy_consent, data dd.mm.rrrr, goście z zakresu, pola dodatkowe zachowane", async () => {
+    const { handler, saveLead } = setup({ findChannel: vi.fn().mockResolvedValue(barowoChannel) });
+    expect((await handler(siteRequest(site))).status).toBe(200);
+    const lead = saveLead.mock.calls[0][1];
+    expect(lead.event_date).toBe("2027-06-12");
+    expect(lead.guests).toBe(100);
+    expect(lead.custom_fields).toMatchObject({ guests_raw: "50–100 osób", package: "Premium" });
+    expect(lead.custom_fields).not.toHaveProperty("company");
+  });
+  it("nieczytelna data nie blokuje zgłoszenia", async () => {
+    const { handler, saveLead } = setup({ findChannel: vi.fn().mockResolvedValue(barowoChannel) });
+    expect((await handler(siteRequest({ ...site, event_date: "czerwiec 2027" }))).status).toBe(200);
+    expect(saveLead.mock.calls[0][1]).toMatchObject({
+      event_date: null,
+      custom_fields: { event_date_raw: "czerwiec 2027" },
+    });
+  });
+  it("pułapka company zatrzymuje boty", async () => {
+    const { handler, saveLead } = setup({ findChannel: vi.fn().mockResolvedValue(barowoChannel) });
+    expect((await handler(siteRequest({ ...site, company: "spam sp. z o.o." }))).status).toBe(200);
+    expect(saveLead).not.toHaveBeenCalled();
+  });
+  it("formularz bez JS: przekierowanie na return_url tylko w obrębie dozwolonej domeny", async () => {
+    const { handler } = setup({ findChannel: vi.fn().mockResolvedValue(barowoChannel) });
+    const ok = await handler(siteRequest(site, "text/html"));
+    expect(ok.status).toBe(303);
+    expect(ok.headers.get("location")).toBe("https://example.com/dziekujemy");
+    const evil = await setup({ findChannel: vi.fn().mockResolvedValue(barowoChannel) }).handler(
+      siteRequest({ ...site, return_url: "https://evil.example/x" }, "text/html"),
+    );
+    expect(evil.status).toBe(200);
+  });
+});

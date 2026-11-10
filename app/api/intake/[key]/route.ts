@@ -8,6 +8,27 @@ import { kickNotifications } from "@/lib/notify/kick";
 // Публичный приём заявок с сайта: POST /api/intake/<public_key канала>.
 export const dynamic = "force-dynamic";
 
+/**
+ * Переходный период: копия заявки уходит и в старую систему (бот Barowo), чтобы обе работали
+ * параллельно. Включается полем forwardUrl в настройках канала, выключается удалением.
+ */
+async function forwardToLegacy(url: string | undefined, raw: Record<string, unknown>) {
+  if (!url || !/^https:\/\//.test(url)) return;
+  const body = new URLSearchParams();
+  for (const [k, v] of Object.entries(raw)) if (typeof v === "string") body.append(k, v);
+  try {
+    const res = await fetch(url + (url.includes("?") ? "&" : "?") + "format=json", {
+      method: "POST",
+      headers: { Accept: "application/json" },
+      body,
+      signal: AbortSignal.timeout(10_000),
+    });
+    if (!res.ok) console.error("[intake] forward", res.status);
+  } catch (error) {
+    console.error("[intake] forward", (error as Error).message);
+  }
+}
+
 function handler() {
   const db = getDb();
   const salt = process.env.INTAKE_IP_SALT;
@@ -37,7 +58,12 @@ function handler() {
     async finishAttempt(id, ok, error) {
       await db.query("update public.intake_log set ok=$1, error=$2 where id=$3", [ok, error, id]);
     },
-    afterIngest: async (result) => kickNotifications(result.id),
+    async afterIngest(result, channel, raw) {
+      await Promise.allSettled([
+        kickNotifications(result.id),
+        forwardToLegacy(channel.config.forwardUrl, raw),
+      ]);
+    },
     waitUntil: (promise) => after(() => promise),
   });
 }

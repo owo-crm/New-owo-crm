@@ -34,9 +34,11 @@ export default async function SettingsPage() {
               <p className="font-semibold">{t(title)}</p>
               <p className="text-ink-soft text-sm">{t(text)}</p>
             </div>
-            {title === "settings.notifications" ? (
+            {title === "settings.notifications" || title === "settings.channels" ? (
               <Link
-                href="/ustawienia/powiadomienia"
+                href={
+                  title === "settings.channels" ? "/ustawienia/zrodla" : "/ustawienia/powiadomienia"
+                }
                 className="inline-flex min-h-11 items-center underline"
               >
                 {t("leads.open")}

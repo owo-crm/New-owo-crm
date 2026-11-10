@@ -369,5 +369,29 @@
     "c_client": "Klient (imię i nazwisko / firma)",
     "c_address": "Adres klienta",
     "c_note": "Zadatek 1500 zł: 500 zł przy podpisaniu + 1000 zł na 7 dni przed wydarzeniem (wg szablonu). PDF tworzy się kilka sekund."
+  },
+  "channels": {
+    "title": "Źródła leadów",
+    "intro": "Każde źródło ma własny adres. Wklej go jako action formularza na stronie — zgłoszenia trafią prosto do CRM.",
+    "empty": "Brak formularzy. Dodaj pierwszy poniżej.",
+    "endpoint": "Adres formularza",
+    "lastReceived": "Ostatnie zgłoszenie: {date}",
+    "never": "Jeszcze nic nie przyszło",
+    "addTitle": "Dodaj formularz strony",
+    "name": "Nazwa",
+    "namePlaceholder": "Strona barowo.com",
+    "origins": "Domeny strony (po przecinku)",
+    "originsHint": "np. https://barowo.com, https://www.barowo.com — tylko z nich formularz zostanie przyjęty.",
+    "honeypot": "Ukryte pole-pułapka (opcjonalnie)",
+    "honeypotHint": "Nazwa ukrytego pola na stronie, np. company. Zgłoszenia z wypełnionym polem są odrzucane jako spam.",
+    "forward": "Kopia do starego systemu (opcjonalnie)",
+    "forwardHint": "Na czas przejścia: każde zgłoszenie zostanie też wysłane pod ten adres.",
+    "save": "Dodaj formularz",
+    "saved": "Zapisano.",
+    "adminOnly": "Źródła może zmieniać tylko właściciel lub administrator.",
+    "invalid": "Sprawdź nazwę i domeny (pełne adresy https://).",
+    "edit": "Zapisz zmiany",
+    "remove": "Usuń",
+    "manual": "Ręcznie (w CRM)"
   }
 }
