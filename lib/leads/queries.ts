@@ -5,7 +5,7 @@ import { one } from "@/lib/db";
 import { leadSchema, type Lead, type LeadChannel, type PipelineStage } from "./types";
 import type { LeadFilters } from "./filters";
 const COLUMNS =
-  "id,number,organization_id,stage_key,legacy_uid,client_name,phone_e164,email,source_label,source_channel_id,event_type,event_date,event_city,venue,guests,budget_grosze,message,assigned_to,first_response_at,created_at,updated_at,deleted_at";
+  "id,number,organization_id,stage_key,legacy_uid,client_name,phone_e164,email,source_label,source_channel_id,event_type,event_date,event_city,venue,guests,budget_grosze,message,assigned_to,first_response_at,created_at,updated_at,deleted_at,package_name,service_hours,client_full_name,client_address,next_contact_at,deposit_paid_at";
 export const getLeadOptions = cache(() =>
   withOrg(async (tx, { organization }) => {
     const [stages, channels, team] = await Promise.all([

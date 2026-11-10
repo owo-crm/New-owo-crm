@@ -35,7 +35,15 @@ export function getDb(): Database {
       const client = await pool.connect();
       try {
         await client.query("begin");
-        const tx: Queryable = { query: (sql, params) => client.query(sql, params) as never };
+        // Одно соединение = запросы строго по очереди (Promise.all в коде безопасен).
+        let chain: Promise<unknown> = Promise.resolve();
+        const tx: Queryable = {
+          query: (sql, params) => {
+            const next = chain.then(() => client.query(sql, params));
+            chain = next.catch(() => {});
+            return next as never;
+          },
+        };
         const result = await fn(tx);
         await client.query("commit");
         return result;

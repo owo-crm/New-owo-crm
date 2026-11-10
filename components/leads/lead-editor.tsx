@@ -22,6 +22,10 @@ const fields: EditableField[] = [
   "guests",
   "budget_grosze",
   "assigned_to",
+  "package_name",
+  "service_hours",
+  "client_full_name",
+  "client_address",
   "message",
 ];
 const inputTypes: Partial<Record<EditableField, string>> = {
@@ -40,17 +44,20 @@ const eventLabels: Record<string, MessageKey> = {
   possible_duplicate: "leads.history.possible_duplicate",
   contacted: "leads.history.contacted",
   call: "leads.history.call",
+  document_generated: "leads.history.document_generated",
 };
 export function LeadEditor({
   lead,
   stages,
   team,
   history,
+  documents,
 }: {
   lead: Lead;
   stages: PipelineStage[];
   team: { id: string; name: string }[];
   history: LeadEvent[];
+  documents?: React.ReactNode;
 }) {
   const [current, optimistic] = useOptimistic(lead, (state: Lead, patch: Partial<Lead>) => ({
     ...state,
@@ -255,15 +262,7 @@ export function LeadEditor({
           </dl>
         </Card>
         <div className="grid gap-5">
-          <Card title={t("leads.documents")}>
-            <div className="mt-4 flex flex-wrap gap-2">
-              <Button disabled>{t("leads.offer")}</Button>
-              <Button variant="secondary" disabled>
-                {t("leads.contract")}
-              </Button>
-            </div>
-            <p className="text-ink-soft mt-3 text-sm">{t("leads.documentsSoon")}</p>
-          </Card>
+          {documents}
           <Card title={t("leads.note")}>
             <form
               className="grid gap-3"
@@ -307,6 +306,13 @@ export function LeadEditor({
                   <p className="mt-1 font-bold">
                     {t(eventLabels[event.type] ?? "leads.history.other")}
                   </p>
+                  {event.type === "document_generated" &&
+                  typeof event.payload.number === "string" ? (
+                    <p className="text-ink-soft mt-1 text-sm">
+                      {t(`docs.kind_${String(event.payload.kind)}` as MessageKey)}{" "}
+                      {event.payload.number}
+                    </p>
+                  ) : null}
                   {typeof event.payload.text === "string" ? (
                     <p className="text-ink-soft mt-1 text-sm break-words whitespace-pre-wrap">
                       {event.payload.text}

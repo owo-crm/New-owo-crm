@@ -41,7 +41,7 @@ USER_PASSWORD='минимум-10-знаков' npm run user:create -- --email iv
 npm run dev                           # http://localhost:3000
 ```
 
-Проверки: `npm run check` (линтер + типы + 153 теста), `npm run build`, `npm run test:e2e` (нужна **отдельная** тестовая база в `DATABASE_URL` — тест её очищает).
+Проверки: `npm run check` (линтер + типы + 160 тестов), `npm run build`, `npm run test:e2e` (нужна **отдельная** тестовая база в `DATABASE_URL` — тест её очищает).
 
 ## Деплой на Railway (один раз)
 
@@ -54,6 +54,7 @@ npm run dev                           # http://localhost:3000
    - `NEXT_PUBLIC_SITE_URL` и `SITE_URL` = адрес приложения, например `https://crm.owoads.pl`
    - остальное — по `.env.example`, когда понадобится (Telegram, push, Resend)
 5. **Settings → Networking → Generate Domain** (или свой домен).
+   Сборка идёт по `Dockerfile` (Node 22 + LibreOffice для PDF договоров), часовой пояс контейнера — Europe/Warsaw.
 6. Деплой идёт сам при каждом push в `main`. При старте `npm start` сначала применяет новые миграции, потом запускает приложение. Проверка живости — `/api/health`.
 7. Первый пользователь: в Railway у Postgres → **Connect** скопируй публичный URL и на своём компьютере запусти
    `DATABASE_URL='...' USER_PASSWORD='...' npm run user:create -- --email ... --name ... --org "Barowo"`.
@@ -72,6 +73,22 @@ npm run dev                           # http://localhost:3000
 2. Форма шлёт `POST https://<crm>/api/intake/<public_key>` (JSON или form-data). Поля: `name`, `phone`, `email`, `event_type`, `event_date` (ГГГГ-ММ-ДД), `city`, `venue`, `guests`, `message`, `consent` (обязательно), `utm_*`, `page_url`, `referrer`. Скрытое поле-ловушка `website` должно быть пустым.
 3. Защита от дублей: поле `submission_id` или заголовок `Idempotency-Key` — повтор той же заявки вернёт `ok`, но второго лида не создаст.
 4. Лимит: 10 заявок в час с одного IP. Ответы: `200 ok`, `403` чужой домен, `422` нет согласия/данных, `429` лимит.
+
+## Документы Barowo (оферта, меню, договор)
+
+В карточке лида → блок **Dokumenty**: оферта Simple / Standard / Premium, меню для гостей, договор. Каждый документ — PDF + Word, хранится в базе, скачивается только после входа.
+
+- Оферта и меню — оригинальный код бота v48 (`lib/documents/barowo/legacy/*.gs`), выполняется как есть: тот же дизайн, шрифты, каталог и цены.
+- Договор — Word-шаблон `lib/documents/barowo/umowa-template.docx` с полями `{{UMOWA_NR}} {{TODAY}} {{EVENT_DATE}} {{CITY}} {{ZLECENIODAWCA}} {{ADDRESS}} {{GUESTS}} {{PRICE}} {{BALANCE}}` (доступны также `{{DEPOSIT}} {{DEPOSIT_DATE}} {{HOURS}} {{PACKAGE}} {{EXTRA_HOUR}} {{PENALTY}}`). PDF делает LibreOffice внутри контейнера. Чтобы изменить договор — правь этот .docx в Word, поля вписывай целиком.
+- Включить для фирмы: `update public.organizations set document_engine='barowo', email='barowo.pl@gmail.com', phone='+48 889 168 003' where slug='barowo';` (email/телефон печатаются в подвале оферты).
+- **Продолжить нумерацию из бота** (значения `umowa_counter`, `oferta_counter`, `menu_counter` из Script Properties):
+  ```sql
+  insert into public.document_counters (organization_id, kind, last_value)
+  select id, k, v from public.organizations, (values ('contract', 0), ('offer', 0), ('menu', 0)) c(k, v)
+  where slug = 'barowo'
+  on conflict (organization_id, kind) do update set last_value = excluded.last_value;
+  ```
+  (вместо нулей — числа из бота; следующий документ получит +1).
 
 ## Telegram (уведомления + кнопки)
 

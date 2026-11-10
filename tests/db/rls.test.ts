@@ -369,7 +369,7 @@ describe("лиды: изоляция всех семи таблиц", () => {
     ).rejects.toThrow(/permission denied/);
   });
 
-  it("стандартные восемь этапов есть у каждой фирмы", async () => {
+  it("стандартные девять этапов есть у каждой фирмы (0015: umowa podpisana)", async () => {
     const stages = await db.query<{ key: string }>(
       `select key from public.pipeline_stages where organization_id = $1 order by position`,
       [orgB],
@@ -380,6 +380,7 @@ describe("лиды: изоляция всех семи таблиц", () => {
       "offer_sent",
       "offer_accepted",
       "contract_sent",
+      "contract_signed",
       "deposit_paid",
       "rejected",
       "spam",

@@ -22,6 +22,12 @@ export const leadSchema = z.object({
   created_at: z.string(),
   updated_at: z.string(),
   deleted_at: z.string().nullable(),
+  package_name: z.string().nullable().default(null),
+  service_hours: z.string().nullable().default(null),
+  client_full_name: z.string().nullable().default(null),
+  client_address: z.string().nullable().default(null),
+  next_contact_at: z.string().nullable().default(null),
+  deposit_paid_at: z.string().nullable().default(null),
 });
 export type Lead = z.infer<typeof leadSchema>;
 export type PipelineStage = {

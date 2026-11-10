@@ -14,6 +14,8 @@ const { values } = parseArgs({
     org: { type: "string" },
     preset: { type: "string", default: "event-services" },
     "platform-admin": { type: "boolean", default: false },
+    // barowo = фирменные оферты, меню и договоры Barowo
+    engine: { type: "string" },
   },
 });
 const password = process.env.USER_PASSWORD ?? "";
@@ -61,7 +63,14 @@ try {
         ])
       ).rows[0].id;
     });
-    console.log(`Firma: ${org} (właściciel: ${values.email})`);
+    if (values.engine)
+      await db.query("update public.organizations set document_engine=$1 where id=$2", [
+        values.engine,
+        org,
+      ]);
+    console.log(
+      `Firma: ${org} (właściciel: ${values.email})${values.engine ? `, dokumenty: ${values.engine}` : ""}`,
+    );
   }
 } finally {
   await client.end();

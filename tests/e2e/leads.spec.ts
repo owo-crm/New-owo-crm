@@ -1,6 +1,10 @@
 import { expect, test } from "@playwright/test";
 
 const KEY = "00000000-0000-4000-8000-000000000e2e";
+// Każda zgłoszenie z innego IP — limit 10/h na IP działa naprawdę i nie blokuje testów.
+const ip = () => ({
+  "x-real-ip": `10.0.${Math.floor(Math.random() * 250)}.${Math.floor(Math.random() * 250)}`,
+});
 
 test.describe.configure({ mode: "serial" });
 
@@ -14,7 +18,7 @@ test("заявка с сайта → вход → лид в списке, пов
   for (let i = 0; i < 2; i++) {
     const res = await request.post(`/api/intake/${KEY}`, {
       data: body,
-      headers: { "idempotency-key": sub },
+      headers: { "idempotency-key": sub, ...ip() },
     });
     expect(res.status()).toBe(200);
   }
@@ -35,6 +39,7 @@ test("заявка с сайта → вход → лид в списке, пов
   const live = `Marek ${info.project.name} ${Date.now()}`;
   await request.post(`/api/intake/${KEY}`, {
     data: { name: live, email: "m@example.com", consent: true },
+    headers: ip(),
   });
   await expect(page.getByText(live)).toBeVisible({ timeout: 10_000 });
 
@@ -49,11 +54,12 @@ test("заявка с сайта → вход → лид в списке, пов
 test("чужой домен и без согласия — отказ", async ({ request }) => {
   const evil = await request.post(`/api/intake/${KEY}`, {
     data: { name: "x", phone: "500100200", consent: true },
-    headers: { origin: "https://evil.example" },
+    headers: { origin: "https://evil.example", ...ip() },
   });
   expect(evil.status()).toBe(403);
   const noConsent = await request.post(`/api/intake/${KEY}`, {
     data: { name: "x", phone: "500100200" },
+    headers: ip(),
   });
   expect(noConsent.status()).toBe(422);
 });

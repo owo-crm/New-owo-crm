@@ -21,6 +21,8 @@ jobs:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/owo
     steps:
       - uses: actions/checkout@v4
+      - name: LibreOffice (PDF договоров)
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libreoffice-writer-nogui fonts-liberation
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -41,3 +43,13 @@ jobs:
           CI: "1"
       - name: Production dependencies have no known vulnerabilities
         run: npm audit --omit=dev --audit-level=high
+
+  docker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Railway image builds
+        run: docker build -t owo-crm .
+      - name: LibreOffice inside the image
+        run: docker run --rm owo-crm soffice --version

@@ -14,7 +14,8 @@ function handler() {
   if (!salt) throw new Error("Brak INTAKE_IP_SALT");
   return createIntakeHandler({
     repository: (submissionId) => createIngestRepository(db, submissionId),
-    clientIp: (req) => req.headers.get("x-real-ip"),
+    // Railway проставляет реальный IP клиента в X-Real-IP; другой прокси — TRUSTED_IP_HEADER.
+    clientIp: (req) => req.headers.get(process.env.TRUSTED_IP_HEADER || "x-real-ip"),
     async findChannel(key) {
       return one<WebsiteChannel>(
         db,

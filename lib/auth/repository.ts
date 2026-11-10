@@ -19,6 +19,10 @@ export type MemberOrganization = {
   brandColor: string;
   industryPreset: string;
   role: "owner" | "admin" | "member";
+  /** Генератор документов фирмы: "barowo" = фирменные оферты/меню/договоры из бота. */
+  documentEngine: string | null;
+  email: string | null;
+  phone: string | null;
 };
 
 export class EmailTakenError extends Error {}
@@ -100,7 +104,8 @@ export async function listOrganizations(
 ): Promise<MemberOrganization[]> {
   return asUser(db, userId, async (tx) => {
     const { rows } = await tx.query<MemberOrganization>(
-      `select o.id, o.name, o.slug, o.brand_color as "brandColor", o.industry_preset as "industryPreset", m.role
+      `select o.id, o.name, o.slug, o.brand_color as "brandColor", o.industry_preset as "industryPreset", m.role,
+         o.document_engine as "documentEngine", o.email, o.phone
        from public.memberships m join public.organizations o on o.id = m.organization_id
        where m.user_id = $1 order by m.created_at`,
       [userId],

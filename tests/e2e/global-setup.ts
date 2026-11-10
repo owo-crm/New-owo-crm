@@ -22,5 +22,8 @@ export default async function globalSetup() {
     `insert into public.channels(organization_id,type,name,public_key)
      select id,'website','Strona','00000000-0000-4000-8000-000000000e2e' from public.organizations`,
   );
+  await c2.query(
+    "update public.organizations set document_engine='barowo', email='e2e@owo.test', phone='+48 500 000 000'",
+  );
   await c2.end();
 }

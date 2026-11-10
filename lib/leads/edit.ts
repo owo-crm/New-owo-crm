@@ -14,7 +14,17 @@ export const editableFields = [
   "message",
   "assigned_to",
   "stage_key",
+  "package_name",
+  "service_hours",
+  "client_full_name",
+  "client_address",
 ] as const;
+const PLAIN_TEXT: Partial<Record<string, number>> = {
+  package_name: 60,
+  service_hours: 80,
+  client_full_name: 500,
+  client_address: 500,
+};
 export type EditableField = (typeof editableFields)[number];
 export const editFieldSchema = z.enum(editableFields);
 export function parseMoney(value: string): number | null {
@@ -38,6 +48,10 @@ export function prepareLeadPatch(
         .parse(input),
     };
   if (field === "assigned_to") return { assigned_to: input ? z.uuid().parse(input) : null };
+  if (PLAIN_TEXT[field]) {
+    const value = z.string().trim().max(PLAIN_TEXT[field]!).parse(input);
+    return { [field]: value || null };
+  }
   const raw = { ...lead, [field]: field === "budget_grosze" ? parseMoney(input) : input };
   const normalized = normalizeLead({
     name: raw.client_name,
