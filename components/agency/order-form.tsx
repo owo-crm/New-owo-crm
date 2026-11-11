@@ -197,9 +197,9 @@ export function OrderForm({
     <form
       noValidate
       onSubmit={submit}
-      className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_22rem]"
+      className="grid grid-cols-1 items-start gap-5 pb-12 lg:grid-cols-[minmax(0,1fr)_22rem] lg:pb-0"
     >
-      <div className="grid gap-5">
+      <div className="grid min-w-0 grid-cols-1 gap-5">
         <Card>
           {error ? (
             <p role="alert" className="text-urgent mb-4">
@@ -472,6 +472,23 @@ export function OrderForm({
         {clients.length === 0 ? (
           <p className="text-ink-soft text-sm">{t("agency.form.noClients")}</p>
         ) : null}
+      </div>
+
+      {/* Телефон: полный блок «Podział» внизу формы, поэтому доля видна всегда — полоской над меню. */}
+      <div
+        aria-hidden
+        className="border-line bg-surface fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-20 flex items-center justify-between gap-3 border-t px-4 py-2.5 text-sm lg:hidden"
+      >
+        <span className="text-ink-soft truncate">
+          {t("agency.form.previewBase", { amount: formatMoney(preview.base) })}
+        </span>
+        <span className="shrink-0 font-bold tabular-nums">
+          {mine
+            ? t("agency.form.you", { amount: formatMoney(mine.totalGrosze) })
+            : preview.totals.unassignedGrosze > 0
+              ? `${t("agency.split.unassigned")}: ${formatMoney(preview.totals.unassignedGrosze)}`
+              : null}
+        </span>
       </div>
     </form>
   );

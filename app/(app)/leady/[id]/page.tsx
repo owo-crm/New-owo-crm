@@ -7,21 +7,27 @@ import { LiveUpdates } from "@/components/leads/live-updates";
 import { withOrg } from "@/lib/db/user";
 import { leadPayments, listDocuments } from "@/lib/documents/service";
 import { PaymentsCard } from "@/components/finance/payments-card";
+import { LeadClientCard } from "@/components/agency/lead-client-card";
+import { clientIdForLead } from "@/lib/agency/repository";
 export default async function LeadPage({ params, searchParams }: PageProps<"/leady/[id]">) {
   const { id } = await params;
   const { dokument } = await searchParams;
   if (!z.uuid().safeParse(id).success) notFound();
   const lead = await getLead(id);
   if (!lead) notFound();
-  const [options, history, docs] = await Promise.all([
+  const [options, history, docs, agencyClient] = await Promise.all([
     getLeadOptions(),
     getLeadHistory(id),
     withOrg(async (tx, { organization }) => ({
       enabled: organization.documentEngine === "barowo",
       list: await listDocuments(tx, organization.id, id),
       payments: await leadPayments(tx, organization.id, id),
+      agency: organization.industryPreset === "agency",
     })),
+    clientIdForLead(id),
   ]);
+  // Агентство: на этапе «Klient» (или если клиент уже заведён) — кнопка клиента агентства.
+  const showAgency = docs.agency && (lead.stage_key === "client" || agencyClient !== null);
   return (
     <>
       <LeadEditor
@@ -31,6 +37,7 @@ export default async function LeadPage({ params, searchParams }: PageProps<"/lea
         history={history}
         documents={
           <>
+            {showAgency ? <LeadClientCard leadId={id} clientId={agencyClient} /> : null}
             <PaymentsCard payments={docs.payments} />
             <DocumentsCard
               leadId={id}

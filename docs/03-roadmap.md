@@ -92,7 +92,8 @@
 - [x] A.3 `/agencja/zlecenia/nowe` — новый заказ с живым расчётом раздела
 - [x] A.4 `/agencja` — сводка за месяц, раздел, клиенты, «требует внимания», повтор абонементов
 - [x] A.5 `/agencja/klienci/[id]` — карточка клиента, чек-лист с автоотметками
-- [ ] A.6 Воронка агентства, «Dodaj klienta agencji» из лида, `INTAKE_URL` в лендинге
+- [x] A.6 Воронка агентства, «Dodaj klienta agencji» из лида, выбор пресета при создании бизнеса
+- [ ] A.7 Прод: создать бизнес «OWO Ads» (rodzaj „Agencja marketingowa”), канал «Strona», вписать `INTAKE_URL` в `landing/index.html`
 
 ---
 

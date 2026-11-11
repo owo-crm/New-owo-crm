@@ -95,15 +95,15 @@ export default async function AgencyPage({ searchParams }: PageProps<"/agencja">
         </p>
       ) : null}
 
-      <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_24rem]">
-        <div className="grid min-w-0 gap-5">
+      <div className="grid grid-cols-1 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_24rem]">
+        <div className="grid min-w-0 grid-cols-1 gap-5">
           <Card title={t("agency.split.title")}>
             <p className="text-ink-soft -mt-1 mb-3 text-sm">{t("agency.split.intro")}</p>
             {data.received_grosze === 0 ? (
               <p className="text-ink-soft text-sm">{t("agency.split.empty")}</p>
             ) : (
               <div className="-mx-1 overflow-x-auto px-1">
-                <table className="w-full min-w-[30rem] text-sm" data-testid="agency-split">
+                <table className="w-full min-w-[26rem] text-sm" data-testid="agency-split">
                   <thead className="text-ink-faint text-xs font-bold">
                     <tr>
                       <th className="pb-2 text-left">{t("agency.split.colPerson")}</th>

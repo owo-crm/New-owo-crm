@@ -15,6 +15,7 @@ import {
   type InviteState,
   type JoinState,
 } from "@/lib/team/actions";
+import { PRESETS, PRESET_KEYS } from "@/lib/presets";
 import { createBusinessAction, type BusinessState } from "@/lib/team/business-actions";
 import { importLeadsAction, type ImportState } from "@/lib/leads/import-actions";
 import { t, type MessageKey } from "@/lib/i18n";
@@ -191,6 +192,20 @@ export function BusinessForm() {
         defaultValue={state.name}
         required
       />
+      <label className="grid gap-2 text-sm font-semibold">
+        {t("presets.label")}
+        <select
+          name="preset"
+          defaultValue="event-services"
+          className="border-line-strong bg-surface h-10 rounded-[10px] border px-3 text-sm font-normal"
+        >
+          {PRESET_KEYS.map((key) => (
+            <option key={key} value={key}>
+              {t(PRESETS[key].labelKey)}
+            </option>
+          ))}
+        </select>
+      </label>
       <label className="grid gap-2 text-sm font-semibold">
         Kolor biznesu
         <input

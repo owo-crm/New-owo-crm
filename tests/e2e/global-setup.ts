@@ -25,5 +25,13 @@ export default async function globalSetup() {
   await c2.query(
     "update public.organizations set document_engine='barowo', email='e2e@owo.test', phone='+48 500 000 000'",
   );
+  // Кабинет агентства (пресет agency) для того же пользователя — tests/e2e/agency.spec.ts.
+  // Создаётся после каналов: у агентства своего канала сайта в тестах нет.
+  await c2.query(
+    `with o as (insert into public.organizations (name, slug, industry_preset)
+                values ('OWO Ads E2E','owo-ads-e2e','agency') returning id)
+     insert into public.memberships (organization_id, user_id, role)
+     select o.id, u.id, 'owner' from o, auth.users u where u.email='e2e@owo.test'`,
+  );
   await c2.end();
 }

@@ -5,6 +5,7 @@ import { z } from "zod";
 import { asUser, getDb, one } from "@/lib/db";
 import { requireUser, ORG_COOKIE } from "@/lib/auth/session";
 import { slugify } from "@/lib/organizations/slug";
+import { isPresetKey } from "@/lib/presets";
 
 export type BusinessState = { error?: string; name?: string };
 
@@ -21,6 +22,9 @@ export async function createBusinessAction(
     .regex(/^#[0-9a-fA-F]{6}$/)
     .catch("#e8000d")
     .parse(form.get("color"));
+  // Пресет: обычный бизнес клиента или кабинет самого агентства (agency, решение 021).
+  const rawPreset = String(form.get("preset") ?? "event-services");
+  const preset = isPresetKey(rawPreset) ? rawPreset : "event-services";
   if (name.length < 2 || name.length > 120)
     return { error: "Podaj nazwę biznesu (2–120 znaków).", name };
   let id: string;
@@ -28,15 +32,17 @@ export async function createBusinessAction(
     id = await asUser(getDb(), user.id, async (tx) => {
       const row = await one<{ id: string }>(
         tx,
-        "select public.create_organization($1,$2,'event-services') as id",
-        [name, slugify(name)],
+        "select public.create_organization($1,$2,$3) as id",
+        [name, slugify(name), preset],
       );
       await tx.query("update public.organizations set brand_color=$1 where id=$2", [
         color,
         row!.id,
       ]);
       // Участие OWO Ads помечаем обслуживающим: клиент его видит, но убрать не может.
-      await tx.query("select public.mark_service_membership($1)", [row!.id]);
+      // Кабинет самого агентства — своя фирма, там участие обычное.
+      if (preset !== "agency")
+        await tx.query("select public.mark_service_membership($1)", [row!.id]);
       return row!.id;
     });
   } catch (error) {

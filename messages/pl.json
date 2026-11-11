@@ -260,15 +260,7 @@
       "listopad",
       "grudzień"
     ],
-    "weekdays": [
-      "pon",
-      "wt",
-      "śr",
-      "czw",
-      "pt",
-      "sob",
-      "ndz"
-    ]
+    "weekdays": ["pon", "wt", "śr", "czw", "pt", "sob", "ndz"]
   },
   "documents": {
     "emptyTitle": "Oferty i umowy",
@@ -293,6 +285,7 @@
     "finance": "Finanse"
   },
   "presets": {
+    "label": "Rodzaj biznesu",
     "event-services": "Usługi na wydarzenia (wesela, urodziny, eventy firmowe)",
     "agency": "Agencja marketingowa (OWO Ads)"
   },
