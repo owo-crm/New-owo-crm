@@ -10,13 +10,13 @@ export function PageHeader({
   aside?: React.ReactNode;
 }) {
   return (
-    <header className="mb-5 flex flex-wrap items-end justify-between gap-x-8 gap-y-3">
+    <header className="mb-6 flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
       <div className="max-w-full min-w-0">
-        <h1 className="font-display text-[clamp(1.6rem,3vw,2rem)] leading-tight font-semibold tracking-[-0.01em] break-words">
+        <h1 className="text-[20px] leading-7 font-semibold tracking-[-0.015em] break-words">
           {title}
         </h1>
         {subtitle ? (
-          <p className="text-ink-soft mt-1.5 max-w-[44rem] text-[15px]">{subtitle}</p>
+          <p className="text-ink-soft mt-0.5 max-w-[44rem] text-[13.5px]">{subtitle}</p>
         ) : null}
       </div>
       {aside}
@@ -36,9 +36,7 @@ export function Stat({
 }) {
   return (
     <div className={className}>
-      <p className="font-display text-[clamp(1.5rem,3vw,1.9rem)] leading-none font-semibold">
-        {value}
-      </p>
+      <p className="text-[22px] leading-none font-semibold tabular-nums">{value}</p>
       <p className="text-ink-soft mt-1.5 text-[13px]">{label}</p>
     </div>
   );
@@ -55,9 +53,9 @@ export function Card({
 }) {
   return (
     <section
-      className={cn("border-line bg-surface card-shadow rounded-2xl border px-5 py-5", className)}
+      className={cn("border-line bg-surface rounded-xl border px-4 py-4 sm:px-5", className)}
     >
-      {title ? <h2 className="mb-3 text-[15px] font-bold">{title}</h2> : null}
+      {title ? <h2 className="mb-3 text-[13.5px] font-semibold">{title}</h2> : null}
       {children}
     </section>
   );
@@ -80,14 +78,14 @@ export function EmptyState({
   return (
     <section
       className={cn(
-        "border-line-strong rounded-[22px] border border-dashed px-6 py-14 text-center sm:px-10",
+        "border-line rounded-xl border border-dashed px-6 py-12 text-center sm:px-10",
         className,
       )}
     >
-      <Icon className="text-ink-soft mx-auto size-9" />
-      <h2 className="font-display mt-4 text-2xl font-medium">{title}</h2>
-      <p className="text-ink-soft mx-auto mt-2 max-w-[30rem]">{text}</p>
-      {action ? <div className="mt-6 flex justify-center">{action}</div> : null}
+      <Icon className="text-ink-faint mx-auto size-6" />
+      <h2 className="mt-3 text-[15px] font-semibold">{title}</h2>
+      <p className="text-ink-soft mx-auto mt-1 max-w-[30rem] text-[13.5px]">{text}</p>
+      {action ? <div className="mt-5 flex justify-center">{action}</div> : null}
     </section>
   );
 }

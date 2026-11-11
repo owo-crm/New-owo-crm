@@ -79,7 +79,9 @@
     "more": "Więcej",
     "newLead": "Nowy lead",
     "finance": "Finanse",
-    "agency": "Agencja"
+    "agency": "Agencja",
+    "dashboard": "Pulpit",
+    "stats": "Statystyka"
   },
   "today": {
     "title": "Dzisiaj",
@@ -754,5 +756,11 @@
       "create": "Utwórz CRM"
     },
     "invoice": "CRM: {modules} · {month}"
+  },
+  "command": {
+    "title": "Szybkie wyszukiwanie",
+    "placeholder": "Szukaj leada, sekcji albo biznesu…",
+    "search": "Szukaj",
+    "empty": "Nic nie znaleziono."
   }
 }

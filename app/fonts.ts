@@ -22,3 +22,13 @@ export const satoshi = localFont({
   variable: "--font-satoshi",
   display: "swap",
 });
+
+/**
+ * Inter (SIL OFL) — шрифт интерфейса после редизайна (решение 024): один шрифт на всё,
+ * переменный 100–900, с польскими буквами. Clash/Satoshi остаются только для документов Barowo.
+ */
+export const inter = localFont({
+  src: [{ path: "./fonts/InterVariable.woff2", weight: "100 900", style: "normal" }],
+  variable: "--font-inter",
+  display: "swap",
+});

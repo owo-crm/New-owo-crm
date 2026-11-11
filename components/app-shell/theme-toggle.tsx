@@ -21,7 +21,7 @@ export function ThemeToggle({ className, iconOnly }: { className?: string; iconO
       title={t("shell.theme")}
       className={className}
     >
-      <SunMoon className="size-[18px]" />
+      <SunMoon className={iconOnly ? "size-[18px]" : "text-ink-faint size-4"} />
       {iconOnly ? null : <span>{t("shell.theme")}</span>}
     </button>
   );

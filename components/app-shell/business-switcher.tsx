@@ -24,9 +24,14 @@ export function BusinessSwitcher({
   // У клиента бизнес один: показываем название, а не выпадающий список из одного пункта.
   if (organizations.length < 2 && !canCreate)
     return (
-      <p className={cn("flex h-10 min-w-0 items-center gap-2.5 px-3 text-sm font-bold", className)}>
+      <p
+        className={cn(
+          "flex h-9 min-w-0 items-center gap-2.5 px-2.5 text-[13.5px] font-semibold",
+          className,
+        )}
+      >
         <span
-          className="size-2.5 shrink-0 rounded-full"
+          className="size-2.5 shrink-0 rounded-[3px]"
           style={{ background: current.brandColor }}
           aria-hidden
         />
@@ -37,16 +42,16 @@ export function BusinessSwitcher({
   return (
     <label
       className={cn(
-        "border-line hover:border-line-strong bg-surface relative flex h-10 items-center gap-2.5 rounded-xl border px-3",
+        "hover:bg-surface-2 relative flex h-10 items-center gap-2.5 rounded-lg px-2.5 transition-colors lg:h-9",
         className,
       )}
     >
       <span
-        className="size-2.5 shrink-0 rounded-full"
+        className="size-2.5 shrink-0 rounded-[3px]"
         style={{ background: current.brandColor }}
         aria-hidden
       />
-      <span className="min-w-0 flex-1 truncate text-sm font-bold">{current.name}</span>
+      <span className="min-w-0 flex-1 truncate text-[13.5px] font-semibold">{current.name}</span>
       <ChevronsUpDown className="text-ink-faint size-4 shrink-0" />
       <span className="sr-only">{t("business.switch")}</span>
       <select
