@@ -183,3 +183,61 @@ export async function linkBusinessesToAgency(db: Database, log = console.log) {
   if (rows[0].n > 0) log(`Agencja: dodano klientów z istniejących biznesów: ${rows[0].n}.`);
   return rows[0].n;
 }
+
+/**
+ * Удаление лишних аккаунтов (решение 031): ADMIN_REMOVE_LOGINS — логины через запятую,
+ * по умолчанию «test01» (тестовый аккаунт первой настройки). Всё, чем аккаунт владеет,
+ * переходит главному админу (ADMIN_LOGIN): владение бизнесами, услуги, вклады, лиды.
+ * Затем аккаунт удаляется вместе с сессиями и участием. Без ADMIN_LOGIN ничего не делается.
+ */
+export async function removeAccounts(
+  db: Database,
+  env: Record<string, string | undefined>,
+  log = console.log,
+) {
+  const heirLogin = env.ADMIN_LOGIN?.trim().toLowerCase();
+  if (!heirLogin) return 0;
+  const logins = (env.ADMIN_REMOVE_LOGINS ?? "test01")
+    .split(",")
+    .map((s) => s.trim().toLowerCase())
+    .filter((s) => s && s !== heirLogin);
+  let removed = 0;
+  for (const login of logins) {
+    const done = await db.transaction(async (tx) => {
+      const { rows } = await tx.query<{ id: string; email: string }>(
+        "select id, email from auth.users where email = any($1::text[])",
+        [[login, heirLogin]],
+      );
+      const old = rows.find((r) => r.email === login);
+      const heir = rows.find((r) => r.email === heirLogin);
+      if (!old || !heir) return false;
+      // Где старый был владельцем — владельцем становится главный админ (без пометки «сервис»).
+      await tx.query(
+        `insert into public.memberships (organization_id, user_id, role, is_service)
+         select m.organization_id, $2, 'owner', false from public.memberships m
+         where m.user_id = $1 and m.role = 'owner'
+         on conflict (organization_id, user_id) do update set role = 'owner', is_service = false`,
+        [old.id, heir.id],
+      );
+      await tx.query("update public.agency_services set owner_id = $2 where owner_id = $1", [
+        old.id,
+        heir.id,
+      ]);
+      await tx.query(
+        "update public.agency_fund_contributions set user_id = $2 where user_id = $1",
+        [old.id, heir.id],
+      );
+      await tx.query("update public.leads set assigned_to = $2 where assigned_to = $1", [
+        old.id,
+        heir.id,
+      ]);
+      await tx.query("delete from auth.users where id = $1", [old.id]);
+      return true;
+    });
+    if (done) {
+      removed++;
+      log(`Admin: usunięto konto ${login}, jego biznesy przejęło konto ${heirLogin}.`);
+    }
+  }
+  return removed;
+}

@@ -6,6 +6,7 @@ import {
   ensureAgencyWorkspace,
   ensurePlatformAdmin,
   linkBusinessesToAgency,
+  removeAccounts,
 } from "@/lib/db/bootstrap";
 import { authenticate } from "@/lib/auth/repository";
 
@@ -104,5 +105,26 @@ describe("админ платформы из переменных", () => {
       role: "admin",
       is_service: true,
     });
+  });
+
+  it("test01 удаляется, его бизнесы, услуги и вклады переходят главному админу", async () => {
+    await pg.query(
+      "insert into auth.users (id, email, password_hash, is_platform_admin) values ('d0000000-0000-4000-8000-0000000000aa','test01','x',true)",
+    );
+    await pg.query("select public.sync_platform_admin_memberships()");
+    const agency = (
+      await pg.query<{ id: string }>("select id from public.organizations where name='OWO Ads'")
+    ).rows[0].id;
+    await pg.query(
+      "insert into public.agency_services (organization_id, name, owner_id) values ($1,'Strony','d0000000-0000-4000-8000-0000000000aa')",
+      [agency],
+    );
+    expect(await removeAccounts(db, env, () => {})).toBe(1);
+    expect((await pg.query("select 1 from auth.users where email='test01'")).rows).toHaveLength(0);
+    const owner = await pg.query<{ email: string }>(
+      "select u.email from public.agency_services s join auth.users u on u.id = s.owner_id where s.name='Strony'",
+    );
+    expect(owner.rows[0].email).toBe("szef.owo");
+    expect(await removeAccounts(db, env, () => {})).toBe(0);
   });
 });

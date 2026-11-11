@@ -7,6 +7,7 @@ import {
   ensureAgencyWorkspace,
   ensurePlatformAdmin,
   linkBusinessesToAgency,
+  removeAccounts,
 } from "../lib/db/bootstrap.ts";
 import type { Database } from "../lib/db/core.ts";
 
@@ -43,6 +44,7 @@ try {
   console.log(applied.length ? `Zastosowano migracji: ${applied.length}` : "Baza aktualna.");
   await bootstrapAdmin(db, process.env);
   await ensurePlatformAdmin(db, process.env);
+  await removeAccounts(db, process.env);
   await ensureAgencyWorkspace(db, process.env);
   await linkBusinessesToAgency(db);
 } finally {
