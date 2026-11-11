@@ -218,3 +218,83 @@ export async function addPayoutAction(raw: unknown): Promise<ActionResult> {
     return fail(error, "payout");
   }
 }
+
+// ───────── Услуги и вклады (решение 027) ─────────
+
+const money = z.number().int().min(0).max(10_000_000_000);
+
+export async function saveServiceAction(raw: unknown): Promise<ActionResult> {
+  const parsed = z
+    .object({
+      id: z.uuid().optional(),
+      name: z.string().trim().min(1).max(120),
+      description: z.string().trim().max(500).nullable(),
+      ownerId: z.uuid(),
+      kind: z.enum(["retainer", "project"]),
+      defaultPriceGrosze: money.nullable(),
+      active: z.boolean(),
+      systemKey: z.enum(["crm"]).nullable().optional(),
+    })
+    .safeParse(raw);
+  if (!parsed.success) return { error: t("agency.errors.invalid") };
+  try {
+    const { saveService } = await import("./services");
+    await saveService(parsed.data);
+    revalidatePath("/agencja/uslugi");
+    return { ok: true };
+  } catch (error) {
+    if (sqlState(error) === "23505") return { error: t("agency.services.duplicate") };
+    return fail(error, "service");
+  }
+}
+
+export async function setClientServiceAction(raw: unknown): Promise<ActionResult> {
+  const parsed = z
+    .object({ clientId: z.uuid(), serviceId: z.uuid(), priceGrosze: money, active: z.boolean() })
+    .safeParse(raw);
+  if (!parsed.success) return { error: t("agency.errors.invalid") };
+  try {
+    const { setClientService } = await import("./services");
+    await setClientService(parsed.data);
+    refresh(parsed.data.clientId);
+    return { ok: true };
+  } catch (error) {
+    return fail(error, "client service");
+  }
+}
+
+export async function removeClientServiceAction(
+  clientId: string,
+  id: string,
+): Promise<ActionResult> {
+  if (!z.uuid().safeParse(id).success) return { error: t("agency.errors.invalid") };
+  try {
+    const { removeClientService } = await import("./services");
+    await removeClientService(id);
+    refresh(clientId);
+    return { ok: true };
+  } catch (error) {
+    return fail(error, "client service remove");
+  }
+}
+
+export async function addContributionAction(raw: unknown): Promise<ActionResult> {
+  const parsed = z
+    .object({
+      userId: z.uuid(),
+      date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+      amountGrosze: money.min(1),
+      note: z.string().trim().max(500).nullable(),
+    })
+    .safeParse(raw);
+  if (!parsed.success) return { error: t("agency.errors.invalid") };
+  try {
+    const { addContribution } = await import("./services");
+    await addContribution(parsed.data);
+    refresh();
+    revalidatePath("/agencja/uslugi");
+    return { ok: true };
+  } catch (error) {
+    return fail(error, "contribution");
+  }
+}

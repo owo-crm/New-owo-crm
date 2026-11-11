@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ChevronLeft, ChevronRight, Plus, UserPlus } from "lucide-react";
 import { Card, PageHeader } from "@/components/app-shell/page";
 import { buttonVariants } from "@/components/ui/button";
+import { AgencyTabs } from "@/components/agency/tabs";
 import { RepeatRetainersButton } from "@/components/agency/repeat-button";
 import {
   DeleteExpenseButton,
@@ -58,6 +59,7 @@ export default async function AgencyPage({ searchParams }: PageProps<"/agencja">
         subtitle={t("agency.pageIntro")}
         aside={
           <div className="flex flex-wrap items-center gap-2">
+            <AgencyTabs current="overview" />
             <Link
               href={link(addMonths(month, -1))}
               aria-label={t("finance.prev")}

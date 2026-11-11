@@ -57,8 +57,27 @@ export const getOrderFormData = cache(async () =>
        order by case status when 'active' then 0 when 'lead' then 1 when 'paused' then 2 else 3 end, name`,
       [organization.id],
     );
+    const { rows: services } = await tx.query<{
+      id: string;
+      name: string;
+      owner_id: string;
+      kind: OrderKind;
+    }>(
+      "select id, name, owner_id, kind from public.agency_services where organization_id=$1 and active order by name",
+      [organization.id],
+    );
+    const { rows: clientServices } = await tx.query<{
+      client_id: string;
+      service_id: string;
+      price_grosze: number;
+    }>(
+      "select client_id, service_id, price_grosze from public.agency_client_services where organization_id=$1 and active",
+      [organization.id],
+    );
     return {
       clients,
+      services,
+      clientServices: clientServices.map((c) => ({ ...c, price_grosze: Number(c.price_grosze) })),
       members: await members(tx, organization.id),
       shares: await shares(tx, organization.id),
       currentUserId: user.id,
@@ -332,9 +351,10 @@ export const getOrder = cache(async (id: string) =>
       client_id: string;
       note: string | null;
       work_basis: "hours" | "points";
+      service_id: string | null;
     }>(
       tx,
-      "select client_id, note, work_basis from public.agency_orders where organization_id=$1 and id=$2",
+      "select client_id, note, work_basis, service_id from public.agency_orders where organization_id=$1 and id=$2",
       [organization.id, id],
     );
     const { rows: work } = await tx.query<{ user_id: string; hours: string; note: string | null }>(
@@ -358,6 +378,7 @@ export const getOrder = cache(async (id: string) =>
       client_id: row!.client_id,
       note: row!.note,
       workBasis: row!.work_basis,
+      serviceId: row!.service_id,
       sellers: sellers.map((x) => ({ userId: x.user_id, shareBp: x.share_bp })),
       costs: costs.map((c) => ({
         label: c.label,
@@ -437,12 +458,17 @@ export async function saveOrder(input: OrderInput) {
         "insert into public.agency_order_costs (organization_id, order_id, label, amount_grosze, paid_to) values ($1,$2,$3,$4,$5)",
         [org, id, c.label, c.amountGrosze, c.paidTo],
       );
+    // Заказ по услуге: строку исполнителя (ответственный, 100 %) ставит база по service_id.
+    await tx.query(
+      "update public.agency_orders set service_id=$3 where organization_id=$1 and id=$2",
+      [org, id, input.serviceId ?? null],
+    );
     if (input.costs.length === 0)
       await tx.query(
         "update public.agency_orders set direct_costs_grosze=$3 where organization_id=$1 and id=$2",
         [org, id, input.directCostsGrosze],
       );
-    for (const w of input.work) {
+    for (const w of input.serviceId ? [] : input.work) {
       await tx.query(
         "insert into public.agency_order_work (organization_id, order_id, user_id, hours, note) values ($1,$2,$3,$4,$5)",
         [org, id, w.userId, w.hours.toFixed(2), w.note || null],

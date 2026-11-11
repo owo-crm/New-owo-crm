@@ -457,10 +457,12 @@ async function recordInvoice(
     month: `${t(`agency.months.${m}` as MessageKey)} ${y}`,
   }).slice(0, 200);
   const fee = Math.min(net, await stripeFee(config, invoice));
+  // Услуга «CRM (abonament)» (system_key = 'crm'): 65 % — её ответственному (решение 027).
   await tx.query(
     `insert into public.agency_orders (organization_id, client_id, title, kind, amount_grosze, direct_costs_grosze,
-       period_month, status, paid_at, stripe_invoice_id, note)
-     values ($1, $2, $3, 'retainer', $4, $5, $6::date, 'paid', to_timestamp($7), $8, $9)
+       period_month, status, paid_at, stripe_invoice_id, note, service_id)
+     values ($1, $2, $3, 'retainer', $4, $5, $6::date, 'paid', to_timestamp($7), $8, $9,
+       (select s.id from public.agency_services s where s.organization_id = $1 and s.system_key = 'crm' and s.active))
      on conflict do nothing`,
     [
       client.organization_id,

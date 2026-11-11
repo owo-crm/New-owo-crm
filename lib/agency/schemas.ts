@@ -41,6 +41,8 @@ export const orderInputSchema = z
       .max(10),
     /** Основа распределения 65 %: часы или согласованные баллы вклада. */
     workBasis: z.enum(["hours", "points"]),
+    /** Услуга заказа: 65 % получает её ответственный (работа из формы игнорируется). */
+    serviceId: z.uuid().nullable().optional(),
     /** Прямые расходы строками; сумма = directCostsGrosze. paidTo — партнёр (например, логистика). */
     costs: z
       .object({

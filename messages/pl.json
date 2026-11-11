@@ -643,7 +643,10 @@
       "basisPoints": "Uzgodnione punkty",
       "points": "Punkty",
       "workNot100": "Udziały wykonawców nie sumują się do 100 % — 65 % dzieli się proporcjonalnie do wpisanych wartości.",
-      "errShare": "Udział: od 0,01 do 100 %"
+      "errShare": "Udział: od 0,01 do 100 %",
+      "service": "Usługa",
+      "serviceNone": "— bez usługi (podział ręczny) —",
+      "serviceOwner": "65 % otrzymuje osoba odpowiedzialna za usługę: {name}."
     },
     "client": {
       "titleNew": "Nowy klient",
@@ -735,6 +738,49 @@
     },
     "sources": {
       "title": "Skąd przyszły pieniądze"
+    },
+    "services": {
+      "title": "Usługi",
+      "intro": "Każda usługa ma jedną osobę odpowiedzialną — to ona dostaje 65 % ze zleceń tej usługi. Ceny ustalasz osobno dla każdego klienta.",
+      "name": "Nazwa usługi",
+      "owner": "Odpowiedzialny (65 %)",
+      "kind": "Rozliczenie",
+      "defaultPrice": "Cena orientacyjna (zł)",
+      "active": "Aktywna",
+      "save": "Zapisz",
+      "add": "Dodaj usługę",
+      "edit": "Edytuj",
+      "duplicate": "Usługa o tej nazwie już istnieje.",
+      "empty": "Nie ma jeszcze usług. Zacznij od katalogu poniżej — wybierz osobę odpowiedzialną przy każdej.",
+      "starter": "Katalog startowy",
+      "starterHint": "Pięć filarów oferty + abonament CRM. Odznacz to, czego jeszcze nie oferujecie.",
+      "createStarter": "Utwórz zaznaczone usługi",
+      "crm": "Abonament CRM — płatności ze Stripe trafiają tu automatycznie",
+      "inactive": "nieaktywna",
+      "client": "Usługi klienta",
+      "clientEmpty": "Klient nie ma jeszcze przypisanych usług.",
+      "assign": "Przypisz usługę",
+      "price": "Cena (zł)",
+      "order": "Utwórz zlecenie",
+      "remove": "Usuń",
+      "pick": "Wybierz usługę",
+      "contributions": "Wkłady partnerów",
+      "contributionsHint": "Pieniądze, które partner włożył do agencji. Zwiększają saldo funduszu.",
+      "contributor": "Partner",
+      "contribute": "Dodaj wkład",
+      "date": "Data",
+      "note": "Notatka",
+      "starterItems": {
+        "social": "Social media i content",
+        "ads": "Reklama Meta i Google",
+        "seo": "Lokalne SEO i opinie",
+        "web": "Strony internetowe",
+        "automation": "Automatyzacja i oprogramowanie",
+        "crm": "CRM (abonament)"
+      }
+    },
+    "tabs": {
+      "overview": "Przegląd"
     }
   },
   "billing": {

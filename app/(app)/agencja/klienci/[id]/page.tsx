@@ -11,6 +11,8 @@ import {
 } from "@/components/agency/client-actions";
 import { ClientStatusBadge, OrderStatusBadge, monthLabel } from "@/components/agency/labels";
 import { getClientCard } from "@/lib/agency/repository";
+import { listClientServices, listServices } from "@/lib/agency/services";
+import { ClientServicesPanel } from "@/components/agency/services-ui";
 import { CreateCrmWizard, SubscriptionPanel } from "@/components/billing/subscription-panel";
 import { getBillingView } from "@/lib/billing/repository";
 import { isAddonKey } from "@/lib/billing/modules";
@@ -31,10 +33,12 @@ export default async function ClientPage({ params }: PageProps<"/agencja/klienci
   if (!card) notFound();
   const { client, steps, orders, members } = card;
   // Клиент принадлежит этому агентству (getClientCard проверил) — абонемент его CRM можно читать.
-  const [user, orgs, billing] = await Promise.all([
+  const [user, orgs, billing, services, clientServices] = await Promise.all([
     getCurrentUser(),
     getOrganizations(),
     client.client_org_id ? getBillingView(client.client_org_id) : null,
+    listServices(),
+    listClientServices(client.id),
   ]);
   const nameOf = (uid: string | null) =>
     uid ? (members.find((m) => m.userId === uid)?.name ?? "—") : t("agency.split.unassigned");
@@ -102,6 +106,15 @@ export default async function ClientPage({ params }: PageProps<"/agencja/klienci
 
       <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1fr)_24rem]">
         <div className="grid min-w-0 grid-cols-1 gap-5">
+          <Card title={t("agency.services.client")}>
+            <ClientServicesPanel
+              clientId={client.id}
+              items={clientServices}
+              services={services}
+              members={members}
+            />
+          </Card>
+
           <Card title={t("agency.client.orders")}>
             {orders.length === 0 ? (
               <p className="text-ink-soft text-sm">{t("agency.client.ordersEmpty")}</p>

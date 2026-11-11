@@ -41,6 +41,7 @@ export type OrderFormInitial = {
   sellers: { userId: string; shareBp: number }[];
   workBasis: "hours" | "points";
   costs: { label: string; amountGrosze: number; paidTo: string | null }[];
+  serviceId: string | null;
   periodMonth: string;
   status: OrderStatus;
   dueDate: string | null;
@@ -60,10 +61,11 @@ function Select({
   hint,
   error,
   children,
+  className,
   ...props
 }: React.ComponentProps<"select"> & { label: string; hint?: string; error?: string }) {
   return (
-    <label className="grid gap-1.5 text-sm font-semibold">
+    <label className={cn("text-ink-soft grid gap-1.5 text-[13px] font-medium", className)}>
       {label}
       <select className={selectClass} aria-invalid={error ? true : undefined} {...props}>
         {children}
@@ -87,12 +89,16 @@ export function OrderForm({
   members,
   shares,
   currentUserId,
+  services,
+  clientServices,
 }: {
   initial: OrderFormInitial;
   clients: Option[];
   members: Member[];
   shares: Shares;
   currentUserId: string;
+  services: { id: string; name: string; owner_id: string; kind: OrderKind }[];
+  clientServices: { client_id: string; service_id: string; price_grosze: number }[];
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -102,6 +108,8 @@ export function OrderForm({
   const [clientId, setClientId] = useState(initial.clientId);
   const [title, setTitle] = useState(initial.title);
   const [kind, setKind] = useState<OrderKind>(initial.kind);
+  const [serviceId, setServiceId] = useState(initial.serviceId ?? "");
+  const service = services.find((x) => x.id === serviceId);
   const [amount, setAmount] = useState(moneyFieldValue(initial.amountGrosze));
   // Прямые расходы строками; старый заказ с одной суммой → одна строка.
   const [costRows, setCostRows] = useState<CostRow[]>(() =>
@@ -178,7 +186,8 @@ export function OrderForm({
   const hourErrors = hours.map((h) =>
     Number.isNaN(h) || h <= 0 || h > 100 ? t("agency.form.errShare") : undefined,
   );
-  const valid = Object.values(errors).every((e) => !e) && hourErrors.every((e) => !e);
+  const valid =
+    Object.values(errors).every((e) => !e) && (service ? true : hourErrors.every((e) => !e));
   const show = (key: string) => (submitted ? errors[key] : undefined);
 
   // Живой расчёт: неверные поля считаем нулём, чтобы превью не «прыгало» в ошибку.
@@ -192,9 +201,11 @@ export function OrderForm({
         sellers: sellers
           .map((x, i) => ({ userId: x.userId, shareBp: sellerBp[i] }))
           .filter((x) => x.shareBp > 0),
-        work: work
-          .map((w, i) => ({ userId: w.userId, hours: hours[i] }))
-          .filter((w) => w.hours > 0 && w.hours <= 500),
+        work: service
+          ? [{ userId: service.owner_id, hours: 100 }]
+          : work
+              .map((w, i) => ({ userId: w.userId, hours: hours[i] }))
+              .filter((w) => w.hours > 0 && w.hours <= 500),
       },
       shares,
     );
@@ -225,6 +236,7 @@ export function OrderForm({
         adBudgetGrosze: adGrosze,
         sellers: sellers.map((x, i) => ({ userId: x.userId, shareBp: sellerBp[i] })),
         workBasis,
+        serviceId: serviceId || null,
         costs: costRows.map((c, i) => ({
           label: c.label.trim(),
           amountGrosze: costAmounts[i],
@@ -269,6 +281,33 @@ export function OrderForm({
               {clients.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name}
+                </option>
+              ))}
+            </Select>
+            <Select
+              className="sm:col-span-2"
+              label={t("agency.form.service")}
+              value={serviceId}
+              onChange={(e) => {
+                // Услуга подставляет тип, название и цену клиента; 65 % — её ответственному.
+                const id = e.target.value;
+                setServiceId(id);
+                const sv = services.find((x) => x.id === id);
+                if (!sv) return;
+                setKind(sv.kind);
+                if (!title.trim()) setTitle(sv.name);
+                const cp = clientServices.find(
+                  (c) => c.client_id === clientId && c.service_id === id,
+                );
+                if (cp) setAmount(moneyFieldValue(cp.price_grosze));
+              }}
+              disabled={pending}
+              name="serviceId"
+            >
+              <option value="">{t("agency.form.serviceNone")}</option>
+              {services.map((sv) => (
+                <option key={sv.id} value={sv.id}>
+                  {sv.name}
                 </option>
               ))}
             </Select>
@@ -487,92 +526,100 @@ export function OrderForm({
           </Button>
         </Card>
 
-        <Card title={t("agency.form.work")}>
-          <div className="-mt-1 mb-4 flex flex-wrap items-center justify-between gap-3">
-            <p className="text-ink-soft text-[13px]">{t("agency.form.workHint")}</p>
-          </div>
-          <ul className="grid gap-3" aria-label={t("agency.form.work")}>
-            {work.map((row, i) => (
-              <li
-                key={row.key}
-                className="grid grid-cols-[minmax(0,1fr)_6.5rem_2.75rem] items-end gap-2"
+        {service ? (
+          <Card title={t("agency.form.work")}>
+            <p className="text-[13.5px]">
+              {t("agency.form.serviceOwner", { name: nameOf(service.owner_id) })}
+            </p>
+          </Card>
+        ) : (
+          <Card title={t("agency.form.work")}>
+            <div className="-mt-1 mb-4 flex flex-wrap items-center justify-between gap-3">
+              <p className="text-ink-soft text-[13px]">{t("agency.form.workHint")}</p>
+            </div>
+            <ul className="grid gap-3" aria-label={t("agency.form.work")}>
+              {work.map((row, i) => (
+                <li
+                  key={row.key}
+                  className="grid grid-cols-[minmax(0,1fr)_6.5rem_2.75rem] items-end gap-2"
+                >
+                  <Select
+                    label={t("agency.form.worker")}
+                    value={row.userId}
+                    onChange={(e) =>
+                      setWork(
+                        work.map((w) => (w.key === row.key ? { ...w, userId: e.target.value } : w)),
+                      )
+                    }
+                    disabled={pending}
+                  >
+                    {freeMembers(row.userId).map((m) => (
+                      <option key={m.userId} value={m.userId}>
+                        {m.name}
+                      </option>
+                    ))}
+                  </Select>
+                  <Field
+                    label={t("agency.form.sellerShare")}
+                    value={row.hours}
+                    inputMode="decimal"
+                    onChange={(e) =>
+                      setWork(
+                        work.map((w) => (w.key === row.key ? { ...w, hours: e.target.value } : w)),
+                      )
+                    }
+                    error={submitted || row.hours ? hourErrors[i] : undefined}
+                    disabled={pending}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    aria-label={`${t("agency.form.remove")}: ${nameOf(row.userId)}`}
+                    onClick={() => setWork(work.filter((w) => w.key !== row.key))}
+                    disabled={pending}
+                    className={cn(hourErrors[i] && (submitted || row.hours) ? "mb-7" : "")}
+                  >
+                    <Trash2 />
+                  </Button>
+                </li>
+              ))}
+            </ul>
+            {work.length > 0 &&
+            Math.abs(hours.reduce((sum, h) => sum + (h > 0 ? h : 0), 0) - 100) > 0.001 ? (
+              <p className="text-hold mt-2 text-[13px]">{t("agency.form.workNot100")}</p>
+            ) : null}
+            {show("work") ? <p className="text-urgent mt-2 text-sm">{errors.work}</p> : null}
+            {freeMembers("").length > 0 ? (
+              <Button
+                type="button"
+                variant="secondary"
+                className="mt-4"
+                disabled={pending}
+                onClick={() => {
+                  // Первым предлагаем себя: чаще всего часы вписывает тот, кто работал.
+                  const free = freeMembers("");
+                  const pick = free.find((m) => m.userId === currentUserId) ?? free[0];
+                  // Новому исполнителю — оставшийся до 100 % процент.
+                  const used = hours.reduce((sum, h) => sum + (h > 0 ? h : 0), 0);
+                  const rest = Math.max(0, Math.round((100 - used) * 100) / 100);
+                  setWork([
+                    ...work,
+                    {
+                      key: nextKey,
+                      userId: pick.userId,
+                      hours: rest ? String(rest).replace(".", ",") : "",
+                    },
+                  ]);
+                  setNextKey(nextKey + 1);
+                }}
               >
-                <Select
-                  label={t("agency.form.worker")}
-                  value={row.userId}
-                  onChange={(e) =>
-                    setWork(
-                      work.map((w) => (w.key === row.key ? { ...w, userId: e.target.value } : w)),
-                    )
-                  }
-                  disabled={pending}
-                >
-                  {freeMembers(row.userId).map((m) => (
-                    <option key={m.userId} value={m.userId}>
-                      {m.name}
-                    </option>
-                  ))}
-                </Select>
-                <Field
-                  label={t("agency.form.sellerShare")}
-                  value={row.hours}
-                  inputMode="decimal"
-                  onChange={(e) =>
-                    setWork(
-                      work.map((w) => (w.key === row.key ? { ...w, hours: e.target.value } : w)),
-                    )
-                  }
-                  error={submitted || row.hours ? hourErrors[i] : undefined}
-                  disabled={pending}
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  aria-label={`${t("agency.form.remove")}: ${nameOf(row.userId)}`}
-                  onClick={() => setWork(work.filter((w) => w.key !== row.key))}
-                  disabled={pending}
-                  className={cn(hourErrors[i] && (submitted || row.hours) ? "mb-7" : "")}
-                >
-                  <Trash2 />
-                </Button>
-              </li>
-            ))}
-          </ul>
-          {work.length > 0 &&
-          Math.abs(hours.reduce((sum, h) => sum + (h > 0 ? h : 0), 0) - 100) > 0.001 ? (
-            <p className="text-hold mt-2 text-[13px]">{t("agency.form.workNot100")}</p>
-          ) : null}
-          {show("work") ? <p className="text-urgent mt-2 text-sm">{errors.work}</p> : null}
-          {freeMembers("").length > 0 ? (
-            <Button
-              type="button"
-              variant="secondary"
-              className="mt-4"
-              disabled={pending}
-              onClick={() => {
-                // Первым предлагаем себя: чаще всего часы вписывает тот, кто работал.
-                const free = freeMembers("");
-                const pick = free.find((m) => m.userId === currentUserId) ?? free[0];
-                // Новому исполнителю — оставшийся до 100 % процент.
-                const used = hours.reduce((sum, h) => sum + (h > 0 ? h : 0), 0);
-                const rest = Math.max(0, Math.round((100 - used) * 100) / 100);
-                setWork([
-                  ...work,
-                  {
-                    key: nextKey,
-                    userId: pick.userId,
-                    hours: rest ? String(rest).replace(".", ",") : "",
-                  },
-                ]);
-                setNextKey(nextKey + 1);
-              }}
-            >
-              <Plus />
-              {t("agency.form.addWorker")}
-            </Button>
-          ) : null}
-        </Card>
+                <Plus />
+                {t("agency.form.addWorker")}
+              </Button>
+            ) : null}
+          </Card>
+        )}
 
         <Card>
           <div className="grid gap-4 sm:grid-cols-3">

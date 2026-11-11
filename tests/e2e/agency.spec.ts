@@ -160,3 +160,40 @@ test("абонемент: CRM клиента с модулями, закрыты
   await expect(page.getByText("Klienci proszą o moduły")).toBeVisible();
   await expect(page.getByRole("link", { name: client }).first()).toBeVisible();
 });
+
+test("услуги: каталог с ответственными → услуга клиенту со своей ценой → заказ, 65 % ответственному", async ({
+  page,
+}, info) => {
+  await login(page);
+  await page
+    .context()
+    .addCookies([{ name: "owo_org", value: await agencyId(), url: "http://localhost:3200" }]);
+  await page.goto("/agencja/uslugi");
+  // Первый проход создаёт каталог; второй (mobile) видит уже готовый список.
+  const starter = page.getByTestId("starter-catalog");
+  if (await starter.isVisible()) {
+    await starter.getByRole("button", { name: "Utwórz zaznaczone usługi" }).click();
+  }
+  await expect(page.getByTestId("service-list")).toBeVisible();
+
+  const client = `Usługi ${info.project.name} ${Date.now() % 100000}`;
+  await page.goto("/agencja/klienci/nowy");
+  await page.getByLabel("Nazwa firmy").fill(client);
+  await page.getByRole("button", { name: "Zapisz klienta" }).click();
+  const panel = page.getByTestId("client-services");
+  await panel.getByLabel("Wybierz usługę").selectOption({ label: "Strony internetowe" });
+  await panel.getByPlaceholder("Cena (zł)").fill("3500");
+  await panel.getByRole("button", { name: "Przypisz usługę" }).click();
+  await expect(panel).toContainText("Strony internetowe");
+
+  await panel.getByRole("link", { name: "Utwórz zlecenie" }).click();
+  await expect(page.getByLabel("Kwota netto (zł)")).toHaveValue("3500");
+  await expect(page.getByText(/65 % otrzymuje osoba odpowiedzialna/)).toBeVisible();
+  await expect(page.getByTestId("split-preview")).toContainText(/Ty dostaniesz: 2625,00\s*zł/);
+  await page.screenshot({
+    path: `tests/screenshots/${info.project.name}-usluga-zlecenie.png`,
+    fullPage: true,
+  });
+  await page.getByRole("button", { name: "Zapisz zlecenie" }).click();
+  await expect(page.getByTestId("client-orders")).toContainText("Strony internetowe");
+});

@@ -158,4 +158,32 @@ describe("распределение по документу партнёров"
     expect(d.costs_to_people).toEqual([{ user_id: ARTEM, amount_grosze: 20000 }]);
     expect(d.by_source[0].source).toBe("Instagram");
   });
+
+  it("услуга: 65 % целиком ответственному, вклад Artem увеличивает сальдо фонда", async () => {
+    const service = (
+      await q<{ id: string }>(
+        "insert into public.agency_services (organization_id, name, owner_id, kind) values ($1,'Strona www',$2,'project') returning id",
+        [org, NIKON],
+      )
+    )[0].id;
+    await q(
+      "insert into public.agency_client_services (organization_id, client_id, service_id, price_grosze) values ($1,$2,$3,350000)",
+      [org, client, service],
+    );
+    const id = await order(350_000);
+    await q("update public.agency_orders set service_id=$2 where id=$1", [id, service]);
+    const work = (await split(id)).filter((r) => r.role === "work");
+    expect(work).toEqual([{ user_id: NIKON, role: "work", amount_grosze: 227_500 }]);
+    const before = (
+      await q<{ d: { fund: { balance: number } } }>("select public.agency_summary($1) as d", [org])
+    )[0].d;
+    await q(
+      "insert into public.agency_fund_contributions (organization_id, user_id, contributed_on, amount_grosze) values ($1,$2,current_date,750000)",
+      [org, ARTEM],
+    );
+    const after = (
+      await q<{ d: { fund: { balance: number } } }>("select public.agency_summary($1) as d", [org])
+    )[0].d;
+    expect(Number(after.fund.balance) - Number(before.fund.balance)).toBe(750_000);
+  });
 });

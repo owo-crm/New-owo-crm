@@ -20,6 +20,8 @@ export default async function EditOrderPage({ params }: PageProps<"/agencja/zlec
         members={data.members}
         shares={data.shares}
         currentUserId={data.currentUserId}
+        services={data.services}
+        clientServices={data.clientServices}
         initial={{
           id: order.id,
           clientId: order.client_id,
@@ -31,6 +33,7 @@ export default async function EditOrderPage({ params }: PageProps<"/agencja/zlec
           sellers: order.sellers,
           workBasis: order.workBasis,
           costs: order.costs,
+          serviceId: order.serviceId,
           periodMonth: order.period_month.slice(0, 7),
           status: order.status,
           dueDate: order.due_date,
