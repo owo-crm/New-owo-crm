@@ -20,6 +20,20 @@ export function BusinessSwitcher({
 }) {
   const [pending, start] = useTransition();
   const router = useRouter();
+
+  // У клиента бизнес один: показываем название, а не выпадающий список из одного пункта.
+  if (organizations.length < 2 && !canCreate)
+    return (
+      <p className={cn("flex h-10 min-w-0 items-center gap-2.5 px-3 text-sm font-bold", className)}>
+        <span
+          className="size-2.5 shrink-0 rounded-full"
+          style={{ background: current.brandColor }}
+          aria-hidden
+        />
+        <span className="truncate">{current.name}</span>
+      </p>
+    );
+
   return (
     <label
       className={cn(

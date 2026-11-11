@@ -35,6 +35,8 @@ export async function createBusinessAction(
         color,
         row!.id,
       ]);
+      // Участие OWO Ads помечаем обслуживающим: клиент его видит, но убрать не может.
+      await tx.query("select public.mark_service_membership($1)", [row!.id]);
       return row!.id;
     });
   } catch (error) {

@@ -3,16 +3,23 @@ import { InviteForm, MemberControls, RevokeButton } from "@/components/team/form
 import { withOrg } from "@/lib/db/user";
 import { t, type MessageKey } from "@/lib/i18n";
 
-type Member = { user_id: string; role: "owner" | "admin" | "member"; name: string; login: string };
+type Member = {
+  user_id: string;
+  role: "owner" | "admin" | "member";
+  name: string;
+  login: string;
+  is_service: boolean;
+};
 type Invite = { id: string; role: string; note: string | null; expires_at: string };
 
 export default async function TeamPage() {
   const data = await withOrg(async (tx, { user, organization }) => {
     const admin = ["owner", "admin"].includes(organization.role);
     const members = (
-      await tx.query<Member>("select user_id, role, name, login from public.team_members($1)", [
-        organization.id,
-      ])
+      await tx.query<Member>(
+        "select user_id, role, name, login, is_service from public.team_members($1)",
+        [organization.id],
+      )
     ).rows;
     const invites = admin
       ? (
@@ -29,6 +36,7 @@ export default async function TeamPage() {
       owner: organization.role === "owner",
       me: user.id,
       org: organization.name,
+      platformAdmin: user.isPlatformAdmin,
     };
   });
   const date = (d: string) =>
@@ -53,12 +61,22 @@ export default async function TeamPage() {
                   ) : null}
                 </p>
                 <p className="text-ink-soft truncate text-sm">{m.login}</p>
+                {m.is_service ? (
+                  <p className="text-ink-faint mt-0.5 text-xs">{t("team.service")}</p>
+                ) : null}
               </div>
               <MemberControls
                 userId={m.user_id}
                 role={m.role}
-                canChangeRole={data.owner && m.user_id !== data.me}
-                canRemove={data.admin && m.role !== "owner" && m.user_id !== data.me}
+                canChangeRole={
+                  data.owner && m.user_id !== data.me && (!m.is_service || data.platformAdmin)
+                }
+                canRemove={
+                  data.admin &&
+                  m.role !== "owner" &&
+                  m.user_id !== data.me &&
+                  (!m.is_service || data.platformAdmin)
+                }
               />
             </li>
           ))}

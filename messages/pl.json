@@ -443,7 +443,8 @@
     "yourName": "Imię i nazwisko",
     "createAccount": "Utwórz konto i dołącz",
     "haveAccount": "Mam już konto — zaloguj się",
-    "adminOnly": "Zespołem zarządza właściciel lub administrator."
+    "adminOnly": "Zespołem zarządza właściciel lub administrator.",
+    "service": "Konto serwisowe OWO Ads — obsługa techniczna systemu"
   },
   "business": {
     "switch": "Biznes",
