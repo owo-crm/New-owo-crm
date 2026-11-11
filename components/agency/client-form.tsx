@@ -62,7 +62,7 @@ export function ClientForm({ initial }: { initial: ClientFormValues }) {
             <select
               name="status"
               defaultValue={initial.status}
-              className="border-line-strong bg-surface h-10 rounded-[10px] border px-3 text-sm"
+              className="border-line-strong bg-surface h-10 rounded-lg border px-3 text-sm"
             >
               {CLIENT_STATUSES.map((s) => (
                 <option key={s} value={s}>
@@ -79,7 +79,7 @@ export function ClientForm({ initial }: { initial: ClientFormValues }) {
             rows={3}
             maxLength={4000}
             defaultValue={initial.note}
-            className="border-line-strong bg-surface rounded-[10px] border p-3 text-sm font-normal"
+            className="border-line-strong bg-surface rounded-lg border p-3 text-sm font-normal"
           />
         </label>
         <SubmitButton>{t("agency.client.save")}</SubmitButton>

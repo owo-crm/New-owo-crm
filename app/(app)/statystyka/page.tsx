@@ -11,7 +11,7 @@ import { addMonths, plDate, warsawToday } from "@/lib/format";
 import { t } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
-export const metadata: Metadata = { title: t("finance.pageTitle") };
+export const metadata: Metadata = { title: t("nav.stats") };
 
 const MONTHS = [
   "styczeń",
@@ -62,7 +62,7 @@ export default async function FinancePage({ searchParams }: PageProps<"/statysty
   return (
     <>
       <PageHeader
-        title={`${t("finance.pageTitle")} · ${MONTHS[m - 1]} ${year}`}
+        title={`${t("nav.stats")} · ${MONTHS[m - 1]} ${year}`}
         subtitle={t("finance.pageIntro")}
         aside={
           <div className="flex items-center gap-2">
@@ -87,12 +87,12 @@ export default async function FinancePage({ searchParams }: PageProps<"/statysty
         }
       />
 
-      <div className="border-line bg-surface card-shadow mb-5 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border lg:grid-cols-4">
+      <div className="border-line bg-surface mb-5 grid grid-cols-2 gap-px overflow-hidden rounded-xl border lg:grid-cols-4">
         {stats.map((s) => (
           <div key={s.label} className="bg-surface px-4 py-3.5">
             <p
               className={cn(
-                "font-display text-[1.6rem] leading-none font-semibold tabular-nums",
+                "text-[22px] leading-none font-semibold tabular-nums",
                 s.urgent && "text-urgent",
               )}
             >
@@ -114,15 +114,15 @@ export default async function FinancePage({ searchParams }: PageProps<"/statysty
                   <div className="min-w-0 flex-1">
                     <Link
                       href={`/leady/${p.lead_id}`}
-                      className="truncate font-bold hover:underline"
+                      className="truncate font-semibold hover:underline"
                     >
                       {p.client_name}
                     </Link>
-                    <p className="text-urgent text-[13px] font-bold">
+                    <p className="text-urgent text-[13px] font-semibold">
                       {p.label} · {t("finance.wasDue", { date: plDate(p.due_date) })}
                     </p>
                   </div>
-                  <span className="font-display shrink-0 font-semibold tabular-nums">
+                  <span className="shrink-0 font-semibold tabular-nums">
                     {formatMoney(p.amount_grosze)}
                   </span>
                 </li>
@@ -141,7 +141,7 @@ export default async function FinancePage({ searchParams }: PageProps<"/statysty
                   <div className="min-w-0 flex-1">
                     <Link
                       href={`/leady/${p.lead_id}`}
-                      className="truncate font-bold hover:underline"
+                      className="truncate font-semibold hover:underline"
                     >
                       {p.client_name}
                     </Link>
@@ -149,7 +149,7 @@ export default async function FinancePage({ searchParams }: PageProps<"/statysty
                       {p.label} · {t("finance.due", { date: plDate(p.due_date) })}
                     </p>
                   </div>
-                  <span className="font-display shrink-0 font-semibold tabular-nums">
+                  <span className="shrink-0 font-semibold tabular-nums">
                     {formatMoney(p.amount_grosze)}
                   </span>
                 </li>
@@ -163,7 +163,7 @@ export default async function FinancePage({ searchParams }: PageProps<"/statysty
             <p className="text-ink-soft text-sm">{t("finance.sourcesEmpty")}</p>
           ) : (
             <table className="w-full text-sm">
-              <thead className="text-ink-faint text-xs font-bold">
+              <thead className="text-ink-faint text-xs font-semibold">
                 <tr>
                   <th className="pb-2 text-left">{t("finance.colSource")}</th>
                   <th className="pb-2 text-right">{t("finance.colLeads")}</th>
@@ -174,7 +174,7 @@ export default async function FinancePage({ searchParams }: PageProps<"/statysty
               <tbody>
                 {data.by_source.map((s) => (
                   <tr key={s.source} className="border-line border-t">
-                    <td className="py-2 font-bold">{s.source}</td>
+                    <td className="py-2 font-semibold">{s.source}</td>
                     <td className="py-2 text-right tabular-nums">{s.leads}</td>
                     <td className="py-2 text-right tabular-nums">{formatMoney(s.paid_grosze)}</td>
                     <td className="text-ink-soft py-2 text-right tabular-nums">
@@ -201,7 +201,7 @@ export default async function FinancePage({ searchParams }: PageProps<"/statysty
                     <span className="text-ink-soft tabular-nums">{x.month}</span>
                     <span className="bg-surface-2 h-2 rounded-full">
                       <span
-                        className="bg-brand block h-2 rounded-full"
+                        className="bg-ink-soft block h-2 rounded-full"
                         style={{ width: `${Math.max(4, (x.paid_grosze / maxMonth) * 100)}%` }}
                       />
                     </span>
@@ -228,7 +228,7 @@ export default async function FinancePage({ searchParams }: PageProps<"/statysty
                           ? "bg-ok"
                           : s.kind === "lost"
                             ? "bg-ink-faint"
-                            : "bg-brand",
+                            : "bg-ink-soft",
                       )}
                       style={{ width: `${Math.max(2, (s.leads / maxStage) * 100)}%` }}
                     />

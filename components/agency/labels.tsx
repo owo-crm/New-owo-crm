@@ -23,7 +23,7 @@ const ORDER_TONE: Record<OrderStatus, string> = {
 
 export function ClientStatusBadge({ status }: { status: ClientStatus }) {
   return (
-    <span className={cn("text-[13px] font-bold", CLIENT_TONE[status])}>
+    <span className={cn("text-[13px] font-semibold", CLIENT_TONE[status])}>
       {t(`agency.status.${status}` as MessageKey)}
     </span>
   );
@@ -31,7 +31,7 @@ export function ClientStatusBadge({ status }: { status: ClientStatus }) {
 
 export function OrderStatusBadge({ status }: { status: OrderStatus }) {
   return (
-    <span className={cn("text-[13px] font-bold", ORDER_TONE[status])}>
+    <span className={cn("text-[13px] font-semibold", ORDER_TONE[status])}>
       {t(`agency.orderStatus.${status}` as MessageKey)}
     </span>
   );

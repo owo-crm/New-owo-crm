@@ -29,14 +29,14 @@ export function QueueRow({ lead, now }: { lead: WaitingLead; now: string }) {
     <li className="border-line grid gap-x-4 gap-y-2 border-b py-3.5 last:border-0 sm:grid-cols-[4.75rem_minmax(0,1fr)_auto] sm:items-center">
       <p
         className={cn(
-          "font-display text-xl leading-none font-semibold tabular-nums",
+          "text-xl leading-none font-semibold tabular-nums",
           hot ? "text-urgent" : "text-ink-soft",
         )}
       >
         {formatWaiting(minutes)}
       </p>
       <div className="min-w-0">
-        <Link href={`/leady/${lead.id}`} className="truncate font-bold hover:underline">
+        <Link href={`/leady/${lead.id}`} className="truncate font-semibold hover:underline">
           {lead.client_name}
         </Link>
         <p className="text-ink-soft text-[13px]">

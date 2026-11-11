@@ -12,7 +12,7 @@ export function RequestModuleButton({ module, requested }: { module: string; req
   const [error, setError] = useState<string>();
   if (done)
     return (
-      <p role="status" className="text-ok text-sm font-bold">
+      <p role="status" className="text-ok text-sm font-semibold">
         {t("billing.locked.requested")}
       </p>
     );

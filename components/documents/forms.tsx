@@ -14,7 +14,7 @@ import {
 import { t, type MessageKey } from "@/lib/i18n";
 
 const area =
-  "border-line-strong bg-surface-2 w-full rounded-[10px] border p-3 font-[inherit] text-[15px] leading-relaxed";
+  "border-line-strong bg-surface-2 w-full rounded-lg border p-3 font-[inherit] text-[15px] leading-relaxed";
 
 function Area({
   name,
@@ -121,7 +121,7 @@ export function ContractForm({
             <select
               name="pkg"
               defaultValue={["simple", "standard", "premium"].includes(pkg) ? pkg : "standard"}
-              className="border-line-strong bg-surface-2 h-11 rounded-[10px] border px-3"
+              className="border-line-strong bg-surface-2 h-11 rounded-lg border px-3"
             >
               <option value="simple">Simple</option>
               <option value="standard">Standard</option>

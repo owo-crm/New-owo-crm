@@ -34,11 +34,11 @@ export function PaymentsCard({ payments }: { payments: Payment[] }) {
                   className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2.5 first:pt-0 last:pb-0"
                 >
                   <div className="min-w-0 flex-1">
-                    <p className={cn("font-bold", p.paid_at && "text-ink-soft")}>{p.label}</p>
+                    <p className={cn("font-semibold", p.paid_at && "text-ink-soft")}>{p.label}</p>
                     <p
                       className={cn(
                         "text-[13px]",
-                        overdue ? "text-urgent font-bold" : "text-ink-soft",
+                        overdue ? "text-urgent font-semibold" : "text-ink-soft",
                       )}
                     >
                       {formatMoney(p.amount_grosze)}

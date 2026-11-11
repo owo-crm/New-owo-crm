@@ -63,14 +63,14 @@ export function NewLeadForm() {
             />
           ))}
         </div>
-        <label className="grid gap-2 text-sm font-bold">
+        <label className="grid gap-2 text-sm font-semibold">
           {t("leads.fields.message")}
           <textarea
             name="message"
             rows={4}
             maxLength={10000}
             disabled={pending}
-            className="border-line-strong bg-surface rounded-[10px] border p-3 text-sm font-normal"
+            className="border-line-strong bg-surface rounded-lg border p-3 text-sm font-normal"
           />
         </label>
         <Button disabled={pending} type="submit">

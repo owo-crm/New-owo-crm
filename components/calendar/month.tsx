@@ -22,8 +22,8 @@ export function MonthCalendar({
   const byDate = new Map<string, CalendarEvent[]>();
   for (const e of events) byDate.set(e.event_date, [...(byDate.get(e.event_date) ?? []), e]);
   return (
-    <div className="border-line bg-surface card-shadow overflow-hidden rounded-2xl border">
-      <div className="text-ink-faint border-line grid grid-cols-7 border-b text-center text-xs font-bold">
+    <div className="border-line bg-surface overflow-hidden rounded-xl border">
+      <div className="text-ink-faint border-line grid grid-cols-7 border-b text-center text-xs font-semibold">
         {WEEKDAYS.map((d) => (
           <span key={d} className="py-2">
             {d}
@@ -46,7 +46,7 @@ export function MonthCalendar({
               >
                 <span
                   className={cn(
-                    "flex size-6 items-center justify-center rounded-full text-xs font-bold tabular-nums",
+                    "flex size-6 items-center justify-center rounded-full text-xs font-semibold tabular-nums",
                     isToday ? "bg-ink text-bg" : cell.inMonth ? "text-ink-soft" : "text-ink-faint",
                   )}
                 >
@@ -59,7 +59,7 @@ export function MonthCalendar({
                         href={`/leady/${e.id}`}
                         title={`${e.client_name}${e.event_city ? ` · ${e.event_city}` : ""}`}
                         className={cn(
-                          "block truncate rounded px-1.5 py-0.5 text-[11px] leading-4 font-bold",
+                          "block truncate rounded px-1.5 py-0.5 text-[11px] leading-4 font-semibold",
                           e.confirmed
                             ? "bg-ok/15 text-ok"
                             : "border-hold/40 text-hold border border-dashed",
@@ -70,7 +70,7 @@ export function MonthCalendar({
                     </li>
                   ))}
                   {dayEvents.length > 3 ? (
-                    <li className="text-ink-faint px-1.5 text-[11px] font-bold">
+                    <li className="text-ink-faint px-1.5 text-[11px] font-semibold">
                       +{dayEvents.length - 3}
                     </li>
                   ) : null}
@@ -86,18 +86,18 @@ export function MonthCalendar({
 /** На телефоне сетка слишком мелкая — показываем тот же месяц списком. */
 export function MonthList({ events }: { events: CalendarEvent[] }) {
   return (
-    <ul className="border-line bg-surface card-shadow divide-line divide-y overflow-hidden rounded-2xl border">
+    <ul className="border-line bg-surface divide-line divide-y overflow-hidden rounded-xl border">
       {events.map((e) => (
         <li key={e.id}>
           <Link
             href={`/leady/${e.id}`}
             className="hover:bg-surface-2 flex items-center gap-3 px-4 py-3"
           >
-            <span className="font-display w-14 shrink-0 text-sm font-semibold tabular-nums">
+            <span className="w-14 shrink-0 text-sm font-semibold tabular-nums">
               {plDate(e.event_date).slice(0, 5)}
             </span>
             <span className="min-w-0 flex-1">
-              <span className="block truncate font-bold">{e.client_name}</span>
+              <span className="block truncate font-semibold">{e.client_name}</span>
               <span className="text-ink-soft block truncate text-[13px]">
                 {[e.event_type, e.event_city].filter(Boolean).join(" · ") || t("leads.noDetails")}
               </span>

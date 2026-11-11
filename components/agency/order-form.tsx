@@ -49,7 +49,7 @@ export type OrderFormInitial = {
 type WorkRow = { key: number; userId: string; hours: string };
 
 const selectClass =
-  "h-10 w-full rounded-[10px] border border-line-strong bg-surface px-3 text-sm text-ink hover:border-ink-soft focus:border-ink focus:outline-none aria-invalid:border-urgent";
+  "h-10 w-full rounded-lg border border-line-strong bg-surface px-3 text-sm text-ink hover:border-ink-soft focus:border-ink focus:outline-none aria-invalid:border-urgent";
 
 function Select({
   label,
@@ -407,7 +407,7 @@ export function OrderForm({
               rows={3}
               maxLength={4000}
               disabled={pending}
-              className="border-line-strong bg-surface rounded-[10px] border p-3 text-sm font-normal"
+              className="border-line-strong bg-surface rounded-lg border p-3 text-sm font-normal"
             />
           </label>
         </Card>
@@ -423,7 +423,7 @@ export function OrderForm({
               {preview.totals.people.map((p) => (
                 <li key={p.userId} className="flex items-baseline justify-between gap-3 py-2">
                   <span className="min-w-0">
-                    <span className="font-bold">{nameOf(p.userId)}</span>
+                    <span className="font-semibold">{nameOf(p.userId)}</span>
                     <span className="text-ink-soft block text-[13px]">
                       {[
                         p.saleGrosze
@@ -437,15 +437,15 @@ export function OrderForm({
                         .join(" · ")}
                     </span>
                   </span>
-                  <span className="font-display shrink-0 font-semibold tabular-nums">
+                  <span className="shrink-0 font-semibold tabular-nums">
                     {formatMoney(p.totalGrosze)}
                   </span>
                 </li>
               ))}
               {preview.totals.unassignedGrosze > 0 ? (
                 <li className="flex items-baseline justify-between gap-3 py-2">
-                  <span className="text-hold font-bold">{t("agency.split.unassigned")}</span>
-                  <span className="text-hold font-display shrink-0 font-semibold tabular-nums">
+                  <span className="text-hold font-semibold">{t("agency.split.unassigned")}</span>
+                  <span className="text-hold shrink-0 font-semibold tabular-nums">
                     {formatMoney(preview.totals.unassignedGrosze)}
                   </span>
                 </li>
@@ -454,13 +454,13 @@ export function OrderForm({
                 <span className="text-ink-soft">
                   {t("agency.form.previewCompany", { pct: sharePercent(shares.companyBp) })}
                 </span>
-                <span className="font-display shrink-0 font-semibold tabular-nums">
+                <span className="shrink-0 font-semibold tabular-nums">
                   {formatMoney(preview.totals.companyGrosze)}
                 </span>
               </li>
             </ul>
             {mine ? (
-              <p className="bg-surface-2 mt-3 rounded-[10px] px-3 py-2.5 text-sm font-bold">
+              <p className="bg-surface-2 mt-3 rounded-lg px-3 py-2.5 text-sm font-semibold">
                 {t("agency.form.you", { amount: formatMoney(mine.totalGrosze) })}
               </p>
             ) : null}
@@ -482,7 +482,7 @@ export function OrderForm({
         <span className="text-ink-soft truncate">
           {t("agency.form.previewBase", { amount: formatMoney(preview.base) })}
         </span>
-        <span className="shrink-0 font-bold tabular-nums">
+        <span className="shrink-0 font-semibold tabular-nums">
           {mine
             ? t("agency.form.you", { amount: formatMoney(mine.totalGrosze) })
             : preview.totals.unassignedGrosze > 0

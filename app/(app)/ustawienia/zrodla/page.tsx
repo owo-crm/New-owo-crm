@@ -37,7 +37,7 @@ export default async function ChannelsPage() {
       {website.length === 0 ? <p className="text-ink-soft">{t("channels.empty")}</p> : null}
       {website.map((c) => (
         <Card key={c.id} title={c.name}>
-          <p className="text-ink-soft text-xs font-bold">{t("channels.endpoint")}</p>
+          <p className="text-ink-soft text-xs font-semibold">{t("channels.endpoint")}</p>
           <code className="bg-surface-2 mt-1 block rounded-lg p-3 text-sm break-all select-all">
             {`${appConfig.siteUrl}/api/intake/${c.public_key}`}
           </code>

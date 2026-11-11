@@ -34,7 +34,7 @@ export default async function SubscriptionPage() {
                   className="flex flex-wrap items-center gap-3 py-3 first:pt-0 last:pb-0"
                 >
                   <span className="min-w-0 flex-1">
-                    <span className="flex items-center gap-2 font-bold">
+                    <span className="flex items-center gap-2 font-semibold">
                       {on ? <Check className="text-ok size-4" aria-hidden /> : null}
                       {t(MODULES[key].labelKey)}
                     </span>

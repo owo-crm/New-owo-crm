@@ -45,7 +45,7 @@ export default async function SettingsPage() {
   return (
     <>
       <PageHeader title={t("settings.title")} />
-      <ul className="divide-line border-line bg-surface divide-y overflow-hidden rounded-[22px] border">
+      <ul className="divide-line border-line bg-surface divide-y overflow-hidden rounded-xl border">
         {SECTIONS.map(({ title, text, icon: Icon }) => (
           <li key={title} className="flex items-center gap-4 px-5 py-4">
             <Icon className="text-ink-soft size-5 shrink-0" />
@@ -56,12 +56,12 @@ export default async function SettingsPage() {
             {LINKS[title] ? (
               <Link
                 href={LINKS[title]!}
-                className="text-ink-soft hover:text-ink inline-flex min-h-11 items-center text-sm font-bold"
+                className="text-ink-soft hover:text-ink inline-flex min-h-11 items-center text-sm font-semibold"
               >
                 {t("leads.open")}
               </Link>
             ) : (
-              <span className="bg-surface-2 text-ink-soft rounded-full px-2.5 py-1 text-xs font-bold">
+              <span className="bg-surface-2 text-ink-soft rounded-full px-2.5 py-1 text-xs font-semibold">
                 {t("common.soon")}
               </span>
             )}
@@ -73,7 +73,7 @@ export default async function SettingsPage() {
         {t("pwa.title")}
       </Link>
       <section className="mt-10">
-        <h2 className="font-display text-xl font-medium">{t("settings.account")}</h2>
+        <h2 className="text-xl font-medium">{t("settings.account")}</h2>
         <p className="text-ink-soft mt-1">{t("settings.signedInAs", { email: user.email })}</p>
         <form action={signOut} className="mt-4">
           <Button variant="secondary" type="submit">

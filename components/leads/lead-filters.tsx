@@ -47,7 +47,7 @@ export function LeadFiltersForm({
               defaultValue={filters.q}
               placeholder={t("leads.searchHint")}
               aria-label={t("leads.search")}
-              className="border-line-strong bg-surface h-10 w-full rounded-[10px] border pr-3 pl-9 text-sm"
+              className="border-line-strong bg-surface h-10 w-full rounded-lg border pr-3 pl-9 text-sm"
             />
           </div>
           <Button type="submit" variant="secondary" className="shrink-0">
@@ -75,7 +75,7 @@ export function LeadFiltersForm({
               href={leadFilterUrl(filters, { quick: (value || undefined) as LeadFilters["quick"] })}
               aria-current={on ? "true" : undefined}
               className={cn(
-                "h-8 rounded-full border px-3 text-[13px] leading-[30px] font-bold transition-colors",
+                "h-8 rounded-full border px-3 text-[13px] leading-[30px] font-semibold transition-colors",
                 on
                   ? "border-ink bg-ink text-bg"
                   : "border-line text-ink-soft hover:border-line-strong hover:text-ink",
@@ -88,7 +88,7 @@ export function LeadFiltersForm({
       </nav>
 
       {open ? (
-        <form className="border-line bg-surface grid gap-3 rounded-2xl border p-4 sm:grid-cols-2 xl:grid-cols-3">
+        <form className="border-line bg-surface grid gap-3 rounded-xl border p-4 sm:grid-cols-2 xl:grid-cols-3">
           <input type="hidden" name="view" value={filters.view} />
           <input type="hidden" name="q" value={filters.q} />
           <Select name="stage" label={t("leads.stage")} defaultValue={filters.stage ?? ""}>
@@ -122,7 +122,7 @@ export function LeadFiltersForm({
               type="date"
               name="from"
               defaultValue={filters.from}
-              className="border-line-strong bg-surface h-10 rounded-[10px] border px-3 text-sm"
+              className="border-line-strong bg-surface h-10 rounded-lg border px-3 text-sm"
             />
           </label>
           <label className="grid gap-2 text-sm font-semibold">
@@ -131,7 +131,7 @@ export function LeadFiltersForm({
               type="date"
               name="to"
               defaultValue={filters.to}
-              className="border-line-strong bg-surface h-10 rounded-[10px] border px-3 text-sm"
+              className="border-line-strong bg-surface h-10 rounded-lg border px-3 text-sm"
             />
           </label>
           <div className="flex items-end gap-2">

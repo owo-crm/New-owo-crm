@@ -7,6 +7,7 @@ import { LeadFiltersForm } from "@/components/leads/lead-filters";
 import { Kanban } from "@/components/leads/kanban";
 import { LeadList } from "@/components/leads/lead-list";
 import { LiveUpdates } from "@/components/leads/live-updates";
+import { LeadViewTabs } from "@/components/leads/view-tabs";
 import { requireOrganization } from "@/lib/auth/session";
 import { getLeadOptions, getLeads } from "@/lib/leads/queries";
 import { leadPageUrl, parseLeadFilters } from "@/lib/leads/filters";
@@ -26,24 +27,12 @@ export default async function Page({ searchParams }: PageProps<"/leady">) {
         aside={
           <div className="flex flex-wrap items-center gap-2">
             <LiveUpdates organizationId={organization.id} />
-            <nav
-              aria-label={t("leads.view")}
-              className="border-line flex rounded-[10px] border p-0.5"
-            >
-              {(["list", "board"] as const).map((view) => (
-                <Link
-                  key={view}
-                  href={leadPageUrl({ ...filters, view }, 1)}
-                  aria-current={filters.view === view ? "page" : undefined}
-                  className={cn(
-                    "h-8 rounded-lg px-3 text-[13px] leading-8 font-bold",
-                    filters.view === view ? "bg-ink text-bg" : "text-ink-soft hover:text-ink",
-                  )}
-                >
-                  {t(view === "list" ? "leads.listView" : "leads.boardView")}
-                </Link>
-              ))}
-            </nav>
+            <LeadViewTabs
+              current={filters.view === "board" ? "board" : "list"}
+              listHref={leadPageUrl({ ...filters, view: "list" }, 1)}
+              boardHref={leadPageUrl({ ...filters, view: "board" }, 1)}
+              calendar={organization.modules.includes("calendar")}
+            />
             {/* На телефоне новый лид добавляется кнопкой «＋» в нижней панели. */}
             <Link
               href="/leady/nowy"

@@ -114,11 +114,11 @@ export default async function ClientPage({ params }: PageProps<"/agencja/klienci
                       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
                         <Link
                           href={`/agencja/zlecenia/${o.id}`}
-                          className="min-w-0 font-bold hover:underline"
+                          className="min-w-0 font-semibold hover:underline"
                         >
                           {o.title}
                         </Link>
-                        <span className="font-display font-semibold tabular-nums">
+                        <span className="font-semibold tabular-nums">
                           {formatMoney(o.amount_grosze)}
                         </span>
                       </div>
@@ -136,7 +136,7 @@ export default async function ClientPage({ params }: PageProps<"/agencja/klienci
                         ) : null}
                       </div>
                       <details className="text-[13px]">
-                        <summary className="text-ink-soft cursor-pointer font-bold">
+                        <summary className="text-ink-soft cursor-pointer font-semibold">
                           {t("agency.client.splitOf")}
                         </summary>
                         <ul className="mt-1.5 grid gap-1 tabular-nums">
@@ -147,7 +147,7 @@ export default async function ClientPage({ params }: PageProps<"/agencja/klienci
                             </li>
                           ))}
                           {split.unassignedGrosze > 0 ? (
-                            <li className="text-hold flex justify-between gap-3 font-bold">
+                            <li className="text-hold flex justify-between gap-3 font-semibold">
                               <span>{t("agency.split.unassigned")}</span>
                               <span>{formatMoney(split.unassignedGrosze)}</span>
                             </li>

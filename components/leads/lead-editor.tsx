@@ -201,7 +201,7 @@ export function LeadEditor({
                     key={field}
                     className="border-line border-b py-2.5 last:border-0 sm:[&:nth-last-child(2)]:border-0"
                   >
-                    <dt className="text-ink-faint text-xs font-bold">{labelFor(field)}</dt>
+                    <dt className="text-ink-faint text-xs font-semibold">{labelFor(field)}</dt>
                     <dd>
                       {editing === field ? (
                         <form
@@ -279,7 +279,7 @@ export function LeadEditor({
                   defaultValue={valueFor("message")}
                   rows={6}
                   maxLength={10000}
-                  className="border-line-strong bg-surface rounded-[10px] border p-3 text-sm"
+                  className="border-line-strong bg-surface rounded-lg border p-3 text-sm"
                 />
                 <div className="flex gap-2">
                   <Button type="submit" size="sm" disabled={pending}>
@@ -326,7 +326,7 @@ export function LeadEditor({
                   required
                   maxLength={5000}
                   rows={3}
-                  className="border-line-strong bg-surface rounded-[10px] border p-3 text-sm"
+                  className="border-line-strong bg-surface rounded-lg border p-3 text-sm"
                 />
               </label>
               <Button type="submit" disabled={pending}>
@@ -345,7 +345,7 @@ export function LeadEditor({
                       timeZone: "Europe/Warsaw",
                     }).format(new Date(event.created_at))}
                   </p>
-                  <p className="mt-1 font-bold">
+                  <p className="mt-1 font-semibold">
                     {t(eventLabels[event.type] ?? "leads.history.other")}
                   </p>
                   {event.type === "document_generated" &&

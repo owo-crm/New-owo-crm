@@ -16,7 +16,7 @@ export function Notice({
     <div
       role={tone === "error" ? "alert" : "status"}
       className={cn(
-        "flex items-start gap-2.5 rounded-[10px] border px-3.5 py-3 text-sm",
+        "flex items-start gap-2.5 rounded-lg border px-3.5 py-3 text-sm",
         tone === "error"
           ? "border-urgent/30 bg-urgent/5 text-ink"
           : "border-ok/30 bg-ok/5 text-ink",

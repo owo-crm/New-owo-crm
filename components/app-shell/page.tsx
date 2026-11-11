@@ -83,7 +83,7 @@ export function EmptyState({
       )}
     >
       <Icon className="text-ink-faint mx-auto size-6" />
-      <h2 className="mt-3 text-[15px] font-semibold">{title}</h2>
+      <h2 className="mt-3 text-[13.5px] font-semibold">{title}</h2>
       <p className="text-ink-soft mx-auto mt-1 max-w-[30rem] text-[13.5px]">{text}</p>
       {action ? <div className="mt-5 flex justify-center">{action}</div> : null}
     </section>

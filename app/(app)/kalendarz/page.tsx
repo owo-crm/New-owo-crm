@@ -4,6 +4,7 @@ import { moduleAccess } from "@/lib/billing/gate";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { PageHeader } from "@/components/app-shell/page";
+import { LeadViewTabs } from "@/components/leads/view-tabs";
 import { MonthCalendar, MonthList } from "@/components/calendar/month";
 import { buttonVariants } from "@/components/ui/button";
 import { getCalendarEvents } from "@/lib/leads/dashboard";
@@ -48,10 +49,16 @@ export default async function CalendarPage({ searchParams }: PageProps<"/kalenda
   return (
     <>
       <PageHeader
-        title={`${MONTHS[m - 1]} ${year}`}
-        subtitle={t("calendar.intro")}
+        title={t("nav.leads")}
+        subtitle={`${MONTHS[m - 1]} ${year} · ${t("calendar.intro")}`}
         aside={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <LeadViewTabs
+              current="calendar"
+              listHref="/leady"
+              boardHref="/leady?view=board"
+              calendar
+            />
             <Link
               href={link(addMonths(month, -1))}
               aria-label={t("calendar.prev")}
@@ -83,7 +90,7 @@ export default async function CalendarPage({ searchParams }: PageProps<"/kalenda
         </span>
       </p>
       {events.length === 0 ? (
-        <p className="border-line-strong text-ink-soft rounded-2xl border border-dashed px-6 py-12 text-center">
+        <p className="border-line-strong text-ink-soft rounded-xl border border-dashed px-6 py-12 text-center">
           {t("calendar.emptyMonth")}
         </p>
       ) : (

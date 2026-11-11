@@ -11,7 +11,7 @@ import { formatWaiting, plDate, plDateTime } from "@/lib/format";
 import { t } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
-export const metadata: Metadata = { title: t("today.title") };
+export const metadata: Metadata = { title: t("nav.dashboard") };
 
 export default async function TodayPage() {
   const { organization } = await requireOrganization();
@@ -31,17 +31,17 @@ export default async function TodayPage() {
   return (
     <>
       <PageHeader
-        title={t("today.title")}
+        title={t("nav.dashboard")}
         subtitle={t("today.hello")}
         aside={<LiveUpdates organizationId={organization.id} />}
       />
 
-      <div className="border-line bg-surface card-shadow mb-5 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border sm:grid-cols-3 lg:grid-cols-5">
+      <div className="border-line bg-line mb-6 grid grid-cols-2 gap-px overflow-hidden rounded-xl border sm:grid-cols-3 lg:grid-cols-5">
         {stats.map((s) => (
           <div key={s.label} className="bg-surface px-4 py-3.5">
             <p
               className={cn(
-                "font-display text-[1.75rem] leading-none font-semibold tabular-nums",
+                "text-[22px] leading-none font-semibold tabular-nums",
                 s.urgent && "text-urgent",
               )}
             >
@@ -55,7 +55,7 @@ export default async function TodayPage() {
       <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
         <Card>
           <div className="mb-1 flex items-baseline justify-between gap-3">
-            <h2 className="text-[15px] font-bold">{t("today.queueTitle")}</h2>
+            <h2 className="text-[13.5px] font-semibold">{t("today.queueTitle")}</h2>
             <span className="text-ink-faint text-xs">{t("today.queueOlder")}</span>
           </div>
           {q.waiting.length === 0 ? (
@@ -70,7 +70,7 @@ export default async function TodayPage() {
               {q.waiting_count > q.waiting.length ? (
                 <Link
                   href="/leady?quick=waiting"
-                  className="text-ink-soft hover:text-ink mt-3 inline-flex items-center gap-1.5 text-sm font-bold"
+                  className="text-ink-soft hover:text-ink mt-3 inline-flex items-center gap-1.5 text-sm font-semibold"
                 >
                   {t("today.seeAll", { count: q.waiting_count })}
                   <ArrowRight className="size-4" />
@@ -94,7 +94,7 @@ export default async function TodayPage() {
                     <div className="min-w-0 flex-1">
                       <Link
                         href={`/leady/${task.id}`}
-                        className="truncate font-bold hover:underline"
+                        className="truncate font-semibold hover:underline"
                       >
                         {task.client_name}
                       </Link>
@@ -119,9 +119,12 @@ export default async function TodayPage() {
 
           <Card>
             <div className="mb-1 flex items-baseline justify-between gap-3">
-              <h2 className="text-[15px] font-bold">{t("today.upcomingTitle")}</h2>
+              <h2 className="text-[13.5px] font-semibold">{t("today.upcomingTitle")}</h2>
               {organization.modules.includes("calendar") ? (
-                <Link href="/kalendarz" className="text-ink-soft hover:text-ink text-xs font-bold">
+                <Link
+                  href="/kalendarz"
+                  className="text-ink-soft hover:text-ink text-xs font-semibold"
+                >
                   {t("today.upcomingAll")}
                 </Link>
               ) : null}
@@ -136,7 +139,10 @@ export default async function TodayPage() {
                       className={cn("size-4 shrink-0", e.confirmed ? "text-ok" : "text-ink-faint")}
                     />
                     <div className="min-w-0 flex-1">
-                      <Link href={`/leady/${e.id}`} className="truncate font-bold hover:underline">
+                      <Link
+                        href={`/leady/${e.id}`}
+                        className="truncate font-semibold hover:underline"
+                      >
                         {e.client_name}
                       </Link>
                       <p className="text-ink-soft truncate text-[13px]">
@@ -166,7 +172,7 @@ export default async function TodayPage() {
                   <li key={href}>
                     <Link
                       href={href}
-                      className="hover:bg-surface-2 -mx-2 flex items-center gap-2.5 rounded-lg px-2 py-2 text-sm font-bold"
+                      className="hover:bg-surface-2 -mx-2 flex items-center gap-2.5 rounded-lg px-2 py-2 text-sm font-semibold"
                     >
                       <Check className="text-ink-faint size-4" />
                       {t(label as "today.setupForm")}

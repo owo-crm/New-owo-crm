@@ -57,7 +57,7 @@ function Ticket({
       </div>
       <Link
         href={`/leady/${lead.id}`}
-        className="block min-h-11 text-lg font-bold break-words hover:underline"
+        className="block min-h-11 text-lg font-semibold break-words hover:underline"
       >
         {lead.client_name}
       </Link>
@@ -96,11 +96,11 @@ function Column({
       ref={setNodeRef}
       data-testid={`stage-${stage.key}`}
       className={cn(
-        "border-line bg-surface min-h-[240px] w-[280px] shrink-0 rounded-[22px] border p-3",
+        "border-line bg-surface min-h-[240px] w-[280px] shrink-0 rounded-xl border p-3",
         isOver && "border-ink-soft",
       )}
     >
-      <h2 className="mb-4 flex items-center justify-between gap-2 px-1 text-sm font-bold">
+      <h2 className="mb-4 flex items-center justify-between gap-2 px-1 text-sm font-semibold">
         <span>{stage.label_pl}</span>
         <span className="text-ink-soft">{count}</span>
       </h2>
@@ -211,7 +211,7 @@ export function Kanban({
         </div>
         <DragOverlay>
           {active ? (
-            <div className="border-line-strong bg-surface-2 w-[254px] rounded-[14px] border p-5 font-bold">
+            <div className="border-line-strong bg-surface-2 w-[254px] rounded-[14px] border p-5 font-semibold">
               {current.find((l) => l.id === active)?.client_name}
             </div>
           ) : null}

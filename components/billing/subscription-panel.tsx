@@ -56,13 +56,13 @@ export function CreateCrmWizard({ clientId }: { clientId: string }) {
   const price = calculatePrice({ modules: ["leads", ...modules], seats: 1 });
   return (
     <div className="grid gap-3" data-testid="crm-wizard">
-      <p className="text-sm font-bold">{t("billing.wizard.title")}</p>
+      <p className="text-sm font-semibold">{t("billing.wizard.title")}</p>
       <label className="grid gap-1.5 text-sm font-semibold">
         {t("billing.wizard.preset")}
         <select
           value={preset}
           onChange={(e) => setPreset(e.target.value)}
-          className="border-line-strong bg-surface h-10 rounded-[10px] border px-3 text-sm font-normal"
+          className="border-line-strong bg-surface h-10 rounded-lg border px-3 text-sm font-normal"
         >
           {PRESET_KEYS.filter((k) => k !== "agency").map((k) => (
             <option key={k} value={k}>
@@ -138,7 +138,7 @@ export function SubscriptionPanel({
         {t("billing.agency.seats", { count: Math.max(1, initial.seats) })}
       </p>
       {initial.requests.length > 0 ? (
-        <p className="bg-surface-2 rounded-[10px] px-3 py-2 text-sm font-bold">
+        <p className="bg-surface-2 rounded-lg px-3 py-2 text-sm font-semibold">
           {t("billing.agency.requests", {
             modules: initial.requests
               .map((m) => t(MODULES[m as AddonKey]?.labelKey ?? "billing.modules.leads"))
@@ -165,7 +165,7 @@ export function SubscriptionPanel({
             onChange={(e) => setDiscount(e.target.value)}
             inputMode="decimal"
             disabled={pending}
-            className="border-line-strong bg-surface h-10 rounded-[10px] border px-3 text-sm font-normal"
+            className="border-line-strong bg-surface h-10 rounded-lg border px-3 text-sm font-normal"
           />
         </label>
         <label className="grid gap-1.5 text-sm font-semibold">
@@ -175,7 +175,7 @@ export function SubscriptionPanel({
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             disabled={pending}
-            className="border-line-strong bg-surface h-10 rounded-[10px] border px-3 text-sm font-normal"
+            className="border-line-strong bg-surface h-10 rounded-lg border px-3 text-sm font-normal"
           />
         </label>
       </div>
@@ -227,7 +227,7 @@ export function SubscriptionPanel({
               <input
                 readOnly
                 value={link}
-                className="border-line-strong bg-surface-2 h-10 min-w-0 flex-1 rounded-[10px] border px-3 text-[13px]"
+                className="border-line-strong bg-surface-2 h-10 min-w-0 flex-1 rounded-lg border px-3 text-[13px]"
                 onFocus={(e) => e.currentTarget.select()}
               />
               <Button

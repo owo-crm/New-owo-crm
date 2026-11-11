@@ -20,7 +20,7 @@ import { createBusinessAction, type BusinessState } from "@/lib/team/business-ac
 import { importLeadsAction, type ImportState } from "@/lib/leads/import-actions";
 import { t, type MessageKey } from "@/lib/i18n";
 
-const select = "border-line-strong bg-surface h-10 rounded-[10px] border px-3 text-sm";
+const select = "border-line-strong bg-surface h-10 rounded-lg border px-3 text-sm";
 
 export function InviteForm({ canInviteOwner }: { canInviteOwner: boolean }) {
   const [state, action] = useActionState<InviteState, FormData>(createInviteAction, {});
@@ -197,7 +197,7 @@ export function BusinessForm() {
         <select
           name="preset"
           defaultValue="event-services"
-          className="border-line-strong bg-surface h-10 rounded-[10px] border px-3 text-sm font-normal"
+          className="border-line-strong bg-surface h-10 rounded-lg border px-3 text-sm font-normal"
         >
           {PRESET_KEYS.map((key) => (
             <option key={key} value={key}>
@@ -212,7 +212,7 @@ export function BusinessForm() {
           type="color"
           name="color"
           defaultValue="#2563eb"
-          className="border-line-strong h-10 w-20 rounded-[10px] border"
+          className="border-line-strong h-10 w-20 rounded-lg border"
         />
       </label>
       <div>
@@ -244,7 +244,7 @@ export function ImportForm() {
           name="file"
           accept=".csv,text/csv"
           required
-          className="border-line-strong bg-surface rounded-[10px] border p-2 text-sm"
+          className="border-line-strong bg-surface rounded-lg border p-2 text-sm"
         />
       </label>
       <div className="flex flex-wrap gap-2">
@@ -255,7 +255,7 @@ export function ImportForm() {
       </div>
       {r ? (
         <div className="border-line rounded-xl border p-4 text-sm" role="status">
-          <p className="font-bold">
+          <p className="font-semibold">
             {r.inserted === undefined
               ? "Wynik sprawdzenia (nic nie zapisano)"
               : `Zaimportowano: ${r.inserted}, już były w CRM: ${r.existing}`}

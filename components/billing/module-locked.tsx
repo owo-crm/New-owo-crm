@@ -15,7 +15,7 @@ export function ModuleLocked({ module, requested }: { module: AddonKey; requeste
       text={`${t(info.descriptionKey)}. ${t("billing.locked.text")}`}
       action={
         <div className="grid justify-items-center gap-2">
-          <p className="text-ink-soft text-sm font-bold">
+          <p className="text-ink-soft text-sm font-semibold">
             {t("billing.locked.price", { amount: formatMoney(info.priceGrosze) })}
           </p>
           <RequestModuleButton module={module} requested={requested} />

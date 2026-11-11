@@ -33,13 +33,13 @@ export function DocumentsCard({
     <Card title={t("docs.title")}>
       <div id="dokumenty" className="scroll-mt-24" />
       {flash ? (
-        <p className="border-ok/40 text-ok mb-4 rounded-[10px] border p-3 text-sm" role="status">
+        <p className="border-ok/40 text-ok mb-4 rounded-lg border p-3 text-sm" role="status">
           {t("docs.generated", { name: flash })}
         </p>
       ) : null}
       {enabled ? (
         <>
-          <p className="text-ink-soft text-xs font-bold">{t("docs.offerFor")}</p>
+          <p className="text-ink-soft text-xs font-semibold">{t("docs.offerFor")}</p>
           <div className="mt-2 flex flex-wrap gap-2">
             {PACKAGES.map(([key, name]) => (
               <Link
@@ -81,7 +81,7 @@ export function DocumentsCard({
               className="border-line flex flex-wrap items-center gap-x-3 gap-y-1 border-t py-3"
             >
               <div className="min-w-0 flex-1">
-                <p className="font-bold">
+                <p className="font-semibold">
                   {t(`docs.kind_${doc.kind}` as MessageKey)} {doc.number}
                 </p>
                 <p className="text-ink-soft text-xs">

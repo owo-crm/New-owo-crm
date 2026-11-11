@@ -40,8 +40,8 @@ export function LeadList({
 }) {
   const time = Date.parse(now);
   return (
-    <div className="border-line bg-surface card-shadow overflow-hidden rounded-2xl border">
-      <div className="text-ink-faint border-line hidden border-b px-4 py-2.5 text-xs font-bold md:grid md:grid-cols-[minmax(0,2.2fr)_minmax(0,1.6fr)_11rem_7rem] md:gap-4">
+    <div className="border-line bg-surface overflow-hidden rounded-xl border">
+      <div className="text-ink-faint border-line hidden border-b px-4 py-2.5 text-xs font-semibold md:grid md:grid-cols-[minmax(0,2.2fr)_minmax(0,1.6fr)_11rem_7rem] md:gap-4">
         <span>{t("leads.colLead")}</span>
         <span>{t("leads.colEvent")}</span>
         <span>{t("leads.colStage")}</span>
@@ -59,7 +59,7 @@ export function LeadList({
                 className="hover:bg-surface-2 grid gap-x-4 gap-y-2 px-4 py-3 md:grid-cols-[minmax(0,2.2fr)_minmax(0,1.6fr)_11rem_7rem] md:items-center"
               >
                 <div className="min-w-0">
-                  <p className="truncate font-bold">{lead.client_name}</p>
+                  <p className="truncate font-semibold">{lead.client_name}</p>
                   <p className="text-ink-soft truncate text-[13px]">
                     {lead.phone_e164 || lead.email || t("leads.noContact")} · #{lead.number} ·{" "}
                     {lead.source_label}
@@ -81,7 +81,7 @@ export function LeadList({
                     {stage?.label_pl ?? lead.stage_key}
                   </span>
                   {waiting !== null && stage?.kind === "open" ? (
-                    <span className="text-urgent text-[13px] font-bold tabular-nums">
+                    <span className="text-urgent text-[13px] font-semibold tabular-nums">
                       {formatWaiting(waiting)}
                     </span>
                   ) : null}

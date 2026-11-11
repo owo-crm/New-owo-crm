@@ -78,12 +78,12 @@ export default async function AgencyPage({ searchParams }: PageProps<"/agencja">
         }
       />
 
-      <div className="border-line bg-surface card-shadow mb-5 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border lg:grid-cols-4">
+      <div className="border-line bg-surface mb-5 grid grid-cols-2 gap-px overflow-hidden rounded-xl border lg:grid-cols-4">
         {stats.map((s) => (
           <div key={s.label} className="bg-surface px-4 py-3.5">
             <p
               className={cn(
-                "font-display text-[clamp(1.2rem,4vw,1.6rem)] leading-none font-semibold tabular-nums",
+                "text-[clamp(1.1rem,4vw,1.4rem)] leading-none font-semibold tabular-nums",
                 s.urgent && "text-urgent",
               )}
             >
@@ -108,7 +108,7 @@ export default async function AgencyPage({ searchParams }: PageProps<"/agencja">
             ) : (
               <div className="-mx-1 overflow-x-auto px-1">
                 <table className="w-full min-w-[26rem] text-sm" data-testid="agency-split">
-                  <thead className="text-ink-faint text-xs font-bold">
+                  <thead className="text-ink-faint text-xs font-semibold">
                     <tr>
                       <th className="pb-2 text-left">{t("agency.split.colPerson")}</th>
                       <th className="pb-2 text-right">{t("agency.split.colSale")}</th>
@@ -119,31 +119,33 @@ export default async function AgencyPage({ searchParams }: PageProps<"/agencja">
                   <tbody className="tabular-nums">
                     {totals.people.map((p) => (
                       <tr key={p.userId} className="border-line border-t">
-                        <td className="py-2 font-bold">{data.nameOf(p.userId)}</td>
+                        <td className="py-2 font-semibold">{data.nameOf(p.userId)}</td>
                         <td className="py-2 text-right">{formatMoney(p.saleGrosze)}</td>
                         <td className="py-2 text-right">{formatMoney(p.workGrosze)}</td>
-                        <td className="py-2 text-right font-bold">{formatMoney(p.totalGrosze)}</td>
+                        <td className="py-2 text-right font-semibold">
+                          {formatMoney(p.totalGrosze)}
+                        </td>
                       </tr>
                     ))}
                     <tr className="border-line border-t">
-                      <td className="py-2 font-bold">{t("agency.split.company")}</td>
+                      <td className="py-2 font-semibold">{t("agency.split.company")}</td>
                       <td />
                       <td />
-                      <td className="py-2 text-right font-bold">
+                      <td className="py-2 text-right font-semibold">
                         {formatMoney(totals.companyGrosze)}
                       </td>
                     </tr>
                     {totals.unassignedGrosze > 0 ? (
                       <tr className="border-line text-hold border-t">
                         <td className="py-2">
-                          <span className="font-bold">{t("agency.split.unassigned")}</span>
+                          <span className="font-semibold">{t("agency.split.unassigned")}</span>
                           <span className="block text-[12px]">
                             {t("agency.split.unassignedHint")}
                           </span>
                         </td>
                         <td />
                         <td />
-                        <td className="py-2 text-right font-bold">
+                        <td className="py-2 text-right font-semibold">
                           {formatMoney(totals.unassignedGrosze)}
                         </td>
                       </tr>
@@ -157,17 +159,17 @@ export default async function AgencyPage({ searchParams }: PageProps<"/agencja">
                       </tr>
                     ) : null}
                     <tr className="border-ink border-t-2">
-                      <td className="pt-2.5 font-bold">{t("agency.split.total")}</td>
+                      <td className="pt-2.5 font-semibold">{t("agency.split.total")}</td>
                       <td />
                       <td />
-                      <td className="font-display pt-2.5 text-right text-base font-semibold">
+                      <td className="pt-2.5 text-right text-base font-semibold">
                         {formatMoney(totals.totalGrosze + data.direct_costs_grosze)}
                       </td>
                     </tr>
                   </tbody>
                 </table>
                 {data.reconciliation !== 0 ? (
-                  <p role="alert" className="text-urgent mt-3 text-sm font-bold">
+                  <p role="alert" className="text-urgent mt-3 text-sm font-semibold">
                     {t("agency.split.mismatch", { amount: formatMoney(data.reconciliation) })}
                   </p>
                 ) : null}
@@ -177,7 +179,7 @@ export default async function AgencyPage({ searchParams }: PageProps<"/agencja">
 
           <Card>
             <div className="mb-3 flex items-center justify-between gap-3">
-              <h2 className="text-[15px] font-bold">{t("agency.clients.title")}</h2>
+              <h2 className="text-[13.5px] font-semibold">{t("agency.clients.title")}</h2>
               <Link
                 href="/agencja/klienci/nowy"
                 className={buttonVariants({ variant: "ghost", size: "sm" })}
@@ -194,10 +196,10 @@ export default async function AgencyPage({ searchParams }: PageProps<"/agencja">
                   <li key={c.id}>
                     <Link
                       href={`/agencja/klienci/${c.id}`}
-                      className="hover:bg-surface-2 -mx-2 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-0.5 rounded-[10px] px-2 py-2.5 sm:grid-cols-[minmax(0,1fr)_6rem_7rem_5rem]"
+                      className="hover:bg-surface-2 -mx-2 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-0.5 rounded-lg px-2 py-2.5 sm:grid-cols-[minmax(0,1fr)_6rem_7rem_5rem]"
                     >
                       <span className="min-w-0">
-                        <span className="block truncate font-bold">{c.name}</span>
+                        <span className="block truncate font-semibold">{c.name}</span>
                         <span className="text-ink-soft text-[12px]">
                           {c.last_activity
                             ? `${t("agency.clients.colActivity")}: ${plDate(c.last_activity.slice(0, 10))}`
@@ -207,13 +209,13 @@ export default async function AgencyPage({ searchParams }: PageProps<"/agencja">
                       <span className="sm:order-none">
                         <ClientStatusBadge status={c.status} />
                       </span>
-                      <span className="font-display text-right font-semibold tabular-nums max-sm:col-start-1 max-sm:text-left">
+                      <span className="text-right font-semibold tabular-nums max-sm:col-start-1 max-sm:text-left">
                         {formatMoney(c.month_grosze)}
                       </span>
                       <span
                         className={cn(
                           "text-right text-[13px] tabular-nums",
-                          c.setupDone === c.setupTotal ? "text-ok font-bold" : "text-ink-soft",
+                          c.setupDone === c.setupTotal ? "text-ok font-semibold" : "text-ink-soft",
                         )}
                         title={t("agency.clients.colSetup")}
                       >
@@ -237,7 +239,7 @@ export default async function AgencyPage({ searchParams }: PageProps<"/agencja">
               <div className="grid gap-4 text-sm">
                 {attention.overdue.length > 0 ? (
                   <section>
-                    <h3 className="text-urgent mb-1.5 text-[13px] font-bold">
+                    <h3 className="text-urgent mb-1.5 text-[13px] font-semibold">
                       {t("agency.attention.overdue")}
                     </h3>
                     <ul className="grid gap-1.5">
@@ -247,7 +249,7 @@ export default async function AgencyPage({ searchParams }: PageProps<"/agencja">
                             href={`/agencja/klienci/${o.client_id}`}
                             className="min-w-0 hover:underline"
                           >
-                            <span className="block truncate font-bold">{o.client_name}</span>
+                            <span className="block truncate font-semibold">{o.client_name}</span>
                             <span className="text-ink-soft block truncate text-[12px]">
                               {o.title} ·{" "}
                               {t("agency.attention.wasDue", { date: plDate(o.due_date) })}
@@ -263,7 +265,7 @@ export default async function AgencyPage({ searchParams }: PageProps<"/agencja">
                 ) : null}
                 {attention.requests.length > 0 ? (
                   <section>
-                    <h3 className="mb-1.5 text-[13px] font-bold">
+                    <h3 className="mb-1.5 text-[13px] font-semibold">
                       {t("agency.attention.requests")}
                     </h3>
                     <ul className="grid gap-1">
@@ -274,7 +276,7 @@ export default async function AgencyPage({ searchParams }: PageProps<"/agencja">
                         >
                           <Link
                             href={`/agencja/klienci/${r.client_id}`}
-                            className="truncate font-bold hover:underline"
+                            className="truncate font-semibold hover:underline"
                           >
                             {r.name}
                           </Link>
@@ -288,7 +290,7 @@ export default async function AgencyPage({ searchParams }: PageProps<"/agencja">
                 ) : null}
                 {attention.noOrders.length > 0 ? (
                   <section>
-                    <h3 className="mb-1.5 text-[13px] font-bold">
+                    <h3 className="mb-1.5 text-[13px] font-semibold">
                       {t("agency.attention.noOrders")}
                     </h3>
                     <ul className="flex flex-wrap gap-1.5">
@@ -296,7 +298,7 @@ export default async function AgencyPage({ searchParams }: PageProps<"/agencja">
                         <li key={c.id}>
                           <Link
                             href={`/agencja/zlecenia/nowe?klient=${c.id}&m=${month.slice(0, 7)}`}
-                            className="border-line-strong hover:border-ink-soft inline-flex h-8 items-center rounded-full border px-3 font-bold"
+                            className="border-line-strong hover:border-ink-soft inline-flex h-8 items-center rounded-full border px-3 font-semibold"
                           >
                             {c.name}
                           </Link>
@@ -307,7 +309,7 @@ export default async function AgencyPage({ searchParams }: PageProps<"/agencja">
                 ) : null}
                 {attention.staleSetup.length > 0 ? (
                   <section>
-                    <h3 className="mb-1.5 text-[13px] font-bold">
+                    <h3 className="mb-1.5 text-[13px] font-semibold">
                       {t("agency.attention.staleSetup")}
                     </h3>
                     <ul className="grid gap-1">

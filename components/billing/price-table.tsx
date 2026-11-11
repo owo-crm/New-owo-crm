@@ -34,20 +34,18 @@ export function PriceTable({ price }: { price: Price }) {
           </tr>
         ))}
         <tr>
-          <td className="pt-2 font-bold">
+          <td className="pt-2 font-semibold">
             {t("billing.settings.monthly")} {t("billing.settings.net")}
           </td>
-          <td className="pt-2 text-right font-bold">{formatMoney(price.netGrosze)}</td>
+          <td className="pt-2 text-right font-semibold">{formatMoney(price.netGrosze)}</td>
         </tr>
         <tr className="text-ink-soft">
           <td>{t("billing.settings.vat")}</td>
           <td className="text-right">{formatMoney(price.vatGrosze)}</td>
         </tr>
         <tr>
-          <td className="font-bold">{t("billing.settings.gross")}</td>
-          <td className="font-display text-right text-base font-semibold">
-            {formatMoney(price.grossGrosze)}
-          </td>
+          <td className="font-semibold">{t("billing.settings.gross")}</td>
+          <td className="text-right text-base font-semibold">{formatMoney(price.grossGrosze)}</td>
         </tr>
       </tbody>
     </table>

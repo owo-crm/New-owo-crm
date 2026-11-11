@@ -54,7 +54,7 @@ export default async function TeamPage() {
               className="flex flex-wrap items-center justify-between gap-3 py-3 first:pt-0 last:pb-0"
             >
               <div className="min-w-0">
-                <p className="truncate font-bold">
+                <p className="truncate font-semibold">
                   {m.name}
                   {m.user_id === data.me ? (
                     <span className="text-ink-faint font-medium"> ({t("team.you")})</span>
@@ -98,7 +98,7 @@ export default async function TeamPage() {
                     className="flex items-center justify-between gap-3 py-2.5 first:pt-0 last:pb-0"
                   >
                     <p className="text-sm">
-                      <span className="font-bold">{i.note || "—"}</span>{" "}
+                      <span className="font-semibold">{i.note || "—"}</span>{" "}
                       <span className="text-ink-soft">
                         {t(`team.role_${i.role}` as MessageKey)},{" "}
                         {t("team.expires", { date: date(i.expires_at) })}

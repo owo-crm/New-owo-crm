@@ -84,7 +84,7 @@ export function SetupChecklist({ clientId, steps }: { clientId: string; steps: C
                   aria-checked={done}
                   disabled={pending}
                   onClick={() => run(() => toggleSetupMarkAction(clientId, s.key, !done))}
-                  className="hover:bg-surface-2 flex min-h-11 w-full items-center gap-3 rounded-[10px] px-1 py-1.5 text-left"
+                  className="hover:bg-surface-2 flex min-h-11 w-full items-center gap-3 rounded-lg px-1 py-1.5 text-left"
                 >
                   {box}
                   {body}
@@ -134,7 +134,7 @@ export function ClientCrmControls({
             <select
               value={target}
               onChange={(e) => setTarget(e.target.value)}
-              className="border-line-strong bg-surface h-10 rounded-[10px] border px-3 text-sm font-normal"
+              className="border-line-strong bg-surface h-10 rounded-lg border px-3 text-sm font-normal"
             >
               <option value="">{t("agency.client.linkNone")}</option>
               {linkable.map((o) => (
