@@ -1,6 +1,15 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { Bell, Building2, FileStack, LogOut, PlugZap, Users, Upload } from "lucide-react";
+import {
+  Bell,
+  Building2,
+  CreditCard,
+  FileStack,
+  LogOut,
+  PlugZap,
+  Users,
+  Upload,
+} from "lucide-react";
 import { PageHeader } from "@/components/app-shell/page";
 import { Button } from "@/components/ui/button";
 import { requireOrganization } from "@/lib/auth/session";
@@ -20,6 +29,7 @@ const SECTIONS: {
   { title: "settings.notifications", text: "settings.notificationsText", icon: Bell },
   { title: "settings.team", text: "settings.teamText", icon: Users },
   { title: "settings.import", text: "settings.importText", icon: Upload },
+  { title: "billing.settings.title", text: "billing.settings.text", icon: CreditCard },
 ];
 
 const LINKS: Partial<Record<string, string>> = {
@@ -27,6 +37,7 @@ const LINKS: Partial<Record<string, string>> = {
   "settings.channels": "/ustawienia/zrodla",
   "settings.team": "/ustawienia/zespol",
   "settings.import": "/ustawienia/import",
+  "billing.settings.title": "/ustawienia/abonament",
 };
 
 export default async function SettingsPage() {

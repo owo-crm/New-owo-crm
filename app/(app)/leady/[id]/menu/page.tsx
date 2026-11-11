@@ -20,7 +20,8 @@ export default async function GuestMenuPage({
   const lead = await getLead(id);
   if (!lead) notFound();
   const defaults = await withOrg((tx, { organization }) => {
-    if (organization.documentEngine !== "barowo") redirect(`/leady/${id}`);
+    if (organization.documentEngine !== "barowo" || !organization.modules.includes("documents"))
+      redirect(`/leady/${id}`);
     return guestMenuDefaults(tx, organization.id, id, parsed.success ? parsed.data : undefined);
   });
   return (

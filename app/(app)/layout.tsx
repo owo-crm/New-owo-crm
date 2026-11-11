@@ -39,6 +39,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
             <SidebarNav
               waiting={queue.waiting_count}
               agency={isAgency(organization.industryPreset)}
+              modules={organization.modules}
             />
           </div>
 
@@ -80,7 +81,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
         </main>
       </div>
 
-      <BottomNav agency={isAgency(organization.industryPreset)} />
+      <BottomNav agency={isAgency(organization.industryPreset)} modules={organization.modules} />
     </div>
   );
 }

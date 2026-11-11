@@ -13,7 +13,8 @@ export default async function ContractPage({ params }: PageProps<"/leady/[id]/um
   const lead = await getLead(id);
   if (!lead) notFound();
   const values = await withOrg((tx, { organization }) => {
-    if (organization.documentEngine !== "barowo") redirect(`/leady/${id}`);
+    if (organization.documentEngine !== "barowo" || !organization.modules.includes("documents"))
+      redirect(`/leady/${id}`);
     return contractFormDefaults(tx, organization.id, id);
   });
   return (

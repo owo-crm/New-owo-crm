@@ -21,6 +21,8 @@ export type MemberOrganization = {
   role: "owner" | "admin" | "member";
   /** Генератор документов фирмы: "barowo" = фирменные оферты/меню/договоры из бота. */
   documentEngine: string | null;
+  /** Включённые модули абонемента (решение 022): leads, channels, documents, payments, calendar. */
+  modules: string[];
   email: string | null;
   phone: string | null;
 };
@@ -105,7 +107,9 @@ export async function listOrganizations(
   return asUser(db, userId, async (tx) => {
     const { rows } = await tx.query<MemberOrganization>(
       `select o.id, o.name, o.slug, o.brand_color as "brandColor", o.industry_preset as "industryPreset", m.role,
-         o.document_engine as "documentEngine", o.email, o.phone
+         o.document_engine as "documentEngine", o.email, o.phone,
+         coalesce((select array_agg(om.module) from public.organization_modules om
+                   where om.organization_id = o.id), '{}') as modules
        from public.memberships m join public.organizations o on o.id = m.organization_id
        where m.user_id = $1 order by m.created_at`,
       [userId],

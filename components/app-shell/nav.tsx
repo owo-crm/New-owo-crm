@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   Briefcase,
   CalendarDays,
+  CreditCard,
   FileText,
   Inbox,
   Menu,
@@ -27,11 +28,28 @@ const MAIN: Item[] = [
   { href: "/ustawienia", label: "nav.settings", icon: Settings },
 ];
 
+/** Без модулей в нижней панели — «Abonament»: там можно попросить модуль. */
+const SUBSCRIPTION: Item = {
+  href: "/ustawienia/abonament",
+  label: "billing.settings.title",
+  icon: CreditCard,
+};
+
 /** Кабинет агентства — только в организации с пресетом agency (решение 021). */
 const AGENCY: Item = { href: "/agencja", label: "nav.agency", icon: Briefcase };
 
-function items(agency: boolean) {
-  return agency ? [MAIN[0], AGENCY, ...MAIN.slice(1)] : MAIN;
+/** Пункты, закрытые модулем абонемента (решение 022): без модуля не показываем. */
+const MODULE_OF: Partial<Record<string, string>> = {
+  "/kalendarz": "calendar",
+  "/finanse": "payments",
+  "/dokumenty": "documents",
+};
+
+function navItems(agency: boolean, modules?: string[]) {
+  const visible = MAIN.filter(
+    (i) => !modules || !MODULE_OF[i.href] || modules.includes(MODULE_OF[i.href]!),
+  );
+  return agency ? [visible[0], AGENCY, ...visible.slice(1)] : visible;
 }
 
 function isActive(pathname: string, href: string) {
@@ -42,14 +60,16 @@ function isActive(pathname: string, href: string) {
 export function SidebarNav({
   waiting = 0,
   agency = false,
+  modules,
 }: {
   waiting?: number;
   agency?: boolean;
+  modules?: string[];
 }) {
   const pathname = usePathname();
   return (
     <nav aria-label="Menu główne" className="grid gap-0.5">
-      {items(agency).map(({ href, label, icon: Icon }) => {
+      {navItems(agency, modules).map(({ href, label, icon: Icon }) => {
         const active = isActive(pathname, href);
         return (
           <Link
@@ -81,14 +101,14 @@ export function SidebarNav({
  * Нижняя панель на телефоне: Dzisiaj · Leady · ＋ · Kalendarz · Więcej.
  * «＋» открывает единую форму ручного лида.
  */
-export function BottomNav({ agency = false }: { agency?: boolean }) {
+export function BottomNav({ agency = false, modules }: { agency?: boolean; modules?: string[] }) {
   const pathname = usePathname();
   const items: (Item | "plus")[] = [
     MAIN[0],
     MAIN[1],
     "plus",
-    // У агентства вместо календаря — кабинет «Agencja».
-    agency ? AGENCY : MAIN[2],
+    // У агентства — «Agencja»; у остальных — первый включённый модуль (календарь, финансы, документы).
+    agency ? AGENCY : (navItems(false, modules).slice(2, 5)[0] ?? SUBSCRIPTION),
     { href: "/ustawienia", label: "nav.more", icon: Menu },
   ];
   return (

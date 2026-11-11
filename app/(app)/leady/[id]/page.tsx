@@ -23,6 +23,9 @@ export default async function LeadPage({ params, searchParams }: PageProps<"/lea
       list: await listDocuments(tx, organization.id, id),
       payments: await leadPayments(tx, organization.id, id),
       agency: organization.industryPreset === "agency",
+      // Карточки модулей показываем, только если модуль включён в абонементе.
+      paymentsModule: organization.modules.includes("payments"),
+      documentsModule: organization.modules.includes("documents"),
     })),
     clientIdForLead(id),
   ]);
@@ -38,13 +41,15 @@ export default async function LeadPage({ params, searchParams }: PageProps<"/lea
         documents={
           <>
             {showAgency ? <LeadClientCard leadId={id} clientId={agencyClient} /> : null}
-            <PaymentsCard payments={docs.payments} />
-            <DocumentsCard
-              leadId={id}
-              enabled={docs.enabled}
-              documents={docs.list}
-              flash={typeof dokument === "string" ? dokument.slice(0, 60) : undefined}
-            />
+            {docs.paymentsModule ? <PaymentsCard payments={docs.payments} /> : null}
+            {docs.documentsModule ? (
+              <DocumentsCard
+                leadId={id}
+                enabled={docs.enabled}
+                documents={docs.list}
+                flash={typeof dokument === "string" ? dokument.slice(0, 60) : undefined}
+              />
+            ) : null}
           </>
         }
       />

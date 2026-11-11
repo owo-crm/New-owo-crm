@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { ModuleLocked } from "@/components/billing/module-locked";
+import { moduleAccess } from "@/lib/billing/gate";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Card, PageHeader } from "@/components/app-shell/page";
@@ -27,6 +29,15 @@ const MONTHS = [
 ];
 
 export default async function FinancePage({ searchParams }: PageProps<"/finanse">) {
+  // Модуль абонемента выключен → экран «Poproś o moduł» (решение 022).
+  const access = await moduleAccess("payments");
+  if (!access.enabled)
+    return (
+      <>
+        <PageHeader title={t("finance.pageTitle")} />
+        <ModuleLocked module="payments" requested={access.requested} />
+      </>
+    );
   const raw = (await searchParams).m;
   const today = warsawToday();
   const month =

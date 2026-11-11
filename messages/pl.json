@@ -282,8 +282,7 @@
     "signedInAs": "Zalogowano jako {email}",
     "import": "Import leadów",
     "importText": "Przenieś leady z arkusza bota.",
-    "finance": "Finanse",
-    "billing": "Abonament"
+    "finance": "Finanse"
   },
   "presets": {
     "label": "Rodzaj biznesu",

@@ -51,7 +51,7 @@ export async function createOfferAction(
   let number: string;
   try {
     const result = await withOrg((tx, { user, organization }) => {
-      if (organization.documentEngine !== "barowo")
+      if (organization.documentEngine !== "barowo" || !organization.modules.includes("documents"))
         throw new DocumentInputError("Dokumenty nie są włączone dla tej firmy.");
       const contact = [organization.email, organization.phone].filter(Boolean).join("  /  ");
       return generateOffer(
@@ -80,7 +80,7 @@ export async function createGuestMenuAction(
   let number: string;
   try {
     const result = await withOrg((tx, { user, organization }) => {
-      if (organization.documentEngine !== "barowo")
+      if (organization.documentEngine !== "barowo" || !organization.modules.includes("documents"))
         throw new DocumentInputError("Dokumenty nie są włączone dla tej firmy.");
       return generateGuestMenu(tx, { userId: user.id, orgId: organization.id }, leadId, menu);
     });
@@ -114,7 +114,7 @@ export async function createContractAction(
   let number: string;
   try {
     const result = await withOrg((tx, { user, organization }) => {
-      if (organization.documentEngine !== "barowo")
+      if (organization.documentEngine !== "barowo" || !organization.modules.includes("documents"))
         throw new DocumentInputError("Dokumenty nie są włączone dla tej firmy.");
       return generateContract(tx, { userId: user.id, orgId: organization.id }, leadId, pkg, values);
     });

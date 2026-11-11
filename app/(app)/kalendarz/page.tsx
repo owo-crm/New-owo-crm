@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { ModuleLocked } from "@/components/billing/module-locked";
+import { moduleAccess } from "@/lib/billing/gate";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { PageHeader } from "@/components/app-shell/page";
@@ -26,6 +28,15 @@ const MONTHS = [
 ];
 
 export default async function CalendarPage({ searchParams }: PageProps<"/kalendarz">) {
+  // Модуль абонемента выключен → экран «Poproś o moduł» (решение 022).
+  const access = await moduleAccess("calendar");
+  if (!access.enabled)
+    return (
+      <>
+        <PageHeader title={t("calendar.title")} />
+        <ModuleLocked module="calendar" requested={access.requested} />
+      </>
+    );
   const today = warsawToday();
   const raw = (await searchParams).m;
   const month =
