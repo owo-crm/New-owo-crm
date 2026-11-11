@@ -23,6 +23,7 @@ export default async function ServicesPage() {
   return (
     <>
       <PageHeader
+        back={{ href: "/agencja", label: t("nav.agency") }}
         title={t("agency.services.title")}
         subtitle={t("agency.services.intro")}
         aside={<AgencyTabs current="services" />}

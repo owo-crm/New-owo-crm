@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import {
+  BarChart3,
   Bell,
   Building2,
   CreditCard,
@@ -30,7 +31,21 @@ const SECTIONS: {
   { title: "settings.team", text: "settings.teamText", icon: Users },
   { title: "settings.import", text: "settings.importText", icon: Upload },
   { title: "billing.settings.title", text: "billing.settings.text", icon: CreditCard },
+  // На телефоне у агентства в нижней панели «Agencja» — статистика доступна отсюда.
+  { title: "nav.stats", text: "settings.statsText", icon: BarChart3 },
 ];
+
+/** Цвет иконки раздела — чтобы список настроек не сливался. */
+const TONE: Partial<Record<string, string>> = {
+  "settings.company": "var(--accent)",
+  "settings.templates": "var(--hold)",
+  "settings.channels": "var(--info)",
+  "settings.notifications": "var(--urgent)",
+  "settings.team": "var(--ok)",
+  "settings.import": "var(--ink-soft)",
+  "billing.settings.title": "var(--accent)",
+  "nav.stats": "var(--info)",
+};
 
 const LINKS: Partial<Record<string, string>> = {
   "settings.notifications": "/ustawienia/powiadomienia",
@@ -38,6 +53,7 @@ const LINKS: Partial<Record<string, string>> = {
   "settings.team": "/ustawienia/zespol",
   "settings.import": "/ustawienia/import",
   "billing.settings.title": "/ustawienia/abonament",
+  "nav.stats": "/statystyka",
 };
 
 export default async function SettingsPage() {
@@ -48,7 +64,15 @@ export default async function SettingsPage() {
       <ul className="divide-line border-line bg-surface divide-y overflow-hidden rounded-xl border">
         {SECTIONS.map(({ title, text, icon: Icon }) => (
           <li key={title} className="flex items-center gap-4 px-5 py-4">
-            <Icon className="text-ink-soft size-5 shrink-0" />
+            <span
+              className="flex size-9 shrink-0 items-center justify-center rounded-lg"
+              style={{
+                background: `color-mix(in srgb, ${TONE[title] ?? "var(--accent)"} 12%, transparent)`,
+                color: TONE[title] ?? "var(--accent)",
+              }}
+            >
+              <Icon className="size-[18px]" />
+            </span>
             <div className="min-w-0 flex-1">
               <p className="font-semibold">{t(title)}</p>
               <p className="text-ink-soft text-sm">{t(text)}</p>

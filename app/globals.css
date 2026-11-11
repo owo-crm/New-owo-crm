@@ -20,6 +20,10 @@
   --ok: #15803d;
   --brand: #e8000d;
   --focus: #2563eb;
+  /* Акцент интерфейса (решение 028): главные действия, активный пункт меню, ссылки. */
+  --accent: #5b5bd6;
+  --accent-ink: #ffffff;
+  --info: #0b6bcb;
   --shadow: 0 0 0 1px rgb(24 24 27 / 0.04), 0 1px 2px rgb(24 24 27 / 0.04);
   --shadow-pop: 0 0 0 1px rgb(24 24 27 / 0.06), 0 8px 24px -6px rgb(24 24 27 / 0.16);
 }
@@ -38,6 +42,9 @@
     --hold: #f0a742;
     --ok: #46c27f;
     --focus: #7aa5ff;
+    --accent: #8b8bf5;
+    --accent-ink: #0e0e10;
+    --info: #5aa9ff;
     --shadow: 0 0 0 1px rgb(255 255 255 / 0.04);
     --shadow-pop: 0 0 0 1px rgb(255 255 255 / 0.08), 0 12px 32px -8px rgb(0 0 0 / 0.6);
   }
@@ -56,6 +63,9 @@
   --hold: #f0a742;
   --ok: #46c27f;
   --focus: #7aa5ff;
+  --accent: #8b8bf5;
+  --accent-ink: #0e0e10;
+  --info: #5aa9ff;
   --shadow: 0 0 0 1px rgb(255 255 255 / 0.04);
   --shadow-pop: 0 0 0 1px rgb(255 255 255 / 0.08), 0 12px 32px -8px rgb(0 0 0 / 0.6);
 }
@@ -103,6 +113,9 @@
   --color-ok: var(--ok);
   --color-brand: var(--brand);
   --color-focus: var(--focus);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-info: var(--info);
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 }
@@ -111,6 +124,14 @@ html {
   -webkit-text-size-adjust: 100%;
 }
 
+/* Ничто не растягивает страницу вбок на телефоне (длинные e-mail, ссылки, имена). */
+html,
+body {
+  overflow-x: clip;
+}
+main {
+  overflow-wrap: break-word;
+}
 body {
   background: var(--bg);
   color: var(--ink);
@@ -154,4 +175,10 @@ body {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* Кнопка удаления краснеет при наведении — видно, что действие разрушительное. */
+button:has(> svg.lucide-trash-2):hover {
+  color: var(--urgent);
+  background: color-mix(in srgb, var(--urgent) 10%, transparent);
 }

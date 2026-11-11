@@ -20,6 +20,7 @@ export default async function ContractPage({ params }: PageProps<"/leady/[id]/um
   return (
     <div className="max-w-3xl">
       <PageHeader
+        back={{ href: `/leady/${id}`, label: lead.client_name }}
         title={t("docs.contractTitle")}
         subtitle={`${lead.client_name} · ${t("docs.contractIntro")}`}
       />

@@ -33,7 +33,11 @@ export default async function ChannelsPage() {
     }).format(new Date(d));
   return (
     <div className="grid max-w-3xl gap-5">
-      <PageHeader title={t("channels.title")} subtitle={t("channels.intro")} />
+      <PageHeader
+        back={{ href: "/ustawienia", label: t("nav.settings") }}
+        title={t("channels.title")}
+        subtitle={t("channels.intro")}
+      />
       {website.length === 0 ? <p className="text-ink-soft">{t("channels.empty")}</p> : null}
       {website.map((c) => (
         <Card key={c.id} title={c.name}>

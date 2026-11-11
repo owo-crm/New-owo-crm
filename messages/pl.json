@@ -284,7 +284,8 @@
     "signedInAs": "Zalogowano jako {email}",
     "import": "Import leadów",
     "importText": "Przenieś leady z arkusza bota.",
-    "finance": "Finanse"
+    "finance": "Finanse",
+    "statsText": "Pieniądze, lejek i źródła zapytań."
   },
   "presets": {
     "label": "Rodzaj biznesu",

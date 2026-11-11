@@ -13,7 +13,10 @@ export default async function NotificationSettingsPage() {
   });
   return (
     <div className="max-w-2xl">
-      <PageHeader title={t("settings.notifications")} />
+      <PageHeader
+        back={{ href: "/ustawienia", label: t("nav.settings") }}
+        title={t("settings.notifications")}
+      />
       <Card>
         <NotificationPreferences
           initial={data ?? []}

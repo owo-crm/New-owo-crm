@@ -14,7 +14,11 @@ export default async function EditOrderPage({ params }: PageProps<"/agencja/zlec
   if (!order) notFound();
   return (
     <>
-      <PageHeader title={order.title} subtitle={t("agency.form.intro")} />
+      <PageHeader
+        back={{ href: "/agencja", label: t("nav.agency") }}
+        title={order.title}
+        subtitle={t("agency.form.intro")}
+      />
       <OrderForm
         clients={data.clients}
         members={data.members}

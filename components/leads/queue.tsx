@@ -48,7 +48,7 @@ export function QueueRow({ lead, now }: { lead: WaitingLead; now: string }) {
         {lead.phone_e164 ? (
           <a
             href={`tel:${lead.phone_e164}`}
-            className={buttonVariants({ variant: "secondary", size: "sm" })}
+            className={buttonVariants({ variant: "soft", size: "sm" })}
             aria-label={`${t("today.call")} ${lead.client_name}`}
           >
             <Phone className="size-4" />

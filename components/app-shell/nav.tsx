@@ -26,11 +26,11 @@ export function NavLink({ href, badge }: { href: string; badge?: number }) {
       className={cn(
         "flex h-9 items-center gap-2.5 rounded-lg px-2.5 text-[13.5px] transition-colors duration-150",
         active
-          ? "bg-surface-2 text-ink font-semibold"
+          ? "bg-accent/10 text-ink font-semibold"
           : "text-ink-soft hover:bg-surface-2 hover:text-ink",
       )}
     >
-      <Icon className={cn("size-4", active ? "text-ink" : "text-ink-faint")} />
+      <Icon className={cn("size-4", active ? "text-accent" : "text-ink-faint")} />
       <span className="flex-1">{t(item.label)}</span>
       {badge ? (
         <span className="bg-urgent min-w-5 rounded-full px-1.5 text-center text-[11px] leading-5 font-semibold text-white">
@@ -85,7 +85,7 @@ export function BottomNav({ agency = false }: { agency?: boolean }) {
                 <Link
                   href="/leady/nowy"
                   aria-label={t("nav.newLead")}
-                  className="bg-ink text-bg flex size-11 items-center justify-center rounded-full transition-transform duration-150 active:scale-[0.96]"
+                  className="bg-accent text-accent-ink flex size-11 items-center justify-center rounded-full shadow-[var(--shadow-pop)] transition-transform duration-150 active:scale-[0.96]"
                 >
                   <Plus className="size-5" />
                 </Link>
@@ -101,7 +101,7 @@ export function BottomNav({ agency = false }: { agency?: boolean }) {
                 aria-current={active ? "page" : undefined}
                 className={cn(
                   "flex flex-col items-center gap-1 py-2 text-[11px] font-medium",
-                  active ? "text-ink" : "text-ink-faint",
+                  active ? "text-accent" : "text-ink-faint",
                 )}
               >
                 <Icon className="size-5" />

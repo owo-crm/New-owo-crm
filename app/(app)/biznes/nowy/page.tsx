@@ -9,7 +9,11 @@ export default async function NewBusinessPage() {
   if (!user.isPlatformAdmin) redirect("/dzisiaj");
   return (
     <div className="max-w-xl">
-      <PageHeader title={t("business.newTitle")} subtitle={t("business.newIntro")} />
+      <PageHeader
+        back={{ href: "/dzisiaj", label: t("nav.dashboard") }}
+        title={t("business.newTitle")}
+        subtitle={t("business.newIntro")}
+      />
       <Card>
         <BusinessForm />
       </Card>

@@ -13,13 +13,13 @@ export default async function Page() {
   if (!access.enabled)
     return (
       <>
-        <PageHeader title={t("nav.documents")} />
+        <PageHeader back={{ href: "/leady", label: t("nav.leads") }} title={t("nav.documents")} />
         <ModuleLocked module="documents" requested={access.requested} />
       </>
     );
   return (
     <>
-      <PageHeader title={t("nav.documents")} />
+      <PageHeader back={{ href: "/leady", label: t("nav.leads") }} title={t("nav.documents")} />
       <EmptyState
         icon={FileText}
         title={t("documents.emptyTitle")}

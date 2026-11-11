@@ -45,7 +45,11 @@ export default async function TeamPage() {
     );
   return (
     <div className="grid max-w-3xl gap-5">
-      <PageHeader title={`${t("team.title")} · ${data.org}`} subtitle={t("team.intro")} />
+      <PageHeader
+        back={{ href: "/ustawienia", label: t("nav.settings") }}
+        title={`${t("team.title")} · ${data.org}`}
+        subtitle={t("team.intro")}
+      />
       <Card>
         <ul className="divide-line divide-y">
           {data.members.map((m) => (

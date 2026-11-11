@@ -176,7 +176,7 @@ export function OrderStatusButtons({ id, status }: { id: string; status: OrderSt
         <Button
           key={n.to}
           size="sm"
-          variant={n.to === "paid" ? "primary" : n.to === "cancelled" ? "ghost" : "secondary"}
+          variant={n.to === "paid" ? "success" : n.to === "cancelled" ? "danger" : "soft"}
           disabled={pending}
           onClick={() => run(() => setOrderStatusAction(id, n.to))}
         >

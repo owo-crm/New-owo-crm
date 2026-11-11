@@ -26,6 +26,7 @@ export default async function OfferPage({ params, searchParams }: PageProps<"/le
   return (
     <div className="max-w-3xl">
       <PageHeader
+        back={{ href: `/leady/${id}`, label: lead.client_name }}
         title={t("docs.offerTitle", { pkg: name })}
         subtitle={`${lead.client_name} · ${t("docs.offerIntro")}`}
       />

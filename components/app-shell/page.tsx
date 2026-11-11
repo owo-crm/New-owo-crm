@@ -1,17 +1,31 @@
+import Link from "next/link";
+import { ChevronLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function PageHeader({
   title,
   subtitle,
   aside,
+  back,
 }: {
   title: string;
   subtitle?: string;
   aside?: React.ReactNode;
+  /** Вложенный экран: ссылка «назад» над заголовком (решение 024). */
+  back?: { href: string; label: string };
 }) {
   return (
     <header className="mb-6 flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
       <div className="max-w-full min-w-0">
+        {back ? (
+          <Link
+            href={back.href}
+            className="text-ink-soft hover:text-ink mb-2 -ml-1 inline-flex h-8 items-center gap-1 rounded-md pr-2 pl-1 text-[13px] font-medium transition-colors hover:bg-[var(--surface-2)]"
+          >
+            <ChevronLeft className="size-4" aria-hidden />
+            {back.label}
+          </Link>
+        ) : null}
         <h1 className="text-[20px] leading-7 font-semibold tracking-[-0.015em] break-words">
           {title}
         </h1>

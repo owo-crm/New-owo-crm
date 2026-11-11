@@ -17,7 +17,11 @@ export default async function EditClientPage({
   const c = card.client;
   return (
     <>
-      <PageHeader title={c.name} subtitle={t("agency.client.edit")} />
+      <PageHeader
+        back={{ href: `/agencja/klienci/${c.id}`, label: c.name }}
+        title={c.name}
+        subtitle={t("agency.client.edit")}
+      />
       <ClientForm
         initial={{
           id: c.id,

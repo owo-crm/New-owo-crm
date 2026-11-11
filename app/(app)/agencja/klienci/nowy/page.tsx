@@ -11,7 +11,10 @@ export default async function NewClientPage() {
   await requireAgency();
   return (
     <>
-      <PageHeader title={t("agency.client.titleNew")} />
+      <PageHeader
+        back={{ href: "/agencja", label: t("nav.agency") }}
+        title={t("agency.client.titleNew")}
+      />
       <ClientForm
         initial={{
           name: "",

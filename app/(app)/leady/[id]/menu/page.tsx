@@ -27,6 +27,7 @@ export default async function GuestMenuPage({
   return (
     <div className="max-w-3xl">
       <PageHeader
+        back={{ href: `/leady/${id}`, label: lead.client_name }}
         title={t("docs.menuTitle")}
         subtitle={`${lead.client_name} · ${t("docs.menuIntro")}`}
       />

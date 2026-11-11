@@ -22,7 +22,11 @@ export default async function SubscriptionPage() {
   const canManage = organization.role !== "member";
   return (
     <div className="max-w-3xl">
-      <PageHeader title={t("billing.settings.title")} subtitle={t("billing.settings.intro")} />
+      <PageHeader
+        back={{ href: "/ustawienia", label: t("nav.settings") }}
+        title={t("billing.settings.title")}
+        subtitle={t("billing.settings.intro")}
+      />
       <div className="grid gap-5">
         <Card title={t("billing.agency.modules")}>
           <ul className="divide-line divide-y" data-testid="module-list">

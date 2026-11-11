@@ -1,4 +1,5 @@
 "use client";
+import { MessageCircle, Phone } from "lucide-react";
 import { hasKnownResponse } from "@/lib/leads/response";
 import { useEffect, useOptimistic, useState, useTransition } from "react";
 import Link from "next/link";
@@ -132,18 +133,17 @@ export function LeadEditor({
       <div className="mb-6 flex flex-wrap gap-2">
         {current.phone_e164 ? (
           <>
-            <a
-              href={`tel:${current.phone_e164}`}
-              className={buttonVariants({ variant: "secondary" })}
-            >
+            <a href={`tel:${current.phone_e164}`} className={buttonVariants({ variant: "soft" })}>
+              <Phone />
               {t("leads.call")}
             </a>
             <a
               href={`https://wa.me/${current.phone_e164.slice(1)}`}
               target="_blank"
               rel="noreferrer"
-              className={buttonVariants({ variant: "secondary" })}
+              className={buttonVariants({ variant: "success" })}
             >
+              <MessageCircle />
               {t("leads.whatsapp")}
             </a>
           </>

@@ -79,6 +79,7 @@ export default async function ClientPage({ params }: PageProps<"/agencja/klienci
   return (
     <>
       <PageHeader
+        back={{ href: "/agencja", label: t("nav.agency") }}
         title={client.name}
         subtitle={undefined}
         aside={

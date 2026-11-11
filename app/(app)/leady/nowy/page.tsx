@@ -8,7 +8,11 @@ export default async function NewLeadPage() {
   await requireOrganization();
   return (
     <div className="mx-auto max-w-3xl">
-      <PageHeader title={t("nav.newLead")} subtitle={t("leads.newSubtitle")} />
+      <PageHeader
+        back={{ href: "/leady", label: t("nav.leads") }}
+        title={t("nav.newLead")}
+        subtitle={t("leads.newSubtitle")}
+      />
       <NewLeadForm />
     </div>
   );

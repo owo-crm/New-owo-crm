@@ -49,7 +49,7 @@ export function PaymentsCard({ payments }: { payments: Payment[] }) {
                   </div>
                   {p.paid_at ? <span className="badge badge-won">{t("finance.paid")}</span> : null}
                   <Button
-                    variant={p.paid_at ? "ghost" : "secondary"}
+                    variant={p.paid_at ? "ghost" : "success"}
                     size="sm"
                     disabled={pending}
                     onClick={() =>

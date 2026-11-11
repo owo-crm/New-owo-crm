@@ -6,8 +6,16 @@ export const buttonVariants = cva(
   {
     variants: {
       variant: {
-        primary: "bg-ink text-bg hover:opacity-90",
+        // Главное действие экрана — акцентный цвет (решение 028).
+        primary:
+          "bg-accent text-accent-ink shadow-[inset_0_1px_0_rgb(255_255_255/0.15)] hover:brightness-110",
+        // Тёмная — сильное, но нейтральное действие (сохранить, применить).
+        dark: "bg-ink text-bg hover:opacity-90",
         secondary: "border border-line-strong bg-surface text-ink hover:bg-surface-2",
+        // Мягкие цветные — дополнительные действия, у каждого свой смысл.
+        soft: "bg-accent/12 text-accent hover:bg-accent/20",
+        success: "bg-ok/12 text-ok hover:bg-ok/20",
+        danger: "bg-urgent/10 text-urgent hover:bg-urgent/18",
         ghost: "text-ink-soft hover:bg-surface-2 hover:text-ink",
         brand: "bg-brand text-white hover:brightness-110",
         urgent: "bg-urgent text-white hover:brightness-110",

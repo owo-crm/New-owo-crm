@@ -32,7 +32,7 @@ export function PayoutButton({
     return <Check className="text-ok ml-auto size-4" aria-label={t("agency.payout.done")} />;
   if (!open)
     return (
-      <Button size="sm" variant="secondary" onClick={() => setOpen(true)}>
+      <Button size="sm" variant="success" onClick={() => setOpen(true)}>
         {t("agency.payout.pay")}
       </Button>
     );

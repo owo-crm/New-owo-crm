@@ -24,7 +24,11 @@ export default async function NewOrderPage({ searchParams }: PageProps<"/agencja
       : warsawToday().slice(0, 7);
   return (
     <>
-      <PageHeader title={t("agency.form.titleNew")} subtitle={t("agency.form.intro")} />
+      <PageHeader
+        back={{ href: "/agencja", label: t("nav.agency") }}
+        title={t("agency.form.titleNew")}
+        subtitle={t("agency.form.intro")}
+      />
       <OrderForm
         clients={data.clients}
         members={data.members}
