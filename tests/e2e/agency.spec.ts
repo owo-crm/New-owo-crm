@@ -43,7 +43,7 @@ test("клиент → заказ с расчётом до сохранения 
   await page.getByLabel("NIP").fill("123-456-78-90");
   await page.getByRole("button", { name: "Zapisz klienta" }).click();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(client);
-  await expect(page.getByTestId("setup-checklist").getByRole("listitem")).toHaveCount(11);
+  await expect(page.getByTestId("setup-checklist").getByRole("listitem")).toHaveCount(12);
   // Ручной шаг отмечается кликом, автоматический — нет.
   await page.getByRole("checkbox", { name: /Nazwa, kolor, logo/ }).click();
   await expect(page.getByRole("checkbox", { name: /Nazwa, kolor, logo/ })).toHaveAttribute(

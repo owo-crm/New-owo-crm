@@ -282,7 +282,8 @@
     "signedInAs": "Zalogowano jako {email}",
     "import": "Import leadów",
     "importText": "Przenieś leady z arkusza bota.",
-    "finance": "Finanse"
+    "finance": "Finanse",
+    "billing": "Abonament"
   },
   "presets": {
     "label": "Rodzaj biznesu",
@@ -574,7 +575,8 @@
       "overdue": "Nieopłacone po terminie",
       "noOrders": "Aktywni klienci bez zleceń w tym miesiącu",
       "staleSetup": "Konfiguracja trwa dłużej niż 14 dni",
-      "wasDue": "termin minął {date}"
+      "wasDue": "termin minął {date}",
+      "requests": "Klienci proszą o moduły"
     },
     "form": {
       "titleNew": "Nowe zlecenie",
@@ -674,7 +676,8 @@
       "notifications": "Telegram / e-mail podłączone",
       "owner_invited": "Zaproszenie dla właściciela wysłane",
       "owner_joined": "Właściciel zalogował się sam",
-      "handover": "Pokazaliśmy, jak korzystać"
+      "handover": "Pokazaliśmy, jak korzystać",
+      "subscription": "Abonament opłacany"
     },
     "errors": {
       "invalid": "Sprawdź pola formularza.",
@@ -682,5 +685,75 @@
       "notFound": "Nie znaleziono.",
       "adminOnly": "Tylko administrator OWO Ads może tworzyć nowe biznesy."
     }
+  },
+  "billing": {
+    "modules": {
+      "leads": "Leady",
+      "leadsText": "Formularz ze strony → CRM, lista i lejek, powiadomienia Telegram i e-mail",
+      "channels": "Dodatkowe kanały",
+      "channelsText": "Meta Lead Ads, Google, zapytania z e-maila",
+      "documents": "Oferty i umowy",
+      "documentsText": "Generowanie ofert i umów (PDF + Word), numeracja",
+      "payments": "Płatności",
+      "paymentsText": "Zadatki, przypomnienia o płatnościach, ekran „Finanse”",
+      "calendar": "Kalendarz",
+      "calendarText": "Zajętość terminów",
+      "bundle": "Pakiet Pełny",
+      "seats": "Dodatkowi użytkownicy"
+    },
+    "locked": {
+      "title": "Moduł „{module}” nie jest włączony",
+      "text": "Ten moduł możesz dodać do abonamentu. Zgłoszenie trafi do OWO Ads — włączymy go i opłata zmieni się od razu.",
+      "request": "Poproś o moduł",
+      "requested": "Zgłoszenie wysłane. Odezwiemy się wkrótce.",
+      "price": "+{amount} netto / mies."
+    },
+    "settings": {
+      "title": "Abonament",
+      "text": "Twoje moduły, cena i płatności",
+      "intro": "Moduły włącza OWO Ads. Brakuje czegoś? Poproś o moduł — opłata zmieni się automatycznie.",
+      "status": "Status",
+      "monthly": "Miesięcznie",
+      "net": "netto",
+      "vat": "VAT 23 %",
+      "gross": "brutto",
+      "seats": "Użytkownicy: {count}",
+      "manage": "Faktury i karta płatnicza",
+      "notConnected": "Płatności jeszcze nie są podłączone."
+    },
+    "status": {
+      "none": "Nie podłączono",
+      "incomplete": "Czeka na pierwszą płatność",
+      "trialing": "Okres próbny",
+      "active": "Aktywny",
+      "past_due": "Zaległa płatność",
+      "unpaid": "Nieopłacony",
+      "canceled": "Anulowany",
+      "paused": "Wstrzymany"
+    },
+    "agency": {
+      "title": "Abonament CRM",
+      "modules": "Moduły",
+      "adClient": "Klient reklamy (baza gratis, moduły −50 %)",
+      "discount": "Dodatkowy rabat (%)",
+      "seats": "Użytkownicy w CRM: {count}",
+      "email": "E-mail do faktur",
+      "save": "Zapisz i zaktualizuj płatność",
+      "saved": "Zapisano. Stripe nalicza nową kwotę od razu (proporcjonalnie).",
+      "savedLocal": "Zapisano moduły. Stripe nie jest podłączony — kwota zmieni się po podłączeniu.",
+      "checkout": "Link do pierwszej płatności",
+      "checkoutHint": "Wyślij klientowi — po opłaceniu karta będzie obciążana co miesiąc automatycznie.",
+      "copy": "Kopiuj",
+      "copied": "Skopiowano",
+      "requests": "Klient prosi o: {modules}",
+      "noCrm": "Najpierw utwórz lub powiąż CRM klienta.",
+      "stripeOff": "Stripe nie jest skonfigurowany (STRIPE_SECRET_KEY)."
+    },
+    "wizard": {
+      "title": "Utwórz CRM klienta",
+      "preset": "Branża",
+      "create": "Utwórz CRM"
+    },
+    "invoice": "CRM: {modules} · {month}"
   }
 }

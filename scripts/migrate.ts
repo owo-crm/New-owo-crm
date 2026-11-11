@@ -2,7 +2,7 @@
 import path from "node:path";
 import pg from "pg";
 import { migrate } from "../lib/db/migrate.ts";
-import { bootstrapAdmin } from "../lib/db/bootstrap.ts";
+import { bootstrapAdmin, ensureAgencyWorkspace } from "../lib/db/bootstrap.ts";
 import type { Database } from "../lib/db/core.ts";
 
 const url = process.env.DATABASE_URL;
@@ -37,6 +37,7 @@ try {
   );
   console.log(applied.length ? `Zastosowano migracji: ${applied.length}` : "Baza aktualna.");
   await bootstrapAdmin(db, process.env);
+  await ensureAgencyWorkspace(db, process.env);
 } finally {
   await client.end();
 }

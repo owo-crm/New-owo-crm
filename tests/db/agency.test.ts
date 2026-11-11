@@ -297,7 +297,7 @@ describe("чек-лист настройки", () => {
 
   it("автоматические шаги отмечаются по фактам в базе (даже если сотрудник не входит в фирму клиента)", async () => {
     let s = await status();
-    expect(Object.keys(s)).toHaveLength(11);
+    expect(Object.keys(s)).toHaveLength(12);
     expect(s.org_created).toBe(true);
     expect(s.service_member).toBe(false);
     expect(s.owner_joined).toBe(false); // владелец фирмы клиента — Иван из OWO Ads, не считается
