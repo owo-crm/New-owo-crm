@@ -90,4 +90,19 @@ describe("админ платформы из переменных", () => {
     ).rows.map((r) => r.name);
     expect(names).toEqual(["Barowo", "Studio"]);
   });
+
+  it("второй админ платформы в кабинете агентства — владелец, а не обслуживающий аккаунт", async () => {
+    await ensurePlatformAdmin(
+      db,
+      { ADMIN_LOGIN: "drugi", ADMIN_PASSWORD: "bardzo-tajne-2" },
+      () => {},
+    );
+    const agencyRole = (await roles("drugi")).find((r) => r.name === "OWO Ads");
+    expect(agencyRole).toEqual({ name: "OWO Ads", role: "owner", is_service: false });
+    expect((await roles("drugi")).find((r) => r.name === "Barowo")).toEqual({
+      name: "Barowo",
+      role: "admin",
+      is_service: true,
+    });
+  });
 });
