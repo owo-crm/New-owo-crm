@@ -120,9 +120,11 @@ export default async function TodayPage() {
           <Card>
             <div className="mb-1 flex items-baseline justify-between gap-3">
               <h2 className="text-[15px] font-bold">{t("today.upcomingTitle")}</h2>
-              <Link href="/kalendarz" className="text-ink-soft hover:text-ink text-xs font-bold">
-                {t("today.upcomingAll")}
-              </Link>
+              {organization.modules.includes("calendar") ? (
+                <Link href="/kalendarz" className="text-ink-soft hover:text-ink text-xs font-bold">
+                  {t("today.upcomingAll")}
+                </Link>
+              ) : null}
             </div>
             {q.upcoming.length === 0 ? (
               <p className="text-ink-soft text-sm">{t("today.upcomingEmpty")}</p>

@@ -4,7 +4,6 @@ import { useState, useTransition } from "react";
 import { Bot, Check, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
-  createClientOrgAction,
   linkClientOrgAction,
   openClientCrmAction,
   setOrderStatusAction,
@@ -99,18 +98,16 @@ export function SetupChecklist({ clientId, steps }: { clientId: string; steps: C
   );
 }
 
-/** «Otwórz CRM klienta» / «Utwórz CRM klienta» / привязка к существующему бизнесу. */
+/** «Otwórz CRM klienta» / привязка к существующему бизнесу (создание — мастер в «Abonament CRM»). */
 export function ClientCrmControls({
   clientId,
   clientOrgId,
   canOpen,
-  canCreate,
   linkable,
 }: {
   clientId: string;
   clientOrgId: string | null;
   canOpen: boolean;
-  canCreate: boolean;
   linkable: { id: string; name: string }[];
 }) {
   const { pending, error, run } = useAction();
@@ -130,11 +127,6 @@ export function ClientCrmControls({
   return (
     <div className="grid gap-3">
       {error ? <p className="text-urgent text-sm">{error}</p> : null}
-      {canCreate ? (
-        <Button disabled={pending} onClick={() => run(() => createClientOrgAction(clientId))}>
-          {t("agency.client.createCrm")}
-        </Button>
-      ) : null}
       {linkable.length > 0 ? (
         <div className="flex flex-wrap items-end gap-2">
           <label className="grid min-w-0 flex-1 gap-1.5 text-sm font-semibold">

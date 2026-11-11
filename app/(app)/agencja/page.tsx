@@ -6,6 +6,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { RepeatRetainersButton } from "@/components/agency/repeat-button";
 import { ClientStatusBadge, monthLabel } from "@/components/agency/labels";
 import { getAgencySummary } from "@/lib/agency/repository";
+import { MODULES, isAddonKey } from "@/lib/billing/modules";
 import { formatMoney } from "@/lib/finance/money";
 import { addMonths, plDate, warsawToday } from "@/lib/format";
 import { t } from "@/lib/i18n";
@@ -37,7 +38,10 @@ export default async function AgencyPage({ searchParams }: PageProps<"/agencja">
   ];
   const { totals, attention } = data;
   const attentionCount =
-    attention.overdue.length + attention.noOrders.length + attention.staleSetup.length;
+    attention.overdue.length +
+    attention.noOrders.length +
+    attention.staleSetup.length +
+    attention.requests.length;
 
   return (
     <>
@@ -251,6 +255,31 @@ export default async function AgencyPage({ searchParams }: PageProps<"/agencja">
                           </Link>
                           <span className="shrink-0 tabular-nums">
                             {formatMoney(o.amount_grosze)}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                ) : null}
+                {attention.requests.length > 0 ? (
+                  <section>
+                    <h3 className="mb-1.5 text-[13px] font-bold">
+                      {t("agency.attention.requests")}
+                    </h3>
+                    <ul className="grid gap-1">
+                      {attention.requests.map((r) => (
+                        <li
+                          key={`${r.client_id}-${r.module}`}
+                          className="flex justify-between gap-3"
+                        >
+                          <Link
+                            href={`/agencja/klienci/${r.client_id}`}
+                            className="truncate font-bold hover:underline"
+                          >
+                            {r.name}
+                          </Link>
+                          <span className="text-ink-soft shrink-0">
+                            {isAddonKey(r.module) ? t(MODULES[r.module].labelKey) : r.module}
                           </span>
                         </li>
                       ))}

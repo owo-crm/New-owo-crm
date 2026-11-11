@@ -25,6 +25,8 @@ export default async function globalSetup() {
   await c2.query(
     "update public.organizations set document_engine='barowo', email='e2e@owo.test', phone='+48 500 000 000'",
   );
+  // E2E-пользователь — админ платформы (OWO Ads): мастер «Utwórz CRM klienta».
+  await c2.query("update auth.users set is_platform_admin = true where email = 'e2e@owo.test'");
   // Кабинет агентства (пресет agency) для того же пользователя — tests/e2e/agency.spec.ts.
   // Создаётся после каналов: у агентства своего канала сайта в тестах нет.
   await c2.query(

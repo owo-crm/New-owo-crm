@@ -100,3 +100,58 @@ test("клиент → заказ с расчётом до сохранения 
     });
   }
 });
+
+test("абонемент: CRM клиента с модулями, закрытый модуль, «Poproś o moduł» доходит до агентства", async ({
+  page,
+}, info) => {
+  await login(page);
+  const agency = await agencyId();
+  await page
+    .context()
+    .addCookies([{ name: "owo_org", value: agency, url: "http://localhost:3200" }]);
+  const client = `Foto ${info.project.name} ${Date.now() % 100000}`;
+  await page.goto("/agencja/klienci/nowy");
+  await page.getByLabel("Nazwa firmy").fill(client);
+  await page.getByRole("button", { name: "Zapisz klienta" }).click();
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(client);
+
+  // Мастер: только база «Leady» → 39 zł netto, 47,97 zł brutto.
+  const wizard = page.getByTestId("crm-wizard");
+  await expect(wizard.getByTestId("price-table")).toContainText(/47,97\s*zł/);
+  await wizard.getByRole("button", { name: "Utwórz CRM" }).click();
+  const panel = page.getByTestId("subscription-panel");
+  await expect(panel).toBeVisible();
+  // Добавили модуль — цена растёт сразу, до сохранения.
+  await panel.getByLabel("Oferty i umowy").check();
+  await expect(panel.getByTestId("price-table")).toContainText(/98,00\s*zł/);
+  await panel.getByRole("button", { name: "Zapisz i zaktualizuj płatność" }).click();
+  await expect(panel.getByRole("status")).toContainText("Zapisano");
+  await page.screenshot({
+    path: `tests/screenshots/${info.project.name}-abonament-agencja.png`,
+    fullPage: true,
+  });
+
+  // В CRM клиента календаря нет: экран модуля с «Poproś o moduł».
+  await page.getByRole("button", { name: "Otwórz CRM klienta" }).click();
+  await expect(page).toHaveURL(/\/dzisiaj/);
+  await expect(
+    page.getByRole("navigation", { name: "Menu główne" }).getByRole("link", { name: "Kalendarz" }),
+  ).toHaveCount(0);
+  await page.goto("/kalendarz");
+  await expect(page.getByText("Moduł „Kalendarz” nie jest włączony")).toBeVisible();
+  await page.getByRole("button", { name: "Poproś o moduł" }).click();
+  await expect(page.getByText("Zgłoszenie wysłane")).toBeVisible();
+  await page.screenshot({
+    path: `tests/screenshots/${info.project.name}-modul-zablokowany.png`,
+    fullPage: true,
+  });
+  await page.goto("/ustawienia/abonament");
+  await expect(page.getByTestId("price-table")).toContainText(/98,00\s*zł/);
+
+  await page
+    .context()
+    .addCookies([{ name: "owo_org", value: agency, url: "http://localhost:3200" }]);
+  await page.goto("/agencja");
+  await expect(page.getByText("Klienci proszą o moduły")).toBeVisible();
+  await expect(page.getByRole("link", { name: client }).first()).toBeVisible();
+});

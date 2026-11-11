@@ -145,9 +145,18 @@ export const getAgencySummary = cache(async (month: string) =>
       setupTotal: progress.get(c.id)?.total ?? 0,
     }));
 
+    // Клиенты просят модули (кнопка «Poproś o moduł» в их CRM).
+    const { rows: requests } = await tx.query<{ client_id: string; name: string; module: string }>(
+      `select c.id as client_id, c.name, r.module from public.module_requests r
+       join public.agency_clients c on c.client_org_id = r.organization_id and c.organization_id = $1
+       where r.handled_at is null order by r.created_at`,
+      [organization.id],
+    );
+
     const staleBefore = Date.now() - SETUP_STALE_DAYS * 86_400_000;
     const attention = {
       overdue: data.overdue,
+      requests,
       // Активные клиенты без заказов в этом месяце (абонемент забыли выставить?).
       noOrders: clients.filter((c) => c.status === "active" && c.month_orders === 0),
       // Настройка CRM начата, но висит дольше двух недель.

@@ -4,14 +4,12 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { ORG_COOKIE, getOrganizations, requireUser } from "@/lib/auth/session";
-import { asUser, getDb, one, sqlState } from "@/lib/db";
-import { slugify } from "@/lib/organizations/slug";
+import { sqlState } from "@/lib/db";
 import { t } from "@/lib/i18n";
 import {
   clientFromLead,
   linkClientOrg,
   repeatRetainers,
-  requireAgency,
   saveClient,
   saveOrder,
   setOrderStatus,
@@ -138,42 +136,6 @@ export async function linkClientOrgAction(clientId: string, orgId: string): Prom
     return { ok: true };
   } catch (error) {
     return fail(error, "link org");
-  }
-}
-
-/**
- * «Utwórz CRM klienta»: новая организация с названием клиента, участие OWO Ads помечается
- * обслуживающим, клиент привязывается. Шаги 1 и 2 чек-листа отметятся сами.
- * Только админ платформы (как и создание бизнеса в переключателе).
- */
-export async function createClientOrgAction(clientId: string): Promise<ActionResult> {
-  const { organization, user } = await requireAgency();
-  if (!user.isPlatformAdmin) return { error: t("agency.errors.adminOnly") };
-  if (!z.uuid().safeParse(clientId).success) return { error: t("agency.errors.invalid") };
-  try {
-    await asUser(getDb(), user.id, async (tx) => {
-      const client = await one<{ name: string; client_org_id: string | null }>(
-        tx,
-        "select name, client_org_id from public.agency_clients where organization_id=$1 and id=$2",
-        [organization.id, clientId],
-      );
-      if (!client || client.client_org_id) throw new Error("client missing or already linked");
-      const name = client.name.length >= 2 ? client.name : `${client.name} CRM`;
-      const org = await one<{ id: string }>(
-        tx,
-        "select public.create_organization($1,$2,'event-services') as id",
-        [name.slice(0, 120), slugify(name) || "klient"],
-      );
-      await tx.query("select public.mark_service_membership($1)", [org!.id]);
-      await tx.query(
-        "update public.agency_clients set client_org_id=$3 where organization_id=$1 and id=$2",
-        [organization.id, clientId, org!.id],
-      );
-    });
-    refresh(clientId);
-    return { ok: true };
-  } catch (error) {
-    return fail(error, "create client org");
   }
 }
 

@@ -11,6 +11,9 @@ import {
 } from "@/components/agency/client-actions";
 import { ClientStatusBadge, OrderStatusBadge, monthLabel } from "@/components/agency/labels";
 import { getClientCard } from "@/lib/agency/repository";
+import { CreateCrmWizard, SubscriptionPanel } from "@/components/billing/subscription-panel";
+import { getBillingView } from "@/lib/billing/repository";
+import { isAddonKey } from "@/lib/billing/modules";
 import { totalsBySplit } from "@/lib/agency/split";
 import { getCurrentUser, getOrganizations } from "@/lib/auth/session";
 import { formatMoney } from "@/lib/finance/money";
@@ -27,7 +30,12 @@ export default async function ClientPage({ params }: PageProps<"/agencja/klienci
   const card = await getClientCard(id);
   if (!card) notFound();
   const { client, steps, orders, members } = card;
-  const [user, orgs] = await Promise.all([getCurrentUser(), getOrganizations()]);
+  // Клиент принадлежит этому агентству (getClientCard проверил) — абонемент его CRM можно читать.
+  const [user, orgs, billing] = await Promise.all([
+    getCurrentUser(),
+    getOrganizations(),
+    client.client_org_id ? getBillingView(client.client_org_id) : null,
+  ]);
   const nameOf = (uid: string | null) =>
     uid ? (members.find((m) => m.userId === uid)?.name ?? "—") : t("agency.split.unassigned");
   const done = steps.filter((s) => s.doneAt).length;
@@ -195,7 +203,6 @@ export default async function ClientPage({ params }: PageProps<"/agencja/klienci
                 clientId={client.id}
                 clientOrgId={client.client_org_id}
                 canOpen={orgs.some((o) => o.id === client.client_org_id)}
-                canCreate={Boolean(user?.isPlatformAdmin)}
                 linkable={orgs
                   .filter((o) => !isAgency(o.industryPreset))
                   .map((o) => ({ id: o.id, name: o.name }))}
@@ -206,6 +213,31 @@ export default async function ClientPage({ params }: PageProps<"/agencja/klienci
               clientId={client.id}
               steps={steps.map((s) => ({ key: s.key, auto: s.auto, doneAt: s.doneAt }))}
             />
+          </Card>
+
+          <Card title={t("billing.agency.title")}>
+            {billing ? (
+              <SubscriptionPanel
+                clientId={client.id}
+                initial={{
+                  modules: billing.state.modules.filter(isAddonKey),
+                  adClient: billing.state.adClient,
+                  discountPct: billing.state.discountBp / 100,
+                  email: billing.state.email ?? client.email ?? "",
+                  seats: billing.state.seats,
+                  status: billing.status,
+                  hasSubscription:
+                    Boolean(billing.state.subscriptionId) && billing.status !== "canceled",
+                  stripeEnabled: billing.stripeEnabled,
+                  lastError: billing.lastError,
+                  requests: billing.requests,
+                }}
+              />
+            ) : user?.isPlatformAdmin ? (
+              <CreateCrmWizard clientId={client.id} />
+            ) : (
+              <p className="text-ink-soft text-sm">{t("billing.agency.noCrm")}</p>
+            )}
           </Card>
 
           <Card title={t("agency.client.details")}>
