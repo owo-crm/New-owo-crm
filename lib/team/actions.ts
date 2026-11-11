@@ -1,4 +1,6 @@
 "use server";
+import { after } from "next/server";
+import { resyncBilling } from "@/lib/billing/service";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
@@ -57,14 +59,17 @@ export async function revokeInviteAction(id: string) {
 }
 
 export async function removeMemberAction(userId: string) {
-  await withOrg(async (tx, { user, organization }) => {
+  const org = await withOrg(async (tx, { user, organization }) => {
     // Себя из команды не удаляем; права (owner/admin, не владельца) проверяет RLS.
-    if (userId === user.id) return;
+    if (userId === user.id) return null;
     await tx.query("delete from public.memberships where organization_id=$1 and user_id=$2", [
       organization.id,
       z.uuid().parse(userId),
     ]);
-  }).catch(() => {});
+    return organization.id;
+  }).catch(() => null);
+  // Меньше пользователей → меньше мест в абонементе.
+  if (org) after(() => resyncBilling(org));
   revalidatePath("/ustawienia/zespol");
 }
 
@@ -103,6 +108,8 @@ export async function joinAction(_prev: JoinState, form: FormData): Promise<Join
   } catch {
     return { error: t("team.inviteInvalid") };
   }
+  // Новый пользователь → место в абонементе (сумма в Stripe растёт сама).
+  after(() => resyncBilling(org));
   return enter(org);
 }
 
@@ -147,6 +154,7 @@ export async function registerWithInviteAction(
       fullName: parsed.data.name,
     });
     org = await acceptInvitation(db, userId, token);
+    after(() => resyncBilling(org));
     const session = await createSession(db, userId, (await headers()).get("user-agent"));
     (await cookies()).set(SESSION_COOKIE, session.token, {
       httpOnly: true,
