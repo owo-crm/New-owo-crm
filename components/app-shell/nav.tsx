@@ -2,7 +2,17 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarDays, FileText, Inbox, Menu, Plus, Settings, Sun, Wallet } from "lucide-react";
+import {
+  Briefcase,
+  CalendarDays,
+  FileText,
+  Inbox,
+  Menu,
+  Plus,
+  Settings,
+  Sun,
+  Wallet,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { t, type MessageKey } from "@/lib/i18n";
 
@@ -17,16 +27,29 @@ const MAIN: Item[] = [
   { href: "/ustawienia", label: "nav.settings", icon: Settings },
 ];
 
+/** Кабинет агентства — только в организации с пресетом agency (решение 021). */
+const AGENCY: Item = { href: "/agencja", label: "nav.agency", icon: Briefcase };
+
+function items(agency: boolean) {
+  return agency ? [MAIN[0], AGENCY, ...MAIN.slice(1)] : MAIN;
+}
+
 function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(href + "/");
 }
 
 /** Боковое меню на компьютере. waiting — сколько лидов ждут ответа (красный значок). */
-export function SidebarNav({ waiting = 0 }: { waiting?: number }) {
+export function SidebarNav({
+  waiting = 0,
+  agency = false,
+}: {
+  waiting?: number;
+  agency?: boolean;
+}) {
   const pathname = usePathname();
   return (
     <nav aria-label="Menu główne" className="grid gap-0.5">
-      {MAIN.map(({ href, label, icon: Icon }) => {
+      {items(agency).map(({ href, label, icon: Icon }) => {
         const active = isActive(pathname, href);
         return (
           <Link
@@ -58,13 +81,14 @@ export function SidebarNav({ waiting = 0 }: { waiting?: number }) {
  * Нижняя панель на телефоне: Dzisiaj · Leady · ＋ · Kalendarz · Więcej.
  * «＋» открывает единую форму ручного лида.
  */
-export function BottomNav() {
+export function BottomNav({ agency = false }: { agency?: boolean }) {
   const pathname = usePathname();
   const items: (Item | "plus")[] = [
     MAIN[0],
     MAIN[1],
     "plus",
-    MAIN[2],
+    // У агентства вместо календаря — кабинет «Agencja».
+    agency ? AGENCY : MAIN[2],
     { href: "/ustawienia", label: "nav.more", icon: Menu },
   ];
   return (

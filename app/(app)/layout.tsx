@@ -7,6 +7,7 @@ import { signOut } from "@/lib/auth/actions";
 import { appConfig } from "@/lib/config";
 import { getWorkQueue } from "@/lib/leads/dashboard";
 import { t } from "@/lib/i18n";
+import { isAgency } from "@/lib/presets";
 
 /**
  * Оболочка приложения для вошедших пользователей.
@@ -35,7 +36,10 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
           </div>
 
           <div className="mt-7">
-            <SidebarNav waiting={queue.waiting_count} />
+            <SidebarNav
+              waiting={queue.waiting_count}
+              agency={isAgency(organization.industryPreset)}
+            />
           </div>
 
           <div className="border-line mt-auto border-t px-3 pt-4">
@@ -76,7 +80,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
         </main>
       </div>
 
-      <BottomNav />
+      <BottomNav agency={isAgency(organization.industryPreset)} />
     </div>
   );
 }
