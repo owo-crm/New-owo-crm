@@ -78,7 +78,8 @@
     "settings": "Ustawienia",
     "more": "Więcej",
     "newLead": "Nowy lead",
-    "finance": "Finanse"
+    "finance": "Finanse",
+    "agency": "Agencja"
   },
   "today": {
     "title": "Dzisiaj",
@@ -259,7 +260,15 @@
       "listopad",
       "grudzień"
     ],
-    "weekdays": ["pon", "wt", "śr", "czw", "pt", "sob", "ndz"]
+    "weekdays": [
+      "pon",
+      "wt",
+      "śr",
+      "czw",
+      "pt",
+      "sob",
+      "ndz"
+    ]
   },
   "documents": {
     "emptyTitle": "Oferty i umowy",
@@ -494,5 +503,191 @@
     "prev": "Poprzedni miesiąc",
     "next": "Następny miesiąc",
     "current": "Ten miesiąc"
+  },
+  "agency": {
+    "pageTitle": "Agencja",
+    "pageIntro": "Ile zarobiliśmy, komu ile się należy i co zostało do ustawienia u klientów.",
+    "months": {
+      "1": "styczeń",
+      "2": "luty",
+      "3": "marzec",
+      "4": "kwiecień",
+      "5": "maj",
+      "6": "czerwiec",
+      "7": "lipiec",
+      "8": "sierpień",
+      "9": "wrzesień",
+      "10": "październik",
+      "11": "listopad",
+      "12": "grudzień"
+    },
+    "newOrder": "Nowe zlecenie",
+    "newClient": "Nowy klient",
+    "repeat": "Powtórz abonamenty z poprzedniego miesiąca",
+    "repeatDone": "Dodano szkice: {count}. Sprawdź kwoty i godziny.",
+    "repeatNone": "Brak abonamentów do powtórzenia — wszystkie już są w tym miesiącu.",
+    "stats": {
+      "invoiced": "Wystawiono",
+      "received": "Otrzymano",
+      "expected": "Oczekiwane",
+      "overdue": "Po terminie",
+      "adBudget": "Budżety reklamowe klientów (poza podziałem): {amount}"
+    },
+    "split": {
+      "title": "Podział środków za miesiąc",
+      "intro": "Z zleceń opłaconych w tym miesiącu. Budżet reklamowy klienta nie wchodzi do podziału.",
+      "colPerson": "Osoba",
+      "colSale": "Za sprzedaż",
+      "colWork": "Za pracę",
+      "colTotal": "Razem",
+      "company": "Firma",
+      "unassigned": "Nierozdzielone",
+      "unassignedHint": "brak godzin lub sprzedawcy — uzupełnij zlecenie",
+      "costs": "Koszty bezpośrednie",
+      "total": "Razem = Otrzymano",
+      "mismatch": "Suma nie zgadza się z „Otrzymano” o {amount}. Zgłoś to — to błąd.",
+      "empty": "W tym miesiącu nie ma jeszcze opłaconych zleceń."
+    },
+    "clients": {
+      "title": "Klienci",
+      "empty": "Nie ma jeszcze klientów. Dodaj pierwszego albo utwórz go z leada na etapie „Klient”.",
+      "colName": "Klient",
+      "colStatus": "Status",
+      "colMonth": "W tym miesiącu",
+      "colSetup": "Konfiguracja",
+      "colActivity": "Ostatnia aktywność",
+      "setup": "{done} z {total}",
+      "noCrm": "bez CRM"
+    },
+    "status": {
+      "lead": "Potencjalny",
+      "active": "Aktywny",
+      "paused": "Wstrzymany",
+      "lost": "Utracony"
+    },
+    "orderStatus": {
+      "draft": "Szkic",
+      "invoiced": "Wystawiono",
+      "paid": "Opłacono",
+      "cancelled": "Anulowano"
+    },
+    "kind": {
+      "retainer": "Abonament",
+      "project": "Projekt"
+    },
+    "attention": {
+      "title": "Wymaga uwagi",
+      "empty": "Wszystko w porządku.",
+      "overdue": "Nieopłacone po terminie",
+      "noOrders": "Aktywni klienci bez zleceń w tym miesiącu",
+      "staleSetup": "Konfiguracja trwa dłużej niż 14 dni",
+      "wasDue": "termin minął {date}"
+    },
+    "form": {
+      "titleNew": "Nowe zlecenie",
+      "titleEdit": "Zlecenie",
+      "intro": "Cenę wpisujesz ręcznie. Podział liczy się od razu — zanim zapiszesz.",
+      "client": "Klient",
+      "clientPick": "Wybierz klienta",
+      "title": "Nazwa zlecenia",
+      "titleHint": "Np. „Pakiet Start, listopad” albo „Landing page”",
+      "kind": "Rodzaj",
+      "amount": "Kwota netto (zł)",
+      "costs": "Koszty bezpośrednie (zł)",
+      "costsHint": "Podwykonawcy, druk, szablony, dalekie dojazdy",
+      "adBudget": "Budżet reklamowy klienta (zł)",
+      "adBudgetHint": "Meta / Google. Tylko do raportu — nie wchodzi do podziału",
+      "soldBy": "Kto sprzedał",
+      "nobody": "— nikt / nie wiadomo —",
+      "month": "Miesiąc rozliczenia",
+      "status": "Status",
+      "due": "Termin płatności",
+      "note": "Notatka",
+      "work": "Kto ile pracował",
+      "workHint": "Godziny wpisz tutaj — bez nich 65 % nie ma komu przypisać.",
+      "worker": "Wykonawca",
+      "hours": "Godziny",
+      "addWorker": "Dodaj wykonawcę",
+      "remove": "Usuń",
+      "preview": "Podział",
+      "previewBase": "Podstawa: {amount} (kwota − koszty)",
+      "previewSale": "Sprzedaż {pct}",
+      "previewWork": "Praca {pct}",
+      "previewCompany": "Firma {pct} + zaokrąglenia",
+      "unassigned": "nierozdzielone",
+      "you": "Ty dostaniesz: {amount}",
+      "save": "Zapisz zlecenie",
+      "saving": "Zapisywanie…",
+      "noClients": "Najpierw dodaj klienta.",
+      "errAmount": "Wpisz kwotę, np. 1500 albo 1499,99",
+      "errCosts": "Koszty nie mogą być większe niż kwota",
+      "errHours": "Godziny: od 0,01 do 500",
+      "errWorker": "Każdy wykonawca tylko raz",
+      "errClient": "Wybierz klienta",
+      "errTitle": "Wpisz nazwę zlecenia"
+    },
+    "client": {
+      "titleNew": "Nowy klient",
+      "edit": "Edytuj dane",
+      "name": "Nazwa firmy",
+      "nip": "NIP",
+      "contactName": "Osoba kontaktowa",
+      "phone": "Telefon",
+      "email": "E-mail",
+      "city": "Miasto",
+      "status": "Status",
+      "startedAt": "Współpraca od",
+      "note": "Notatka",
+      "save": "Zapisz klienta",
+      "details": "Dane i kontakt",
+      "noData": "Brak danych",
+      "setupTitle": "Konfiguracja CRM klienta",
+      "setupIntro": "Kroki z ikoną automatu zaznaczają się same — na podstawie faktów w bazie.",
+      "auto": "automatycznie",
+      "openCrm": "Otwórz CRM klienta",
+      "createCrm": "Utwórz CRM klienta",
+      "linkCrm": "Powiąż z istniejącym biznesem",
+      "linkNone": "— brak —",
+      "link": "Powiąż",
+      "crm": "CRM klienta: {name}",
+      "noCrm": "Klient nie ma jeszcze swojego CRM.",
+      "orders": "Zlecenia",
+      "ordersEmpty": "Brak zleceń.",
+      "splitOf": "Podział",
+      "history": "Historia",
+      "historyEmpty": "Brak wydarzeń.",
+      "markInvoiced": "Wystawiono",
+      "markPaid": "Opłacono",
+      "markCancelled": "Anuluj",
+      "edit2": "Edytuj",
+      "fromLead": "Utworzony z leada",
+      "created": "Klient dodany",
+      "orderCreated": "Zlecenie: {title}",
+      "orderPaid": "Opłacono: {title}",
+      "stepDone": "Krok: {step}"
+    },
+    "fromLead": {
+      "button": "Dodaj klienta agencji",
+      "open": "Otwórz klienta agencji"
+    },
+    "steps": {
+      "org_created": "Organizacja klienta utworzona",
+      "service_member": "OWO Ads oznaczone jako obsługa",
+      "branding": "Nazwa, kolor, logo, dane firmy",
+      "stages": "Lejek pod branżę klienta",
+      "intake_channel": "Kanał zapytań utworzony, domena dodana",
+      "form_connected": "Formularz na stronie wysyła zapytania",
+      "documents": "Szablony oferty i umowy",
+      "notifications": "Telegram / e-mail podłączone",
+      "owner_invited": "Zaproszenie dla właściciela wysłane",
+      "owner_joined": "Właściciel zalogował się sam",
+      "handover": "Pokazaliśmy, jak korzystać"
+    },
+    "errors": {
+      "invalid": "Sprawdź pola formularza.",
+      "field": "Nieprawidłowa wartość",
+      "notFound": "Nie znaleziono.",
+      "adminOnly": "Tylko administrator OWO Ads może tworzyć nowe biznesy."
+    }
   }
 }
