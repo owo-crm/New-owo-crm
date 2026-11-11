@@ -859,5 +859,8 @@
     "placeholder": "Szukaj leada, sekcji albo biznesu…",
     "search": "Szukaj",
     "empty": "Nic nie znaleziono."
+  },
+  "picker": {
+    "search": "Szukaj…"
   }
 }

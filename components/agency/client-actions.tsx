@@ -1,4 +1,5 @@
 "use client";
+import { Picker } from "@/components/ui/picker";
 
 import { useState, useTransition } from "react";
 import { Bot, Check, ExternalLink } from "lucide-react";
@@ -131,7 +132,7 @@ export function ClientCrmControls({
         <div className="flex flex-wrap items-end gap-2">
           <label className="grid min-w-0 flex-1 gap-1.5 text-sm font-semibold">
             {t("agency.client.linkCrm")}
-            <select
+            <Picker
               value={target}
               onChange={(e) => setTarget(e.target.value)}
               className="border-line-strong bg-surface h-10 rounded-lg border px-3 text-sm font-normal"
@@ -142,7 +143,7 @@ export function ClientCrmControls({
                   {o.name}
                 </option>
               ))}
-            </select>
+            </Picker>
           </label>
           <Button
             variant="secondary"

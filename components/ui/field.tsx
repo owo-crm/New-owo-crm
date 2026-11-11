@@ -1,3 +1,4 @@
+import { Picker } from "@/components/ui/picker";
 import { useId } from "react";
 import { cn } from "@/lib/utils";
 
@@ -71,7 +72,7 @@ export function Checkbox({ label, error, id, ...props }: CheckboxProps) {
   );
 }
 
-type SelectProps = React.ComponentProps<"select"> & { label: string; error?: string };
+type SelectProps = React.ComponentProps<typeof Picker> & { label: string; error?: string };
 
 export function Select({ label, error, id, children, ...props }: SelectProps) {
   const autoId = useId();
@@ -81,9 +82,9 @@ export function Select({ label, error, id, children, ...props }: SelectProps) {
       <label htmlFor={inputId} className="text-ink-soft text-[13px] font-medium">
         {label}
       </label>
-      <select id={inputId} className={cn(inputClass, "appearance-auto")} {...props}>
+      <Picker id={inputId} aria-invalid={error ? true : undefined} {...props}>
         {children}
-      </select>
+      </Picker>
       {error ? <p className="text-urgent text-[13px]">{error}</p> : null}
     </div>
   );

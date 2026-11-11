@@ -1,4 +1,5 @@
 "use client";
+import { Picker } from "@/components/ui/picker";
 import Link from "next/link";
 import { useActionState, useState, useTransition } from "react";
 import { Field } from "@/components/ui/field";
@@ -32,11 +33,11 @@ export function InviteForm({ canInviteOwner }: { canInviteOwner: boolean }) {
         <Field name="note" label={t("team.note")} placeholder={t("team.notePlaceholder")} />
         <label className="grid gap-2 text-sm font-semibold">
           {t("team.role")}
-          <select name="role" defaultValue="member" className={select}>
+          <Picker name="role" defaultValue="member" className={select}>
             <option value="member">{t("team.role_member")}</option>
             <option value="admin">{t("team.role_admin")}</option>
             {canInviteOwner ? <option value="owner">{t("team.role_owner")}</option> : null}
-          </select>
+          </Picker>
         </label>
       </div>
       <p className="text-ink-soft text-sm">{t("team.roleHint")}</p>
@@ -82,7 +83,7 @@ export function MemberControls({
   return (
     <div className="flex items-center gap-2">
       {canChangeRole ? (
-        <select
+        <Picker
           aria-label={t("team.role")}
           className={select}
           defaultValue={role}
@@ -94,7 +95,7 @@ export function MemberControls({
               {t(`team.role_${r}` as MessageKey)}
             </option>
           ))}
-        </select>
+        </Picker>
       ) : (
         <span className="badge">{t(`team.role_${role}` as MessageKey)}</span>
       )}
@@ -194,17 +195,13 @@ export function BusinessForm() {
       />
       <label className="grid gap-2 text-sm font-semibold">
         {t("presets.label")}
-        <select
-          name="preset"
-          defaultValue="event-services"
-          className="border-line-strong bg-surface h-10 rounded-lg border px-3 text-sm font-normal"
-        >
+        <Picker name="preset" defaultValue="event-services">
           {PRESET_KEYS.map((key) => (
             <option key={key} value={key}>
               {t(PRESETS[key].labelKey)}
             </option>
           ))}
-        </select>
+        </Picker>
       </label>
       <label className="grid gap-2 text-sm font-semibold">
         Kolor biznesu

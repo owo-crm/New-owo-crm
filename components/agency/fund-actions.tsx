@@ -1,4 +1,5 @@
 "use client";
+import { Picker } from "@/components/ui/picker";
 
 import { useState, useTransition } from "react";
 import { Check, Trash2 } from "lucide-react";
@@ -100,7 +101,7 @@ export function FundExpenseForm() {
         aria-label={t("agency.fund.date")}
         className={input}
       />
-      <select
+      <Picker
         value={category}
         onChange={(e) => setCategory(e.target.value as typeof category)}
         aria-label={t("agency.fund.category")}
@@ -111,7 +112,7 @@ export function FundExpenseForm() {
             {t(`agency.fund.categories.${c}` as MessageKey)}
           </option>
         ))}
-      </select>
+      </Picker>
       <input
         value={label}
         onChange={(e) => setLabel(e.target.value)}

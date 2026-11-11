@@ -1,4 +1,5 @@
 "use client";
+import { Picker } from "@/components/ui/picker";
 
 import { useActionState } from "react";
 import { Card } from "@/components/app-shell/page";
@@ -59,17 +60,13 @@ export function ClientForm({ initial }: { initial: ClientFormValues }) {
           ))}
           <label className="grid gap-1.5 text-sm font-semibold">
             {t("agency.client.status")}
-            <select
-              name="status"
-              defaultValue={initial.status}
-              className="border-line-strong bg-surface h-10 rounded-lg border px-3 text-sm"
-            >
+            <Picker name="status" defaultValue={initial.status}>
               {CLIENT_STATUSES.map((s) => (
                 <option key={s} value={s}>
                   {t(`agency.status.${s}` as MessageKey)}
                 </option>
               ))}
-            </select>
+            </Picker>
           </label>
         </div>
         <label className="grid gap-1.5 text-sm font-semibold">

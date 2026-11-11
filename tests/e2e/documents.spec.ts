@@ -48,7 +48,7 @@ test("oferta → menu → umowa: PDF + Word, dane wracają do karty, etap rośni
     .evaluateAll((a) => a.map((x) => x.getAttribute("href")!));
   expect(files).toHaveLength(6);
   for (const href of files) expect((await page.request.get(href)).status()).toBe(200);
-  await expect(page.locator("main select").first()).toHaveValue("contract_sent");
+  await expect(page.getByLabel("Etap", { exact: true })).toContainText("Umowa wysłana");
   await expect(page.getByText("Hotel Łazienki")).toBeVisible();
   await page.screenshot({
     path: `tests/screenshots/${info.project.name}-dokumenty.png`,

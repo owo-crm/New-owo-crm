@@ -1,4 +1,5 @@
 "use client";
+import { Picker } from "@/components/ui/picker";
 
 import Link from "next/link";
 import { useState, useTransition } from "react";
@@ -55,7 +56,7 @@ function MemberSelect({
   label: string;
 }) {
   return (
-    <select
+    <Picker
       value={value}
       onChange={(e) => onChange(e.target.value)}
       aria-label={label}
@@ -66,7 +67,7 @@ function MemberSelect({
           {m.name}
         </option>
       ))}
-    </select>
+    </Picker>
   );
 }
 
@@ -103,7 +104,7 @@ export function ServiceRow({ service, members }: { service: Service; members: Me
         onChange={setOwner}
         label={t("agency.services.owner")}
       />
-      <select
+      <Picker
         value={kind}
         onChange={(e) => setKind(e.target.value as typeof kind)}
         aria-label={t("agency.services.kind")}
@@ -111,7 +112,7 @@ export function ServiceRow({ service, members }: { service: Service; members: Me
       >
         <option value="retainer">{t("agency.kind.retainer")}</option>
         <option value="project">{t("agency.kind.project")}</option>
-      </select>
+      </Picker>
       <input
         value={price}
         onChange={(e) => setPrice(e.target.value)}
@@ -201,7 +202,7 @@ export function NewServiceForm({
         onChange={setOwner}
         label={t("agency.services.owner")}
       />
-      <select
+      <Picker
         value={kind}
         onChange={(e) => setKind(e.target.value as typeof kind)}
         aria-label={t("agency.services.kind")}
@@ -209,7 +210,7 @@ export function NewServiceForm({
       >
         <option value="retainer">{t("agency.kind.retainer")}</option>
         <option value="project">{t("agency.kind.project")}</option>
-      </select>
+      </Picker>
       <Button type="submit" variant="secondary" disabled={pending || !name.trim()}>
         <Plus />
         {t("agency.services.add")}
@@ -379,7 +380,7 @@ export function ClientServicesPanel({
       )}
       {free.length > 0 ? (
         <div className="flex flex-wrap items-center gap-2">
-          <select
+          <Picker
             value={pick}
             onChange={(e) => {
               setPick(e.target.value);
@@ -394,7 +395,7 @@ export function ClientServicesPanel({
                 {s.name}
               </option>
             ))}
-          </select>
+          </Picker>
           <input
             value={price}
             onChange={(e) => setPrice(e.target.value)}

@@ -1,4 +1,5 @@
 "use client";
+import { Picker } from "@/components/ui/picker";
 
 import { useState, useTransition } from "react";
 import { Copy, Link2 } from "lucide-react";
@@ -59,7 +60,7 @@ export function CreateCrmWizard({ clientId }: { clientId: string }) {
       <p className="text-sm font-semibold">{t("billing.wizard.title")}</p>
       <label className="grid gap-1.5 text-sm font-semibold">
         {t("billing.wizard.preset")}
-        <select
+        <Picker
           value={preset}
           onChange={(e) => setPreset(e.target.value)}
           className="border-line-strong bg-surface h-10 rounded-lg border px-3 text-sm font-normal"
@@ -69,7 +70,7 @@ export function CreateCrmWizard({ clientId }: { clientId: string }) {
               {t(PRESETS[k].labelKey)}
             </option>
           ))}
-        </select>
+        </Picker>
       </label>
       <ModuleChecks value={modules} onChange={setModules} disabled={pending} />
       <PriceTable price={price} />

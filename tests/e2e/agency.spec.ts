@@ -69,7 +69,8 @@ test("клиент → заказ с расчётом до сохранения 
   // База 1000 zł: 10 % sprzedaż + 65 % praca = 750 zł — видно до сохранения.
   await expect(preview).toContainText(/Ty dostaniesz: 750,00\s*zł/);
   await expect(preview).not.toContainText("Nierozdzielone");
-  await page.getByLabel("Status").selectOption("paid");
+  await page.getByLabel("Status").click();
+  await page.getByRole("option", { name: "Opłacono" }).click();
   await page.screenshot({
     path: `tests/screenshots/${info.project.name}-agencja-zlecenie.png`,
     fullPage: true,
@@ -181,7 +182,8 @@ test("услуги: каталог с ответственными → услу�
   await page.getByLabel("Nazwa firmy").fill(client);
   await page.getByRole("button", { name: "Zapisz klienta" }).click();
   const panel = page.getByTestId("client-services");
-  await panel.getByLabel("Wybierz usługę").selectOption({ label: "Strony internetowe" });
+  await panel.getByLabel("Wybierz usługę").click();
+  await panel.getByRole("option", { name: "Strony internetowe" }).click();
   await panel.getByPlaceholder("Cena (zł)").fill("3500");
   await panel.getByRole("button", { name: "Przypisz usługę" }).click();
   await expect(panel).toContainText("Strony internetowe");

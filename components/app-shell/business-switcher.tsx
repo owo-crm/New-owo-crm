@@ -2,6 +2,7 @@
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronsUpDown } from "lucide-react";
+import { Picker } from "@/components/ui/picker";
 import { switchOrganization } from "@/lib/auth/actions";
 import { t } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
@@ -40,37 +41,37 @@ export function BusinessSwitcher({
     );
 
   return (
-    <label
-      className={cn(
-        "hover:bg-surface-2 relative flex h-10 items-center gap-2.5 rounded-lg px-2.5 transition-colors lg:h-9",
-        className,
-      )}
+    <Picker
+      className={className}
+      aria-label={t("business.switch")}
+      value={current.id}
+      disabled={pending}
+      menuClassName="min-w-[15rem]"
+      onChange={(e) => {
+        const value = e.target.value;
+        if (value === "__new") router.push("/biznes/nowy");
+        else start(() => switchOrganization(value));
+      }}
+      trigger={
+        <span className="hover:bg-surface-2 flex h-10 items-center gap-2.5 rounded-lg px-2.5 transition-colors lg:h-9">
+          <span
+            className="size-2.5 shrink-0 rounded-[3px]"
+            style={{ background: current.brandColor }}
+            aria-hidden
+          />
+          <span className="min-w-0 flex-1 truncate text-[13.5px] font-semibold">
+            {current.name}
+          </span>
+          <ChevronsUpDown className="text-ink-faint size-4 shrink-0" />
+        </span>
+      }
     >
-      <span
-        className="size-2.5 shrink-0 rounded-[3px]"
-        style={{ background: current.brandColor }}
-        aria-hidden
-      />
-      <span className="min-w-0 flex-1 truncate text-[13.5px] font-semibold">{current.name}</span>
-      <ChevronsUpDown className="text-ink-faint size-4 shrink-0" />
-      <span className="sr-only">{t("business.switch")}</span>
-      <select
-        className="absolute inset-0 cursor-pointer opacity-0"
-        value={current.id}
-        disabled={pending}
-        onChange={(e) => {
-          const value = e.target.value;
-          if (value === "__new") router.push("/biznes/nowy");
-          else start(() => switchOrganization(value));
-        }}
-      >
-        {organizations.map((o) => (
-          <option key={o.id} value={o.id}>
-            {o.name}
-          </option>
-        ))}
-        {canCreate ? <option value="__new">＋ {t("business.new")}</option> : null}
-      </select>
-    </label>
+      {organizations.map((o) => (
+        <option key={o.id} value={o.id}>
+          {o.name}
+        </option>
+      ))}
+      {canCreate ? <option value="__new">＋ {t("business.new")}</option> : null}
+    </Picker>
   );
 }

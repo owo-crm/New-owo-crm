@@ -1,4 +1,5 @@
 "use client";
+import { Picker } from "@/components/ui/picker";
 import Link from "next/link";
 import { useActionState } from "react";
 import { Card } from "@/components/app-shell/page";
@@ -118,15 +119,14 @@ export function ContractForm({
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="grid gap-2 text-sm font-semibold">
             {t("leads.fields.package_name")}
-            <select
+            <Picker
               name="pkg"
               defaultValue={["simple", "standard", "premium"].includes(pkg) ? pkg : "standard"}
-              className="border-line-strong bg-surface-2 h-11 rounded-lg border px-3"
             >
               <option value="simple">Simple</option>
               <option value="standard">Standard</option>
               <option value="premium">Premium</option>
-            </select>
+            </Picker>
           </label>
           <Field
             name="price"

@@ -1,4 +1,5 @@
 "use client";
+import { Picker } from "@/components/ui/picker";
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
@@ -53,9 +54,6 @@ type WorkRow = { key: number; userId: string; hours: string };
 type SellerRow = { key: number; userId: string; percent: string };
 type CostRow = { key: number; label: string; amount: string; paidTo: string };
 
-const selectClass =
-  "h-10 w-full rounded-lg border border-line-strong bg-surface px-3 text-sm text-ink hover:border-ink-soft focus:border-ink focus:outline-none aria-invalid:border-urgent";
-
 function Select({
   label,
   hint,
@@ -63,13 +61,13 @@ function Select({
   children,
   className,
   ...props
-}: React.ComponentProps<"select"> & { label: string; hint?: string; error?: string }) {
+}: React.ComponentProps<typeof Picker> & { label: string; hint?: string; error?: string }) {
   return (
     <label className={cn("text-ink-soft grid gap-1.5 text-[13px] font-medium", className)}>
       {label}
-      <select className={selectClass} aria-invalid={error ? true : undefined} {...props}>
+      <Picker aria-invalid={error ? true : undefined} {...props}>
         {children}
-      </select>
+      </Picker>
       {error ? (
         <span className="text-urgent font-normal">{error}</span>
       ) : hint ? (
