@@ -124,7 +124,8 @@ export function OrderForm({
       percent: String(x.shareBp / 100).replace(".", ","),
     })),
   );
-  const [workBasis, setWorkBasis] = useState(initial.workBasis);
+  // Часы не считаем (решение 026): 65 % — по согласованным процентам.
+  const workBasis = "points" as const;
   const [adBudget, setAdBudget] = useState(moneyFieldValue(initial.adBudgetGrosze));
   const [periodMonth, setPeriodMonth] = useState(initial.periodMonth);
   const [status, setStatus] = useState<OrderStatus>(initial.status);
@@ -175,7 +176,7 @@ export function OrderForm({
       : undefined,
   };
   const hourErrors = hours.map((h) =>
-    Number.isNaN(h) || h <= 0 || h > 500 ? t("agency.form.errHours") : undefined,
+    Number.isNaN(h) || h <= 0 || h > 100 ? t("agency.form.errShare") : undefined,
   );
   const valid = Object.values(errors).every((e) => !e) && hourErrors.every((e) => !e);
   const show = (key: string) => (submitted ? errors[key] : undefined);
@@ -489,29 +490,6 @@ export function OrderForm({
         <Card title={t("agency.form.work")}>
           <div className="-mt-1 mb-4 flex flex-wrap items-center justify-between gap-3">
             <p className="text-ink-soft text-[13px]">{t("agency.form.workHint")}</p>
-            <div
-              role="radiogroup"
-              aria-label={t("agency.form.workBasis")}
-              className="bg-surface-2 flex rounded-lg p-0.5"
-            >
-              {(["hours", "points"] as const).map((b) => (
-                <button
-                  key={b}
-                  type="button"
-                  role="radio"
-                  aria-checked={workBasis === b}
-                  onClick={() => setWorkBasis(b)}
-                  className={cn(
-                    "h-8 rounded-md px-3 text-[13px] font-medium lg:h-7",
-                    workBasis === b
-                      ? "bg-surface text-ink shadow-[var(--shadow)]"
-                      : "text-ink-soft",
-                  )}
-                >
-                  {t(b === "hours" ? "agency.form.basisHours" : "agency.form.basisPoints")}
-                </button>
-              ))}
-            </div>
           </div>
           <ul className="grid gap-3" aria-label={t("agency.form.work")}>
             {work.map((row, i) => (
@@ -536,7 +514,7 @@ export function OrderForm({
                   ))}
                 </Select>
                 <Field
-                  label={t(workBasis === "hours" ? "agency.form.hours" : "agency.form.points")}
+                  label={t("agency.form.sellerShare")}
                   value={row.hours}
                   inputMode="decimal"
                   onChange={(e) =>
@@ -561,6 +539,10 @@ export function OrderForm({
               </li>
             ))}
           </ul>
+          {work.length > 0 &&
+          Math.abs(hours.reduce((sum, h) => sum + (h > 0 ? h : 0), 0) - 100) > 0.001 ? (
+            <p className="text-hold mt-2 text-[13px]">{t("agency.form.workNot100")}</p>
+          ) : null}
           {show("work") ? <p className="text-urgent mt-2 text-sm">{errors.work}</p> : null}
           {freeMembers("").length > 0 ? (
             <Button
@@ -572,7 +554,17 @@ export function OrderForm({
                 // Первым предлагаем себя: чаще всего часы вписывает тот, кто работал.
                 const free = freeMembers("");
                 const pick = free.find((m) => m.userId === currentUserId) ?? free[0];
-                setWork([...work, { key: nextKey, userId: pick.userId, hours: "" }]);
+                // Новому исполнителю — оставшийся до 100 % процент.
+                const used = hours.reduce((sum, h) => sum + (h > 0 ? h : 0), 0);
+                const rest = Math.max(0, Math.round((100 - used) * 100) / 100);
+                setWork([
+                  ...work,
+                  {
+                    key: nextKey,
+                    userId: pick.userId,
+                    hours: rest ? String(rest).replace(".", ",") : "",
+                  },
+                ]);
                 setNextKey(nextKey + 1);
               }}
             >

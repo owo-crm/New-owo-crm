@@ -64,7 +64,8 @@ test("клиент → заказ с расчётом до сохранения 
   // Без часов работа видна как нераспределённая.
   await expect(preview).toContainText("Nierozdzielone");
   await page.getByRole("button", { name: "Dodaj wykonawcę" }).click();
-  await page.getByLabel("Godziny").fill("2,5");
+  // Часы не считаем: исполнителю сразу подставляется 100 % вклада.
+  await expect(page.getByLabel("Udział %").nth(1)).toHaveValue("100");
   // База 1000 zł: 10 % sprzedaż + 65 % praca = 750 zł — видно до сохранения.
   await expect(preview).toContainText(/Ty dostaniesz: 750,00\s*zł/);
   await expect(preview).not.toContainText("Nierozdzielone");

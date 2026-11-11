@@ -603,8 +603,8 @@
       "status": "Status",
       "due": "Termin płatności",
       "note": "Notatka",
-      "work": "Kto ile pracował",
-      "workHint": "65 % dzielone proporcjonalnie do godzin albo uzgodnionych punktów wkładu.",
+      "work": "Kto wykonał pracę (65 %)",
+      "workHint": "Wpisz uzgodniony udział każdego wykonawcy. Godzin nie liczymy.",
       "worker": "Wykonawca",
       "hours": "Godziny",
       "addWorker": "Dodaj wykonawcę",
@@ -641,7 +641,9 @@
       "workBasis": "Podstawa podziału 65 %",
       "basisHours": "Godziny",
       "basisPoints": "Uzgodnione punkty",
-      "points": "Punkty"
+      "points": "Punkty",
+      "workNot100": "Udziały wykonawców nie sumują się do 100 % — 65 % dzieli się proporcjonalnie do wpisanych wartości.",
+      "errShare": "Udział: od 0,01 do 100 %"
     },
     "client": {
       "titleNew": "Nowy klient",
