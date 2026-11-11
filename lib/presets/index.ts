@@ -34,6 +34,20 @@ export const PRESETS = {
       { key: "spam", labelPl: "Spam", kind: "lost" },
     ],
   },
+  // Кабинет самого агентства OWO Ads: лиды с лендинга + экраны /agencja (решение 021).
+  agency: {
+    key: "agency",
+    labelKey: "presets.agency",
+    stages: [
+      { key: "new", labelPl: "Nowy", kind: "open" },
+      { key: "contacted", labelPl: "Kontakt", kind: "open" },
+      { key: "meeting", labelPl: "Spotkanie", kind: "open" },
+      { key: "offer_sent", labelPl: "Oferta", kind: "open" },
+      { key: "client", labelPl: "Klient", kind: "won" },
+      { key: "rejected", labelPl: "Odrzucony", kind: "lost" },
+      { key: "spam", labelPl: "Spam", kind: "lost" },
+    ],
+  },
 } as const satisfies Record<string, IndustryPreset>;
 
 export type PresetKey = keyof typeof PRESETS;
@@ -42,4 +56,9 @@ export const PRESET_KEYS = Object.keys(PRESETS) as [PresetKey, ...PresetKey[]];
 
 export function isPresetKey(value: string): value is PresetKey {
   return value in PRESETS;
+}
+
+/** Экраны /agencja видны только в организации с этим пресетом. */
+export function isAgency(preset: string) {
+  return preset === "agency";
 }

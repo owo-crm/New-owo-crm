@@ -83,6 +83,26 @@ create policy "members update" on leads for update using (is_member(organization
 | `audit_log` | organization_id, user_id, action, entity, entity_id, created_at |
 | `subscriptions` | organization_id, stripe_customer_id, stripe_subscription_id, plan, status, current_period_end |
 
+### Agencja (пресет `agency`, миграция `20261111000020_agency.sql`)
+Кабинет самого OWO Ads. С `lead_payments` не смешивается: там деньги клиентов Barowo, здесь — деньги агентства.
+
+| Таблица | Ключевые поля |
+|---|---|
+| `agency_clients` | organization_id (= OWO Ads), name, nip, contact_name, phone, email, city, **client_org_id** (организация клиента в этой установке — мост в его CRM), lead_id (лид, из которого завели), status `lead/active/paused/lost`, started_at, note |
+| `agency_orders` | client_id, title, kind `retainer/project`, amount_grosze (netto), direct_costs_grosze, ad_budget_grosze (только отчёт), sold_by, **period_month** (месяц учёта, есть у всех заказов), status `draft/invoiced/paid/cancelled`, due_date, paid_at (есть ⇔ status = paid), repeated_from |
+| `agency_order_work` | order_id, user_id, hours (0 < h ≤ 500), note; одна строка на исполнителя |
+| `agency_setup_steps` | справочник шагов (key, position, auto) — общий, без organization_id; названия в `messages/pl.json` |
+| `agency_setup_marks` | ручные отметки: client_id, step_key (только auto = false), done_at, done_by, note |
+| `organizations.agency_share_*_bp` | доли раздела в базисных пунктах (1000/2500/6500), сумма = 10 000 |
+
+Функции:
+- `agency_order_split(org, order)` — **единственное место формулы раздела** (TS-копия для формы: `lib/agency/split.ts`, тест сверяет обе). База = сумма − прямые расходы; продажа → sold_by, работа → по часам, компания → остаток (включая остатки округления). Нет часов/продавца → строка с `user_id = null` («nierozdzielone»).
+- `agency_setup_status(org, client?)` — чек-лист: шаги `org_created, service_member, intake_channel, form_connected, owner_invited, owner_joined` отмечаются по фактам в организации клиента (security definer, наружу — только дата), остальные — ручными отметками.
+- `agency_summary(org, month)` — плитки, раздел по заказам, оплаченным в месяце (раздел + прямые расходы = Получено), просрочки, клиенты.
+- `agency_repeat_retainers(org, month)` — копирует абонементы прошлого месяца черновиками (с часами), без дублей.
+- `agency_client_from_lead(org, lead)` — клиент агентства из лида на этапе «Klient».
+- Продавец и исполнители — только участники агентства (триггер). Привязать `client_org_id` можно только к фирме, где ты сам участник.
+
 ## Правила
 
 - Телефон храним в E.164 (`+48...`), e-mail в нижнем регистре — для дедупликации.

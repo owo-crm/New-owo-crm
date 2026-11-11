@@ -284,7 +284,8 @@
     "finance": "Finanse"
   },
   "presets": {
-    "event-services": "Usługi na wydarzenia (wesela, urodziny, eventy firmowe)"
+    "event-services": "Usługi na wydarzenia (wesela, urodziny, eventy firmowe)",
+    "agency": "Agencja marketingowa (OWO Ads)"
   },
   "notifications": {
     "newLead": "🔔 Nowy lead",

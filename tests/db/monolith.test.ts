@@ -1,3 +1,4 @@
+import { readdirSync } from "node:fs";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { PGlite } from "@electric-sql/pglite";
 import { createTestDb } from "./harness";
@@ -144,7 +145,9 @@ describe("konta i sesje", () => {
         ),
     };
     const dir = path.resolve(__dirname, "../../db/migrations");
-    expect((await migrate(clean, dir)).length).toBe(20);
+    // Число миграций берём из папки: новая миграция не должна ломать этот тест.
+    const total = readdirSync(dir).filter((f) => f.endsWith(".sql")).length;
+    expect((await migrate(clean, dir)).length).toBe(total);
     expect(await migrate(clean, dir)).toEqual([]);
     await fresh.close();
   });
