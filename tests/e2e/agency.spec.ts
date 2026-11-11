@@ -55,7 +55,10 @@ test("клиент → заказ с расчётом до сохранения 
   await expect(page).toHaveURL(/zlecenia\/nowe\?klient=/);
   await page.getByLabel("Nazwa zlecenia").fill("Landing page");
   await page.getByLabel("Kwota netto (zł)").fill("1100");
-  await page.getByLabel("Koszty bezpośrednie (zł)").fill("100");
+  // Прямые расходы строкой: логистика оплачивается партнёру и идёт ему, а не в 65 %.
+  await page.getByRole("button", { name: "Dodaj koszt" }).click();
+  await page.getByLabel("Za co").fill("Transport sprzętu");
+  await page.getByLabel("Kwota (zł)").fill("100");
   await page.getByLabel("Budżet reklamowy klienta (zł)").fill("5000");
   const preview = page.getByTestId("split-preview");
   // Без часов работа видна как нераспределённая.
@@ -84,7 +87,8 @@ test("клиент → заказ с расчётом до сохранения 
   await page.goto("/agencja");
   const split = page.getByTestId("agency-split");
   await expect(split).toContainText("E2E Tester");
-  await expect(split).toContainText("Koszty bezpośrednie");
+  await expect(split).toContainText("Koszty zewnętrzne");
+  await expect(page.getByText("Fundusz wspólny OWO Ads")).toBeVisible();
   await expect(page.getByText(/nie zgadza się/)).toHaveCount(0);
   await expect(page.getByTestId("agency-clients")).toContainText(client);
 

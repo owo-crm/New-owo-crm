@@ -84,6 +84,10 @@ const summarySchema = z.object({
       amount_grosze: n,
     })
     .array(),
+  costs_to_people: z.object({ user_id: z.string(), amount_grosze: n }).array(),
+  payouts: z.object({ user_id: z.string(), amount_grosze: n }).array(),
+  fund: z.object({ month_in: n, month_out: n, balance: n }),
+  by_source: z.object({ source: z.string(), amount_grosze: n, orders: n }).array(),
   overdue: z
     .object({
       id: z.string(),
@@ -169,8 +173,37 @@ export const getAgencySummary = cache(async (month: string) =>
       ),
     };
 
+    // «Кому сколько» за месяц: продажа + работа + оплаченные ему расходы (логистика) и уже выплаченное.
+    const owed = new Map<string, { sale: number; work: number; costs: number; paid: number }>();
+    const entry = (id: string) => {
+      if (!owed.has(id)) owed.set(id, { sale: 0, work: 0, costs: 0, paid: 0 });
+      return owed.get(id)!;
+    };
+    for (const p of totals.people)
+      Object.assign(entry(p.userId), { sale: p.saleGrosze, work: p.workGrosze });
+    for (const c of data.costs_to_people) entry(c.user_id).costs += c.amount_grosze;
+    for (const x of data.payouts) entry(x.user_id).paid += x.amount_grosze;
+    const owedPeople = [...owed.entries()]
+      .map(([userId, v]) => ({ userId, ...v, total: v.sale + v.work + v.costs }))
+      .sort((a, b) => b.total - a.total);
+    const { rows: expenses } = await tx.query<{
+      id: string;
+      spent_on: string;
+      category: string;
+      label: string;
+      amount_grosze: number;
+    }>(
+      `select id, spent_on::text as spent_on, category, label, amount_grosze from public.agency_fund_expenses
+       where organization_id=$1 and spent_on >= $2::date and spent_on < ($2::date + interval '1 month')
+       order by spent_on desc, created_at desc`,
+      [organization.id, month],
+    );
+
     return {
       ...data,
+      people: owedPeople,
+      expenses: expenses.map((e) => ({ ...e, amount_grosze: Number(e.amount_grosze) })),
+      members: await members(tx, organization.id),
       totals,
       clients,
       attention,
@@ -295,19 +328,42 @@ export const getOrder = cache(async (id: string) =>
   withAgency(async (tx, { organization }) => {
     const [order] = await ordersWithSplit(tx, organization.id, "id=$2", [id]);
     if (!order) return null;
-    const row = await one<{ client_id: string; note: string | null }>(
+    const row = await one<{
+      client_id: string;
+      note: string | null;
+      work_basis: "hours" | "points";
+    }>(
       tx,
-      "select client_id, note from public.agency_orders where organization_id=$1 and id=$2",
+      "select client_id, note, work_basis from public.agency_orders where organization_id=$1 and id=$2",
       [organization.id, id],
     );
     const { rows: work } = await tx.query<{ user_id: string; hours: string; note: string | null }>(
       "select user_id, hours::text as hours, note from public.agency_order_work where organization_id=$1 and order_id=$2 order by created_at, id",
       [organization.id, id],
     );
+    const { rows: sellers } = await tx.query<{ user_id: string; share_bp: number }>(
+      "select user_id, share_bp from public.agency_order_sellers where organization_id=$1 and order_id=$2 order by share_bp desc",
+      [organization.id, id],
+    );
+    const { rows: costs } = await tx.query<{
+      label: string;
+      amount_grosze: number;
+      paid_to: string | null;
+    }>(
+      "select label, amount_grosze, paid_to from public.agency_order_costs where organization_id=$1 and order_id=$2 order by created_at, id",
+      [organization.id, id],
+    );
     return {
       ...order,
       client_id: row!.client_id,
       note: row!.note,
+      workBasis: row!.work_basis,
+      sellers: sellers.map((x) => ({ userId: x.user_id, shareBp: x.share_bp })),
+      costs: costs.map((c) => ({
+        label: c.label,
+        amountGrosze: Number(c.amount_grosze),
+        paidTo: c.paid_to,
+      })),
       work: work.map((w) => ({ userId: w.user_id, hours: Number(w.hours), note: w.note ?? "" })),
     };
   }),
@@ -328,7 +384,8 @@ export async function saveOrder(input: OrderInput) {
       input.amountGrosze,
       input.directCostsGrosze,
       input.adBudgetGrosze,
-      input.soldBy,
+      // sold_by — главный продавец (для совместимости); доли — в agency_order_sellers.
+      input.sellers.slice().sort((a, b) => b.shareBp - a.shareBp)[0]?.userId ?? null,
       `${input.periodMonth}-01`,
       input.status,
       input.dueDate,
@@ -340,10 +397,10 @@ export async function saveOrder(input: OrderInput) {
         tx,
         `update public.agency_orders set client_id=$2, title=$3, kind=$4, amount_grosze=$5,
            direct_costs_grosze=$6, ad_budget_grosze=$7, sold_by=$8, period_month=$9::date, status=$10,
-           due_date=$11::date, note=$12,
+           due_date=$11::date, note=$12, work_basis=$14,
            paid_at = case when $10 = 'paid' then coalesce(paid_at, now()) end
          where organization_id=$1 and id=$13 returning id`,
-        [...values, id],
+        [...values, id, input.workBasis],
       );
       if (!row) return null;
       await tx.query(
@@ -354,13 +411,37 @@ export async function saveOrder(input: OrderInput) {
       const row = await one<{ id: string }>(
         tx,
         `insert into public.agency_orders (organization_id, client_id, title, kind, amount_grosze,
-           direct_costs_grosze, ad_budget_grosze, sold_by, period_month, status, due_date, note, paid_at, created_by)
-         values ($1,$2,$3,$4,$5,$6,$7,$8,$9::date,$10,$11::date,$12, case when $13 then now() end, $14)
+           direct_costs_grosze, ad_budget_grosze, sold_by, period_month, status, due_date, note, paid_at, created_by, work_basis)
+         values ($1,$2,$3,$4,$5,$6,$7,$8,$9::date,$10,$11::date,$12, case when $13 then now() end, $14, $15)
          returning id`,
-        [...values, paid, user.id],
+        [...values, paid, user.id, input.workBasis],
       );
       id = row!.id;
     }
+    // Продавцы и расходы — заново из формы (сумма строк расходов пересчитывается в базе).
+    await tx.query(
+      "delete from public.agency_order_sellers where organization_id=$1 and order_id=$2",
+      [org, id],
+    );
+    for (const x of input.sellers)
+      await tx.query(
+        "insert into public.agency_order_sellers (organization_id, order_id, user_id, share_bp) values ($1,$2,$3,$4)",
+        [org, id, x.userId, x.shareBp],
+      );
+    await tx.query(
+      "delete from public.agency_order_costs where organization_id=$1 and order_id=$2",
+      [org, id],
+    );
+    for (const c of input.costs)
+      await tx.query(
+        "insert into public.agency_order_costs (organization_id, order_id, label, amount_grosze, paid_to) values ($1,$2,$3,$4,$5)",
+        [org, id, c.label, c.amountGrosze, c.paidTo],
+      );
+    if (input.costs.length === 0)
+      await tx.query(
+        "update public.agency_orders set direct_costs_grosze=$3 where organization_id=$1 and id=$2",
+        [org, id, input.directCostsGrosze],
+      );
     for (const w of input.work) {
       await tx.query(
         "insert into public.agency_order_work (organization_id, order_id, user_id, hours, note) values ($1,$2,$3,$4,$5)",
@@ -481,4 +562,42 @@ export async function clientIdForLead(leadId: string) {
     );
     return row?.id ?? null;
   });
+}
+
+export const FUND_CATEGORIES = ["ads", "equipment", "software", "transport", "other"] as const;
+
+/** Расход общего фонда OWO Ads (реклама агентства, оборудование, подписки, транспорт…). */
+export async function addFundExpense(input: {
+  spentOn: string;
+  category: (typeof FUND_CATEGORIES)[number];
+  label: string;
+  amountGrosze: number;
+}) {
+  return withAgency((tx, { organization, user }) =>
+    tx.query(
+      `insert into public.agency_fund_expenses (organization_id, spent_on, category, label, amount_grosze, created_by)
+       values ($1,$2::date,$3,$4,$5,$6)`,
+      [organization.id, input.spentOn, input.category, input.label, input.amountGrosze, user.id],
+    ),
+  );
+}
+
+export async function deleteFundExpense(id: string) {
+  return withAgency((tx, { organization }) =>
+    tx.query("delete from public.agency_fund_expenses where organization_id=$1 and id=$2", [
+      organization.id,
+      id,
+    ]),
+  );
+}
+
+/** Отметить выплату партнёру за месяц (сумма — сколько фактически перевели). */
+export async function addPayout(input: { userId: string; month: string; amountGrosze: number }) {
+  return withAgency((tx, { organization, user }) =>
+    tx.query(
+      `insert into public.agency_payouts (organization_id, user_id, period_month, amount_grosze, created_by)
+       values ($1,$2,$3::date,$4,$5)`,
+      [organization.id, input.userId, `${input.month}-01`, input.amountGrosze, user.id],
+    ),
+  );
 }

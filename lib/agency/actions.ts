@@ -7,6 +7,10 @@ import { ORG_COOKIE, getOrganizations, requireUser } from "@/lib/auth/session";
 import { sqlState } from "@/lib/db";
 import { t } from "@/lib/i18n";
 import {
+  FUND_CATEGORIES,
+  addFundExpense,
+  addPayout,
+  deleteFundExpense,
   clientFromLead,
   linkClientOrg,
   repeatRetainers,
@@ -165,4 +169,52 @@ export async function clientFromLeadAction(leadId: string): Promise<ActionResult
   refresh(id);
   revalidatePath(`/leady/${leadId}`);
   redirect(`/agencja/klienci/${id}`);
+}
+
+export async function addFundExpenseAction(raw: unknown): Promise<ActionResult> {
+  const parsed = z
+    .object({
+      spentOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+      category: z.enum(FUND_CATEGORIES),
+      label: z.string().trim().min(1).max(200),
+      amountGrosze: z.number().int().min(1).max(10_000_000_000),
+    })
+    .safeParse(raw);
+  if (!parsed.success) return { error: t("agency.errors.invalid") };
+  try {
+    await addFundExpense(parsed.data);
+    refresh();
+    return { ok: true };
+  } catch (error) {
+    return fail(error, "fund expense");
+  }
+}
+
+export async function deleteFundExpenseAction(id: string): Promise<ActionResult> {
+  if (!z.uuid().safeParse(id).success) return { error: t("agency.errors.invalid") };
+  try {
+    await deleteFundExpense(id);
+    refresh();
+    return { ok: true };
+  } catch (error) {
+    return fail(error, "fund expense delete");
+  }
+}
+
+export async function addPayoutAction(raw: unknown): Promise<ActionResult> {
+  const parsed = z
+    .object({
+      userId: z.uuid(),
+      month: z.string().regex(/^\d{4}-\d{2}$/),
+      amountGrosze: z.number().int().min(1).max(10_000_000_000),
+    })
+    .safeParse(raw);
+  if (!parsed.success) return { error: t("agency.errors.invalid") };
+  try {
+    await addPayout(parsed.data);
+    refresh();
+    return { ok: true };
+  } catch (error) {
+    return fail(error, "payout");
+  }
 }

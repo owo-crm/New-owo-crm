@@ -15,7 +15,9 @@ const order = {
   amountGrosze: 150000,
   directCostsGrosze: 0,
   adBudgetGrosze: 0,
-  soldBy: U,
+  sellers: [{ userId: U, shareBp: 10000 }],
+  workBasis: "hours",
+  costs: [],
   periodMonth: "2026-11",
   status: "draft",
   dueDate: null,
@@ -36,6 +38,24 @@ describe("формы агентства", () => {
   it("заказ: расходы не больше суммы, исполнитель один раз, часы с точностью 0,01", () => {
     expect(orderInputSchema.safeParse(order).success).toBe(true);
     expect(orderInputSchema.safeParse({ ...order, directCostsGrosze: 150001 }).success).toBe(false);
+    // Продавцы: доли не больше 100 % в сумме, один человек — один раз.
+    expect(
+      orderInputSchema.safeParse({
+        ...order,
+        sellers: [
+          { userId: U, shareBp: 6000 },
+          { userId: U, shareBp: 6000 },
+        ],
+      }).success,
+    ).toBe(false);
+    // Строки расходов обязаны давать сумму прямых расходов.
+    expect(
+      orderInputSchema.safeParse({
+        ...order,
+        directCostsGrosze: 5000,
+        costs: [{ label: "Druk", amountGrosze: 4000, paidTo: null }],
+      }).success,
+    ).toBe(false);
     expect(
       orderInputSchema.safeParse({ ...order, work: [order.work[0], order.work[0]] }).success,
     ).toBe(false);

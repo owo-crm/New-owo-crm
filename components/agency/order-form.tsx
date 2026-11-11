@@ -38,7 +38,9 @@ export type OrderFormInitial = {
   amountGrosze: number;
   directCostsGrosze: number;
   adBudgetGrosze: number;
-  soldBy: string | null;
+  sellers: { userId: string; shareBp: number }[];
+  workBasis: "hours" | "points";
+  costs: { label: string; amountGrosze: number; paidTo: string | null }[];
   periodMonth: string;
   status: OrderStatus;
   dueDate: string | null;
@@ -47,6 +49,8 @@ export type OrderFormInitial = {
 };
 
 type WorkRow = { key: number; userId: string; hours: string };
+type SellerRow = { key: number; userId: string; percent: string };
+type CostRow = { key: number; label: string; amount: string; paidTo: string };
 
 const selectClass =
   "h-10 w-full rounded-lg border border-line-strong bg-surface px-3 text-sm text-ink hover:border-ink-soft focus:border-ink focus:outline-none aria-invalid:border-urgent";
@@ -99,9 +103,29 @@ export function OrderForm({
   const [title, setTitle] = useState(initial.title);
   const [kind, setKind] = useState<OrderKind>(initial.kind);
   const [amount, setAmount] = useState(moneyFieldValue(initial.amountGrosze));
-  const [costs, setCosts] = useState(moneyFieldValue(initial.directCostsGrosze));
+  // Прямые расходы строками; старый заказ с одной суммой → одна строка.
+  const [costRows, setCostRows] = useState<CostRow[]>(() =>
+    (initial.costs.length
+      ? initial.costs
+      : initial.directCostsGrosze
+        ? [{ label: t("agency.form.costs"), amountGrosze: initial.directCostsGrosze, paidTo: null }]
+        : []
+    ).map((c, i) => ({
+      key: i,
+      label: c.label,
+      amount: moneyFieldValue(c.amountGrosze),
+      paidTo: c.paidTo ?? "",
+    })),
+  );
+  const [sellers, setSellers] = useState<SellerRow[]>(() =>
+    initial.sellers.map((x, i) => ({
+      key: i,
+      userId: x.userId,
+      percent: String(x.shareBp / 100).replace(".", ","),
+    })),
+  );
+  const [workBasis, setWorkBasis] = useState(initial.workBasis);
   const [adBudget, setAdBudget] = useState(moneyFieldValue(initial.adBudgetGrosze));
-  const [soldBy, setSoldBy] = useState(initial.soldBy ?? "");
   const [periodMonth, setPeriodMonth] = useState(initial.periodMonth);
   const [status, setStatus] = useState<OrderStatus>(initial.status);
   const [dueDate, setDueDate] = useState(initial.dueDate ?? "");
@@ -113,10 +137,18 @@ export function OrderForm({
       hours: String(w.hours).replace(".", ","),
     })),
   );
-  const [nextKey, setNextKey] = useState(initial.work.length);
+  const [nextKey, setNextKey] = useState(100);
 
   const amountGrosze = parseMoneyField(amount);
-  const costsGrosze = parseMoneyField(costs);
+  const costAmounts = costRows.map((c) => parseMoneyField(c.amount));
+  const costsGrosze = costAmounts.some((a) => Number.isNaN(a))
+    ? Number.NaN
+    : costAmounts.reduce((sum, a) => sum + a, 0);
+  const sellerBp = sellers.map((x) => {
+    const v = Number(x.percent.replace(",", "."));
+    return Number.isFinite(v) && v > 0 && v <= 100 ? Math.round(v * 100) : Number.NaN;
+  });
+  const sellerTotal = sellerBp.reduce((sum, v) => sum + (Number.isNaN(v) ? 0 : v), 0);
   const adGrosze = parseMoneyField(adBudget);
   const hours = work.map((w) => parseHours(w.hours));
   const duplicate = new Set(work.map((w) => w.userId)).size !== work.length;
@@ -132,6 +164,15 @@ export function OrderForm({
         : undefined,
     adBudget: Number.isNaN(adGrosze) ? t("agency.form.errAmount") : undefined,
     work: duplicate ? t("agency.form.errWorker") : undefined,
+    sellers:
+      sellerBp.some((v) => Number.isNaN(v)) || sellerTotal > 10000
+        ? t("agency.form.errSellers")
+        : new Set(sellers.map((x) => x.userId)).size !== sellers.length
+          ? t("agency.form.errWorker")
+          : undefined,
+    costRows: costRows.some((c, i) => !c.label.trim() || !(costAmounts[i] > 0))
+      ? t("agency.form.errCostRow")
+      : undefined,
   };
   const hourErrors = hours.map((h) =>
     Number.isNaN(h) || h <= 0 || h > 500 ? t("agency.form.errHours") : undefined,
@@ -147,7 +188,9 @@ export function OrderForm({
       {
         amountGrosze: a,
         directCostsGrosze: c,
-        soldBy: soldBy || null,
+        sellers: sellers
+          .map((x, i) => ({ userId: x.userId, shareBp: sellerBp[i] }))
+          .filter((x) => x.shareBp > 0),
         work: work
           .map((w, i) => ({ userId: w.userId, hours: hours[i] }))
           .filter((w) => w.hours > 0 && w.hours <= 500),
@@ -179,7 +222,13 @@ export function OrderForm({
         amountGrosze,
         directCostsGrosze: costsGrosze,
         adBudgetGrosze: adGrosze,
-        soldBy: soldBy || null,
+        sellers: sellers.map((x, i) => ({ userId: x.userId, shareBp: sellerBp[i] })),
+        workBasis,
+        costs: costRows.map((c, i) => ({
+          label: c.label.trim(),
+          amountGrosze: costAmounts[i],
+          paidTo: c.paidTo || null,
+        })),
         periodMonth,
         status,
         dueDate: dueDate || null,
@@ -257,17 +306,6 @@ export function OrderForm({
               name="amount"
             />
             <Field
-              label={t("agency.form.costs")}
-              hint={t("agency.form.costsHint")}
-              value={costs}
-              onChange={(e) => setCosts(e.target.value)}
-              error={errors.costs && (submitted || costs) ? errors.costs : undefined}
-              inputMode="decimal"
-              placeholder="0"
-              disabled={pending}
-              name="costs"
-            />
-            <Field
               label={t("agency.form.adBudget")}
               hint={t("agency.form.adBudgetHint")}
               value={adBudget}
@@ -278,25 +316,203 @@ export function OrderForm({
               disabled={pending}
               name="adBudget"
             />
-            <Select
-              label={t("agency.form.soldBy")}
-              value={soldBy}
-              onChange={(e) => setSoldBy(e.target.value)}
-              disabled={pending}
-              name="soldBy"
-            >
-              <option value="">{t("agency.form.nobody")}</option>
-              {members.map((m) => (
-                <option key={m.userId} value={m.userId}>
-                  {m.name}
-                </option>
-              ))}
-            </Select>
           </div>
         </Card>
 
+        <Card title={t("agency.form.sellers")}>
+          <p className="text-ink-soft -mt-1 mb-4 text-[13px]">{t("agency.form.sellersHint")}</p>
+          <ul className="grid gap-3" aria-label={t("agency.form.sellers")}>
+            {sellers.map((row) => (
+              <li
+                key={row.key}
+                className="grid grid-cols-[minmax(0,1fr)_5.5rem_2.75rem] items-end gap-2"
+              >
+                <Select
+                  label={t("agency.form.seller")}
+                  value={row.userId}
+                  onChange={(e) =>
+                    setSellers(
+                      sellers.map((x) =>
+                        x.key === row.key ? { ...x, userId: e.target.value } : x,
+                      ),
+                    )
+                  }
+                  disabled={pending}
+                >
+                  {members.map((m) => (
+                    <option key={m.userId} value={m.userId}>
+                      {m.name}
+                    </option>
+                  ))}
+                </Select>
+                <Field
+                  label={t("agency.form.sellerShare")}
+                  value={row.percent}
+                  inputMode="decimal"
+                  onChange={(e) =>
+                    setSellers(
+                      sellers.map((x) =>
+                        x.key === row.key ? { ...x, percent: e.target.value } : x,
+                      ),
+                    )
+                  }
+                  disabled={pending}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  aria-label={`${t("agency.form.remove")}: ${nameOf(row.userId)}`}
+                  onClick={() => setSellers(sellers.filter((x) => x.key !== row.key))}
+                  disabled={pending}
+                >
+                  <Trash2 />
+                </Button>
+              </li>
+            ))}
+          </ul>
+          {errors.sellers && (submitted || sellers.length) ? (
+            <p className="text-urgent mt-2 text-[13px]">{errors.sellers}</p>
+          ) : sellers.length > 0 && sellerTotal < 10000 ? (
+            <p className="text-hold mt-2 text-[13px]">{t("agency.form.sellersPartial")}</p>
+          ) : null}
+          <Button
+            type="button"
+            variant="secondary"
+            className="mt-4"
+            disabled={pending}
+            onClick={() => {
+              const free = members.filter((m) => !sellers.some((x) => x.userId === m.userId));
+              const pick = free.find((m) => m.userId === currentUserId) ?? free[0];
+              if (!pick) return;
+              const rest = Math.max(0, 100 - sellerTotal / 100);
+              setSellers([
+                ...sellers,
+                {
+                  key: nextKey,
+                  userId: pick.userId,
+                  percent: String(rest || 100).replace(".", ","),
+                },
+              ]);
+              setNextKey(nextKey + 1);
+            }}
+          >
+            <Plus />
+            {t("agency.form.addSeller")}
+          </Button>
+        </Card>
+
+        <Card title={t("agency.form.costs")}>
+          <p className="text-ink-soft -mt-1 mb-4 text-[13px]">{t("agency.form.costsHint")}</p>
+          <ul className="grid gap-3" aria-label={t("agency.form.costs")}>
+            {costRows.map((row) => (
+              <li
+                key={row.key}
+                className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_7rem_minmax(0,10rem)_2.75rem] sm:items-end"
+              >
+                <Field
+                  label={t("agency.form.costLabel")}
+                  value={row.label}
+                  onChange={(e) =>
+                    setCostRows(
+                      costRows.map((c) =>
+                        c.key === row.key ? { ...c, label: e.target.value } : c,
+                      ),
+                    )
+                  }
+                  maxLength={200}
+                  disabled={pending}
+                />
+                <Field
+                  label={t("agency.form.costAmount")}
+                  value={row.amount}
+                  inputMode="decimal"
+                  onChange={(e) =>
+                    setCostRows(
+                      costRows.map((c) =>
+                        c.key === row.key ? { ...c, amount: e.target.value } : c,
+                      ),
+                    )
+                  }
+                  disabled={pending}
+                />
+                <Select
+                  label={t("agency.form.costPaidTo")}
+                  value={row.paidTo}
+                  onChange={(e) =>
+                    setCostRows(
+                      costRows.map((c) =>
+                        c.key === row.key ? { ...c, paidTo: e.target.value } : c,
+                      ),
+                    )
+                  }
+                  disabled={pending}
+                >
+                  <option value="">{t("agency.form.costExternal")}</option>
+                  {members.map((m) => (
+                    <option key={m.userId} value={m.userId}>
+                      {m.name}
+                    </option>
+                  ))}
+                </Select>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  aria-label={`${t("agency.form.remove")}: ${row.label}`}
+                  onClick={() => setCostRows(costRows.filter((c) => c.key !== row.key))}
+                  disabled={pending}
+                >
+                  <Trash2 />
+                </Button>
+              </li>
+            ))}
+          </ul>
+          {(errors.costRows || errors.costs) && submitted ? (
+            <p className="text-urgent mt-2 text-[13px]">{errors.costRows ?? errors.costs}</p>
+          ) : null}
+          <Button
+            type="button"
+            variant="secondary"
+            className="mt-4"
+            disabled={pending}
+            onClick={() => {
+              setCostRows([...costRows, { key: nextKey, label: "", amount: "", paidTo: "" }]);
+              setNextKey(nextKey + 1);
+            }}
+          >
+            <Plus />
+            {t("agency.form.addCost")}
+          </Button>
+        </Card>
+
         <Card title={t("agency.form.work")}>
-          <p className="text-ink-soft -mt-1 mb-4 text-sm">{t("agency.form.workHint")}</p>
+          <div className="-mt-1 mb-4 flex flex-wrap items-center justify-between gap-3">
+            <p className="text-ink-soft text-[13px]">{t("agency.form.workHint")}</p>
+            <div
+              role="radiogroup"
+              aria-label={t("agency.form.workBasis")}
+              className="bg-surface-2 flex rounded-lg p-0.5"
+            >
+              {(["hours", "points"] as const).map((b) => (
+                <button
+                  key={b}
+                  type="button"
+                  role="radio"
+                  aria-checked={workBasis === b}
+                  onClick={() => setWorkBasis(b)}
+                  className={cn(
+                    "h-8 rounded-md px-3 text-[13px] font-medium lg:h-7",
+                    workBasis === b
+                      ? "bg-surface text-ink shadow-[var(--shadow)]"
+                      : "text-ink-soft",
+                  )}
+                >
+                  {t(b === "hours" ? "agency.form.basisHours" : "agency.form.basisPoints")}
+                </button>
+              ))}
+            </div>
+          </div>
           <ul className="grid gap-3" aria-label={t("agency.form.work")}>
             {work.map((row, i) => (
               <li
@@ -320,7 +536,7 @@ export function OrderForm({
                   ))}
                 </Select>
                 <Field
-                  label={t("agency.form.hours")}
+                  label={t(workBasis === "hours" ? "agency.form.hours" : "agency.form.points")}
                   value={row.hours}
                   inputMode="decimal"
                   onChange={(e) =>

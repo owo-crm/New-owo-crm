@@ -2,7 +2,11 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { PGlite } from "@electric-sql/pglite";
 import { asUser, createTestDb, createUser } from "./harness";
 import { TYPE_PARSERS, type Database } from "@/lib/db/core";
-import { ensureAgencyWorkspace, ensurePlatformAdmin } from "@/lib/db/bootstrap";
+import {
+  ensureAgencyWorkspace,
+  ensurePlatformAdmin,
+  linkBusinessesToAgency,
+} from "@/lib/db/bootstrap";
 import { authenticate } from "@/lib/auth/repository";
 
 /** Админ из переменных Railway видит все бизнесы: старые, новые и кабинет агентства. */
@@ -76,5 +80,14 @@ describe("админ платформы из переменных", () => {
     await expect(
       ensurePlatformAdmin(db, { ADMIN_LOGIN: "x", ADMIN_PASSWORD: "krotkie" }, () => {}),
     ).rejects.toThrow();
+  });
+
+  it("все бизнесы становятся клиентами кабинета OWO Ads, повтор без дублей", async () => {
+    expect(await linkBusinessesToAgency(db, () => {})).toBe(2); // Barowo + Studio
+    expect(await linkBusinessesToAgency(db, () => {})).toBe(0);
+    const names = (
+      await pg.query<{ name: string }>("select name from public.agency_clients order by name")
+    ).rows.map((r) => r.name);
+    expect(names).toEqual(["Barowo", "Studio"]);
   });
 });

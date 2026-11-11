@@ -4,12 +4,17 @@ import { ChevronLeft, ChevronRight, Plus, UserPlus } from "lucide-react";
 import { Card, PageHeader } from "@/components/app-shell/page";
 import { buttonVariants } from "@/components/ui/button";
 import { RepeatRetainersButton } from "@/components/agency/repeat-button";
+import {
+  DeleteExpenseButton,
+  FundExpenseForm,
+  PayoutButton,
+} from "@/components/agency/fund-actions";
 import { ClientStatusBadge, monthLabel } from "@/components/agency/labels";
 import { getAgencySummary } from "@/lib/agency/repository";
 import { MODULES, isAddonKey } from "@/lib/billing/modules";
 import { formatMoney } from "@/lib/finance/money";
 import { addMonths, plDate, warsawToday } from "@/lib/format";
-import { t } from "@/lib/i18n";
+import { t, type MessageKey } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: t("agency.pageTitle") };
@@ -37,6 +42,9 @@ export default async function AgencyPage({ searchParams }: PageProps<"/agencja">
     },
   ];
   const { totals, attention } = data;
+  // Прямые расходы внешним подрядчикам (часть расходов оплачена партнёрам — она в их строках).
+  const externalCosts =
+    data.direct_costs_grosze - data.costs_to_people.reduce((sum, c) => sum + c.amount_grosze, 0);
   const attentionCount =
     attention.overdue.length +
     attention.noOrders.length +
@@ -102,38 +110,66 @@ export default async function AgencyPage({ searchParams }: PageProps<"/agencja">
       <div className="grid grid-cols-1 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_24rem]">
         <div className="grid min-w-0 grid-cols-1 gap-5">
           <Card title={t("agency.split.title")}>
-            <p className="text-ink-soft -mt-1 mb-3 text-sm">{t("agency.split.intro")}</p>
+            <p className="text-ink-soft -mt-1 mb-3 text-[13px]">{t("agency.split.intro")}</p>
             {data.received_grosze === 0 ? (
-              <p className="text-ink-soft text-sm">{t("agency.split.empty")}</p>
+              <p className="text-ink-soft text-[13.5px]">{t("agency.split.empty")}</p>
             ) : (
               <div className="-mx-1 overflow-x-auto px-1">
-                <table className="w-full min-w-[26rem] text-sm" data-testid="agency-split">
-                  <thead className="text-ink-faint text-xs font-semibold">
+                <table className="w-full min-w-[36rem] text-[13.5px]" data-testid="agency-split">
+                  <thead className="text-ink-faint text-[12px] font-medium">
                     <tr>
-                      <th className="pb-2 text-left">{t("agency.split.colPerson")}</th>
-                      <th className="pb-2 text-right">{t("agency.split.colSale")}</th>
-                      <th className="pb-2 text-right">{t("agency.split.colWork")}</th>
-                      <th className="pb-2 text-right">{t("agency.split.colTotal")}</th>
+                      <th className="pb-2 text-left font-medium">{t("agency.split.colPerson")}</th>
+                      <th className="pb-2 pl-4 text-right font-medium">
+                        {t("agency.split.colSale")}
+                      </th>
+                      <th className="pb-2 pl-4 text-right font-medium">
+                        {t("agency.split.colWork")}
+                      </th>
+                      <th className="pb-2 pl-4 text-right font-medium">
+                        {t("agency.split.colCosts")}
+                      </th>
+                      <th className="pb-2 pl-4 text-right font-medium">
+                        {t("agency.split.colTotal")}
+                      </th>
+                      <th className="pb-2 pl-4 text-right font-medium">
+                        {t("agency.split.colPaid")}
+                      </th>
+                      <th className="w-28 pb-2" />
                     </tr>
                   </thead>
                   <tbody className="tabular-nums">
-                    {totals.people.map((p) => (
+                    {data.people.map((p) => (
                       <tr key={p.userId} className="border-line border-t">
                         <td className="py-2 font-semibold">{data.nameOf(p.userId)}</td>
-                        <td className="py-2 text-right">{formatMoney(p.saleGrosze)}</td>
-                        <td className="py-2 text-right">{formatMoney(p.workGrosze)}</td>
-                        <td className="py-2 text-right font-semibold">
-                          {formatMoney(p.totalGrosze)}
+                        <td className="py-2 pl-4 text-right">{formatMoney(p.sale)}</td>
+                        <td className="py-2 pl-4 text-right">{formatMoney(p.work)}</td>
+                        <td className="text-ink-soft py-2 pl-4 text-right">
+                          {formatMoney(p.costs)}
+                        </td>
+                        <td className="py-2 pl-4 text-right font-semibold">
+                          {formatMoney(p.total)}
+                        </td>
+                        <td className="text-ink-soft py-2 pl-4 text-right">
+                          {formatMoney(p.paid)}
+                        </td>
+                        <td className="py-1.5 text-right">
+                          <PayoutButton
+                            userId={p.userId}
+                            month={month.slice(0, 7)}
+                            remaining={p.total - p.paid}
+                          />
                         </td>
                       </tr>
                     ))}
                     <tr className="border-line border-t">
                       <td className="py-2 font-semibold">{t("agency.split.company")}</td>
-                      <td />
-                      <td />
-                      <td className="py-2 text-right font-semibold">
+                      <td colSpan={3} className="text-ink-faint py-2 text-right text-[12px]">
+                        {t("agency.split.companyHint")}
+                      </td>
+                      <td className="py-2 pl-4 text-right font-semibold">
                         {formatMoney(totals.companyGrosze)}
                       </td>
+                      <td colSpan={2} />
                     </tr>
                     {totals.unassignedGrosze > 0 ? (
                       <tr className="border-line text-hold border-t">
@@ -143,39 +179,106 @@ export default async function AgencyPage({ searchParams }: PageProps<"/agencja">
                             {t("agency.split.unassignedHint")}
                           </span>
                         </td>
-                        <td />
-                        <td />
-                        <td className="py-2 text-right font-semibold">
+                        <td colSpan={3} />
+                        <td className="py-2 pl-4 text-right font-semibold">
                           {formatMoney(totals.unassignedGrosze)}
                         </td>
+                        <td colSpan={2} />
                       </tr>
                     ) : null}
-                    {data.direct_costs_grosze > 0 ? (
+                    {externalCosts > 0 ? (
                       <tr className="border-line text-ink-soft border-t">
-                        <td className="py-2">{t("agency.split.costs")}</td>
-                        <td />
-                        <td />
-                        <td className="py-2 text-right">{formatMoney(data.direct_costs_grosze)}</td>
+                        <td className="py-2">{t("agency.split.costsExternal")}</td>
+                        <td colSpan={3} />
+                        <td className="py-2 pl-4 text-right">{formatMoney(externalCosts)}</td>
+                        <td colSpan={2} />
                       </tr>
                     ) : null}
                     <tr className="border-ink border-t-2">
                       <td className="pt-2.5 font-semibold">{t("agency.split.total")}</td>
-                      <td />
-                      <td />
-                      <td className="pt-2.5 text-right text-base font-semibold">
+                      <td colSpan={3} />
+                      <td className="pt-2.5 text-right text-[15px] font-semibold">
                         {formatMoney(totals.totalGrosze + data.direct_costs_grosze)}
                       </td>
+                      <td colSpan={2} />
                     </tr>
                   </tbody>
                 </table>
                 {data.reconciliation !== 0 ? (
-                  <p role="alert" className="text-urgent mt-3 text-sm font-semibold">
+                  <p role="alert" className="text-urgent mt-3 text-[13px] font-semibold">
                     {t("agency.split.mismatch", { amount: formatMoney(data.reconciliation) })}
                   </p>
                 ) : null}
               </div>
             )}
           </Card>
+
+          <Card title={t("agency.fund.title")}>
+            <div className="mb-4 grid grid-cols-3 gap-3">
+              {[
+                { label: t("agency.fund.in"), value: data.fund.month_in },
+                { label: t("agency.fund.out"), value: data.fund.month_out },
+                { label: t("agency.fund.balance"), value: data.fund.balance, strong: true },
+              ].map((x) => (
+                <div key={x.label}>
+                  <p
+                    className={cn(
+                      "text-[18px] leading-none font-semibold tabular-nums",
+                      x.value < 0 && "text-urgent",
+                    )}
+                  >
+                    {formatMoney(x.value)}
+                  </p>
+                  <p className="text-ink-soft mt-1 text-[12px]">{x.label}</p>
+                </div>
+              ))}
+            </div>
+            {data.expenses.length > 0 ? (
+              <ul className="divide-line mb-4 divide-y text-[13.5px]">
+                {data.expenses.map((e) => (
+                  <li key={e.id} className="flex items-center gap-3 py-1.5">
+                    <span className="text-ink-faint w-20 shrink-0 tabular-nums">
+                      {plDate(e.spent_on)}
+                    </span>
+                    <span className="min-w-0 flex-1 truncate">
+                      {e.label}{" "}
+                      <span className="text-ink-faint">
+                        · {t(`agency.fund.categories.${e.category}` as MessageKey)}
+                      </span>
+                    </span>
+                    <span className="tabular-nums">{formatMoney(e.amount_grosze)}</span>
+                    <DeleteExpenseButton id={e.id} label={e.label} />
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+            <FundExpenseForm />
+            <p className="text-ink-faint mt-3 text-[12px]">{t("agency.fund.hint")}</p>
+          </Card>
+
+          {data.by_source.length > 0 ? (
+            <Card title={t("agency.sources.title")}>
+              <ul className="grid gap-2">
+                {data.by_source.map((x) => (
+                  <li
+                    key={x.source}
+                    className="grid grid-cols-[minmax(0,10rem)_1fr_auto] items-center gap-3 text-[13.5px]"
+                  >
+                    <span className="truncate">{x.source}</span>
+                    <span className="bg-surface-2 h-1.5 rounded-full">
+                      <span
+                        className="bg-ink-soft block h-1.5 rounded-full"
+                        style={{
+                          width: `${Math.max(4, (x.amount_grosze / Math.max(1, data.received_grosze)) * 100)}%`,
+                        }}
+                      />
+                    </span>
+                    <span className="tabular-nums">{formatMoney(x.amount_grosze)}</span>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          ) : null}
 
           <Card>
             <div className="mb-3 flex items-center justify-between gap-3">

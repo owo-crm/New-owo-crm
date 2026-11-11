@@ -41,8 +41,20 @@ export async function createBusinessAction(
       ]);
       // Участие OWO Ads помечаем обслуживающим: клиент его видит, но убрать не может.
       // Кабинет самого агентства — своя фирма, там участие обычное.
-      if (preset !== "agency")
+      if (preset !== "agency") {
         await tx.query("select public.mark_service_membership($1)", [row!.id]);
+        // Новый бизнес клиента сразу появляется клиентом в кабинете OWO Ads (решение 025):
+        // абонемент CRM и заказы считаются с первого дня, чек-лист настройки стартует сам.
+        await tx.query(
+          `insert into public.agency_clients (organization_id, name, client_org_id, status, started_at, created_by)
+           select o.id, $2, $1, 'active', (now() at time zone 'Europe/Warsaw')::date, $3
+           from public.organizations o
+           join public.memberships m on m.organization_id = o.id and m.user_id = $3
+           where o.industry_preset = 'agency'
+           order by m.created_at limit 1`,
+          [row!.id, name, user.id],
+        );
+      }
       return row!.id;
     });
   } catch (error) {

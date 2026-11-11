@@ -529,19 +529,23 @@
       "adBudget": "Budżety reklamowe klientów (poza podziałem): {amount}"
     },
     "split": {
-      "title": "Podział środków za miesiąc",
-      "intro": "Z zleceń opłaconych w tym miesiącu. Budżet reklamowy klienta nie wchodzi do podziału.",
+      "title": "Kto ile dostaje w tym miesiącu",
+      "intro": "Ze zleceń opłaconych w tym miesiącu: najpierw koszty bezpośrednie, potem 10 % sprzedaż, 25 % fundusz OWO Ads, 65 % wykonawcy. Budżet reklamowy klienta nie jest przychodem agencji.",
       "colPerson": "Osoba",
       "colSale": "Za sprzedaż",
       "colWork": "Za pracę",
       "colTotal": "Razem",
-      "company": "Firma",
+      "company": "Fundusz OWO Ads (25 %)",
       "unassigned": "Nierozdzielone",
       "unassignedHint": "brak godzin lub sprzedawcy — uzupełnij zlecenie",
       "costs": "Koszty bezpośrednie",
       "total": "Razem = Otrzymano",
       "mismatch": "Suma nie zgadza się z „Otrzymano” o {amount}. Zgłoś to — to błąd.",
-      "empty": "W tym miesiącu nie ma jeszcze opłaconych zleceń."
+      "empty": "W tym miesiącu nie ma jeszcze opłaconych zleceń.",
+      "colCosts": "Koszty / logistyka",
+      "colPaid": "Wypłacono",
+      "companyHint": "razem z zaokrągleniami",
+      "costsExternal": "Koszty zewnętrzne"
     },
     "clients": {
       "title": "Klienci",
@@ -589,8 +593,8 @@
       "titleHint": "Np. „Pakiet Start, listopad” albo „Landing page”",
       "kind": "Rodzaj",
       "amount": "Kwota netto (zł)",
-      "costs": "Koszty bezpośrednie (zł)",
-      "costsHint": "Podwykonawcy, druk, szablony, dalekie dojazdy",
+      "costs": "Koszty bezpośrednie",
+      "costsHint": "Podwykonawcy, druk, szablony, logistyka. Odejmowane przed podziałem 10/25/65.",
       "adBudget": "Budżet reklamowy klienta (zł)",
       "adBudgetHint": "Meta / Google. Tylko do raportu — nie wchodzi do podziału",
       "soldBy": "Kto sprzedał",
@@ -600,7 +604,7 @@
       "due": "Termin płatności",
       "note": "Notatka",
       "work": "Kto ile pracował",
-      "workHint": "Godziny wpisz tutaj — bez nich 65 % nie ma komu przypisać.",
+      "workHint": "65 % dzielone proporcjonalnie do godzin albo uzgodnionych punktów wkładu.",
       "worker": "Wykonawca",
       "hours": "Godziny",
       "addWorker": "Dodaj wykonawcę",
@@ -620,7 +624,24 @@
       "errHours": "Godziny: od 0,01 do 500",
       "errWorker": "Każdy wykonawca tylko raz",
       "errClient": "Wybierz klienta",
-      "errTitle": "Wpisz nazwę zlecenia"
+      "errTitle": "Wpisz nazwę zlecenia",
+      "sellers": "Kto sprzedał (10 %)",
+      "sellersHint": "Komisja trafia do osób, które faktycznie pozyskały lub zamknęły klienta. Kilka osób — podziel procenty.",
+      "seller": "Osoba",
+      "sellerShare": "Udział %",
+      "addSeller": "Dodaj sprzedającego",
+      "sellersPartial": "Część komisji nie ma właściciela — zostanie pokazana jako nierozdzielona.",
+      "errSellers": "Udziały: od 0,01 do 100 %, razem nie więcej niż 100 %.",
+      "costLabel": "Za co",
+      "costAmount": "Kwota (zł)",
+      "costPaidTo": "Komu",
+      "costExternal": "Zewnętrznie",
+      "addCost": "Dodaj koszt",
+      "errCostRow": "Każdy koszt potrzebuje nazwy i kwoty.",
+      "workBasis": "Podstawa podziału 65 %",
+      "basisHours": "Godziny",
+      "basisPoints": "Uzgodnione punkty",
+      "points": "Punkty"
     },
     "client": {
       "titleNew": "Nowy klient",
@@ -685,6 +706,33 @@
       "field": "Nieprawidłowa wartość",
       "notFound": "Nie znaleziono.",
       "adminOnly": "Tylko administrator OWO Ads może tworzyć nowe biznesy."
+    },
+    "payout": {
+      "pay": "Wypłać",
+      "save": "Zapisz",
+      "amount": "Kwota wypłaty",
+      "done": "Wypłacone"
+    },
+    "fund": {
+      "title": "Fundusz wspólny OWO Ads",
+      "in": "Wpłynęło w tym miesiącu",
+      "out": "Wydane w tym miesiącu",
+      "balance": "Saldo funduszu",
+      "add": "Dodaj wydatek",
+      "date": "Data",
+      "category": "Kategoria",
+      "label": "Za co",
+      "hint": "Saldo funduszu należy do agencji, a nie do partnera. Wydatki jednego klienta wpisuj w zleceniu jako koszty bezpośrednie.",
+      "categories": {
+        "ads": "Reklama OWO Ads",
+        "equipment": "Sprzęt",
+        "software": "Subskrypcje",
+        "transport": "Transport",
+        "other": "Inne"
+      }
+    },
+    "sources": {
+      "title": "Skąd przyszły pieniądze"
     }
   },
   "billing": {

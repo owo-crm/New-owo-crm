@@ -169,7 +169,7 @@ describe("раздел денег по заказу", () => {
       const ts = splitOrder({
         amountGrosze: c.amount,
         directCostsGrosze: c.costs,
-        soldBy: IWAN,
+        sellers: [{ userId: IWAN, shareBp: 10000 }],
         work: c.hours.map((h, i) => ({ userId: people[i], hours: h })),
       });
       expect(toLines(rows)).toEqual(ts);
@@ -212,7 +212,12 @@ describe("раздел денег по заказу", () => {
     expect(rows.map((r) => r.amount_grosze)).toEqual([20000, 50000, 30000]);
     expect(toLines(rows)).toEqual(
       splitOrder(
-        { amountGrosze: 100000, directCostsGrosze: 0, soldBy: IWAN, work: [] },
+        {
+          amountGrosze: 100000,
+          directCostsGrosze: 0,
+          sellers: [{ userId: IWAN, shareBp: 10000 }],
+          work: [],
+        },
         { saleBp: 2000, companyBp: 3000, workBp: 5000 },
       ),
     );

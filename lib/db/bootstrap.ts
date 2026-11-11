@@ -156,3 +156,30 @@ export async function ensurePlatformAdmin(
   if (rows[0].n > 0) log(`Admin: dodano dostęp do biznesów: ${rows[0].n}.`);
   return result;
 }
+
+/**
+ * Каждый бизнес установки (кроме кабинетов агентства) — клиент в кабинете OWO Ads.
+ * Запускается при старте: уже созданные бизнесы (Barowo и др.) появятся в «Agencja» сами,
+ * с привязанной CRM, и их доход (абонемент, заказы) начнёт считаться. Повтор ничего не дублирует.
+ */
+export async function linkBusinessesToAgency(db: Database, log = console.log) {
+  const { rows } = await db.query<{ n: number }>(
+    `with agency as (
+       select o.id from public.organizations o
+       where o.industry_preset = 'agency'
+         and exists (select 1 from public.memberships m join auth.users u on u.id = m.user_id
+                     where m.organization_id = o.id and u.is_platform_admin)
+       order by o.created_at limit 1
+     ), added as (
+       insert into public.agency_clients (organization_id, name, client_org_id, status, started_at)
+       select a.id, left(c.name, 200), c.id, 'active', (c.created_at at time zone 'Europe/Warsaw')::date
+       from agency a cross join public.organizations c
+       where c.industry_preset <> 'agency'
+         and not exists (select 1 from public.agency_clients x where x.organization_id = a.id and x.client_org_id = c.id)
+       returning 1
+     )
+     select count(*)::int as n from added`,
+  );
+  if (rows[0].n > 0) log(`Agencja: dodano klientów z istniejących biznesów: ${rows[0].n}.`);
+  return rows[0].n;
+}

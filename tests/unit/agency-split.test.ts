@@ -17,7 +17,7 @@ describe("splitOrder", () => {
     const lines = splitOrder({
       amountGrosze: 110000,
       directCostsGrosze: 10000,
-      soldBy: A,
+      sellers: [{ userId: A, shareBp: 10000 }],
       work: [{ userId: B, hours: 2 }],
     });
     expect(lines).toEqual([
@@ -37,7 +37,12 @@ describe("splitOrder", () => {
         userId: `u${k}`,
         hours: (rnd(5000) + 1) / 100,
       }));
-      const lines = splitOrder({ amountGrosze: amount, directCostsGrosze: costs, soldBy: A, work });
+      const lines = splitOrder({
+        amountGrosze: amount,
+        directCostsGrosze: costs,
+        sellers: [{ userId: A, shareBp: 10000 }],
+        work,
+      });
       expect(sum(lines)).toBe(amount - costs);
       expect(lines.every((l) => Number.isInteger(l.amountGrosze) && l.amountGrosze >= 0)).toBe(
         true,
@@ -46,13 +51,18 @@ describe("splitOrder", () => {
   });
 
   it("рекламный бюджет не влияет", () => {
-    const base = { amountGrosze: 300000, directCostsGrosze: 0, soldBy: A, work: [] };
+    const base = {
+      amountGrosze: 300000,
+      directCostsGrosze: 0,
+      sellers: [{ userId: A, shareBp: 10000 }],
+      work: [],
+    };
     expect(splitOrder({ ...base, adBudgetGrosze: 9_999_999 })).toEqual(splitOrder(base));
   });
 
   it("без часов работа видна как нераспределённая", () => {
     const t = totalsBySplit(
-      splitOrder({ amountGrosze: 100000, directCostsGrosze: 0, soldBy: null, work: [] }),
+      splitOrder({ amountGrosze: 100000, directCostsGrosze: 0, sellers: [], work: [] }),
     );
     expect(t.unassignedGrosze).toBe(75000); // 65 % работы + 10 % продажи без продавца
     expect(t.companyGrosze).toBe(25000);
@@ -64,7 +74,7 @@ describe("splitOrder", () => {
       splitOrder({
         amountGrosze: 100000,
         directCostsGrosze: 0,
-        soldBy: A,
+        sellers: [{ userId: A, shareBp: 10000 }],
         work: [{ userId: A, hours: 1 }],
       }),
     );
@@ -78,7 +88,12 @@ describe("splitOrder", () => {
     expect(validShares({ saleBp: 1000, companyBp: 1000, workBp: 1000 })).toBe(false);
     expect(() =>
       splitOrder(
-        { amountGrosze: 1, directCostsGrosze: 0, soldBy: A, work: [] },
+        {
+          amountGrosze: 1,
+          directCostsGrosze: 0,
+          sellers: [{ userId: A, shareBp: 10000 }],
+          work: [],
+        },
         { saleBp: 1, companyBp: 1, workBp: 1 },
       ),
     ).toThrow();

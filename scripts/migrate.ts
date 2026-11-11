@@ -2,7 +2,12 @@
 import path from "node:path";
 import pg from "pg";
 import { migrate } from "../lib/db/migrate.ts";
-import { bootstrapAdmin, ensureAgencyWorkspace, ensurePlatformAdmin } from "../lib/db/bootstrap.ts";
+import {
+  bootstrapAdmin,
+  ensureAgencyWorkspace,
+  ensurePlatformAdmin,
+  linkBusinessesToAgency,
+} from "../lib/db/bootstrap.ts";
 import type { Database } from "../lib/db/core.ts";
 
 const url = process.env.DATABASE_URL;
@@ -39,6 +44,7 @@ try {
   await bootstrapAdmin(db, process.env);
   await ensurePlatformAdmin(db, process.env);
   await ensureAgencyWorkspace(db, process.env);
+  await linkBusinessesToAgency(db);
 } finally {
   await client.end();
 }

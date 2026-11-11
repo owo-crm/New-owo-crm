@@ -34,7 +34,22 @@ export const orderInputSchema = z
     amountGrosze: grosze,
     directCostsGrosze: grosze,
     adBudgetGrosze: grosze,
-    soldBy: z.uuid().nullable(),
+    /** Продавцы и доли комиссии 10 % (в базисных пунктах, сумма ≤ 10 000). */
+    sellers: z
+      .object({ userId: z.uuid(), shareBp: z.number().int().min(1).max(10000) })
+      .array()
+      .max(10),
+    /** Основа распределения 65 %: часы или согласованные баллы вклада. */
+    workBasis: z.enum(["hours", "points"]),
+    /** Прямые расходы строками; сумма = directCostsGrosze. paidTo — партнёр (например, логистика). */
+    costs: z
+      .object({
+        label: z.string().trim().min(1).max(200),
+        amountGrosze: z.number().int().min(1).max(10_000_000_000),
+        paidTo: z.uuid().nullable(),
+      })
+      .array()
+      .max(30),
     periodMonth: z.string().regex(/^\d{4}-\d{2}$/),
     status: z.enum(ORDER_STATUSES),
     dueDate: isoDate.nullable(),
@@ -45,6 +60,23 @@ export const orderInputSchema = z
     path: ["directCostsGrosze"],
     message: "costs_over_amount",
   })
+  .refine((o) => o.sellers.reduce((sum, x) => sum + x.shareBp, 0) <= 10000, {
+    path: ["sellers"],
+    message: "shares_over_100",
+  })
+  .refine((o) => new Set(o.sellers.map((x) => x.userId)).size === o.sellers.length, {
+    path: ["sellers"],
+    message: "duplicate_seller",
+  })
+  .refine(
+    (o) =>
+      o.costs.length === 0 ||
+      o.costs.reduce((sum, c) => sum + c.amountGrosze, 0) === o.directCostsGrosze,
+    {
+      path: ["costs"],
+      message: "costs_sum",
+    },
+  )
   .refine((o) => new Set(o.work.map((w) => w.userId)).size === o.work.length, {
     path: ["work"],
     message: "duplicate_worker",

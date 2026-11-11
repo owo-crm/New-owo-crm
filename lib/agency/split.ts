@@ -5,7 +5,7 @@
  *
  * Правила (docs/02-data-model.md, «Agencja»):
  *   база = сумма − прямые расходы        (рекламный бюджет не участвует никогда)
- *   продажа  → кто продал               (role = "sale")
+ *   продажа  → продавцам по долям         (role = "sale")
  *   компания → user_id = null           (role = "company")
  *   работа   → исполнителям по часам    (role = "work")
  * Всё целыми грошами вниз; остаток от округления — компании. Сумма строк = база до гроша.
@@ -32,9 +32,12 @@ export type SplitInput = {
   directCostsGrosze: number;
   /** Только для отчёта: в расчёт не входит. Поле есть, чтобы это было видно в типе. */
   adBudgetGrosze?: number;
-  soldBy: string | null;
+  /** Продавцы и их доли комиссии (базисные пункты, сумма ≤ 10 000; непокрытое — «nierozdzielone»). */
+  sellers: SellerLine[];
   work: WorkLine[];
 };
+
+export type SellerLine = { userId: string; shareBp: number };
 
 export function validShares(s: Shares) {
   return (
@@ -58,14 +61,29 @@ export function splitOrder(input: SplitInput, shares: Shares = DEFAULT_SHARES): 
   const base = splitBase(input);
   const sale = Math.floor((base * shares.saleBp) / 10000);
   const work = Math.floor((base * shares.workBp) / 10000);
-  const lines: SplitLine[] = [{ userId: input.soldBy, role: "sale", amountGrosze: sale }];
+  const lines: SplitLine[] = [];
+  let given = 0;
+  // Как в SQL: по убыванию доли, затем по id.
+  const sellers = input.sellers
+    .filter((s) => s.shareBp > 0)
+    .sort((a, b) => b.shareBp - a.shareBp || (a.userId < b.userId ? -1 : 1));
+  const covered = sellers.reduce((sum, s) => sum + s.shareBp, 0);
+  for (const s of sellers) {
+    const amount = Math.floor((sale * Math.min(s.shareBp, 10000)) / 10000);
+    given += amount;
+    lines.push({ userId: s.userId, role: "sale", amountGrosze: amount });
+  }
+  if (covered < 10000) {
+    const amount = Math.floor((sale * (10000 - covered)) / 10000);
+    given += amount;
+    lines.push({ userId: null, role: "sale", amountGrosze: amount });
+  }
 
   const workers = input.work.filter((w) => hundredths(w.hours) > 0);
   const total = workers.reduce((sum, w) => sum + hundredths(w.hours), 0);
-  let given = 0;
   if (total === 0) {
     lines.push({ userId: null, role: "work", amountGrosze: work });
-    given = work;
+    given += work;
   } else {
     for (const w of workers) {
       const amount = Math.floor((work * hundredths(w.hours)) / total);
@@ -73,7 +91,7 @@ export function splitOrder(input: SplitInput, shares: Shares = DEFAULT_SHARES): 
       lines.push({ userId: w.userId, role: "work", amountGrosze: amount });
     }
   }
-  lines.push({ userId: null, role: "company", amountGrosze: base - sale - given });
+  lines.push({ userId: null, role: "company", amountGrosze: base - given });
   return lines;
 }
 
