@@ -1,4 +1,5 @@
 import { createUser } from "../auth/repository.ts";
+import { hashPassword, verifyPassword } from "../auth/crypto.ts";
 import type { Database } from "./core.ts";
 
 /**
@@ -90,13 +91,68 @@ export async function ensureAgencyWorkspace(
           .replace(/^-|-$/g, "") || "agencja",
       ],
     );
+    // Триггер уже добавил админов как обслуживающих — в своём кабинете они владельцы.
     for (const admin of admins)
       await tx.query(
-        "insert into public.memberships (organization_id, user_id, role) values ($1, $2, 'owner')",
+        `insert into public.memberships (organization_id, user_id, role) values ($1, $2, 'owner')
+         on conflict (organization_id, user_id) do update set role = 'owner', is_service = false`,
         [rows[0].id, admin.id],
       );
     return rows[0].id;
   });
   log(`Agencja: utworzono kabinet „${name}” (${id}) dla administratorów platformy.`);
   return id;
+}
+
+/**
+ * Главный админ из переменных Railway: ADMIN_LOGIN + ADMIN_PASSWORD (+ ADMIN_NAME).
+ * При каждом запуске: нет аккаунта — создаём; есть — делаем админом платформы, а если пароль
+ * в переменных поменяли — меняем пароль и закрываем старые сессии. Затем админы платформы
+ * получают доступ ко всем бизнесам (решение 023). Пароль только в Railway, не в коде.
+ */
+export async function ensurePlatformAdmin(
+  db: Database,
+  env: Record<string, string | undefined>,
+  log = console.log,
+) {
+  const login = env.ADMIN_LOGIN?.trim().toLowerCase();
+  const password = env.ADMIN_PASSWORD ?? "";
+  let result: "created" | "updated" | "unchanged" | null = null;
+  if (login) {
+    if (password.length < 10) throw new Error("ADMIN_PASSWORD musi mieć co najmniej 10 znaków.");
+    const { rows } = await db.query<{
+      id: string;
+      password_hash: string;
+      is_platform_admin: boolean;
+    }>("select id, password_hash, is_platform_admin from auth.users where email = $1", [login]);
+    const user = rows[0];
+    if (!user) {
+      await createUser(db, {
+        email: login,
+        password,
+        fullName: env.ADMIN_NAME || login.split("@")[0],
+        platformAdmin: true,
+      });
+      result = "created";
+    } else {
+      const samePassword = await verifyPassword(password, user.password_hash);
+      if (!samePassword) {
+        await db.query("update auth.users set password_hash = $2 where id = $1", [
+          user.id,
+          await hashPassword(password),
+        ]);
+        await db.query("delete from auth.sessions where user_id = $1", [user.id]);
+      }
+      if (!user.is_platform_admin)
+        await db.query("update auth.users set is_platform_admin = true where id = $1", [user.id]);
+      result = samePassword && user.is_platform_admin ? "unchanged" : "updated";
+    }
+    if (result !== "unchanged")
+      log(`Admin: konto ${login} — ${result === "created" ? "utworzone" : "zaktualizowane"}.`);
+  }
+  const { rows } = await db.query<{ n: number }>(
+    "select public.sync_platform_admin_memberships() as n",
+  );
+  if (rows[0].n > 0) log(`Admin: dodano dostęp do biznesów: ${rows[0].n}.`);
+  return result;
 }

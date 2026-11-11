@@ -33,7 +33,8 @@ export default async function globalSetup() {
     `with o as (insert into public.organizations (name, slug, industry_preset)
                 values ('OWO Ads E2E','owo-ads-e2e','agency') returning id)
      insert into public.memberships (organization_id, user_id, role)
-     select o.id, u.id, 'owner' from o, auth.users u where u.email='e2e@owo.test'`,
+     select o.id, u.id, 'owner' from o, auth.users u where u.email='e2e@owo.test'
+     on conflict (organization_id, user_id) do update set role = 'owner', is_service = false`,
   );
   await c2.end();
 }

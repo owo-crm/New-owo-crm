@@ -56,7 +56,8 @@ npm run dev                           # http://localhost:3000
 5. **Settings → Networking → Generate Domain** (или свой домен).
    Сборка идёт по `Dockerfile` (Node 22 + LibreOffice для PDF договоров), часовой пояс контейнера — Europe/Warsaw.
 6. Деплой идёт сам при каждом push в `main`. При старте `npm start` сначала применяет новые миграции, потом запускает приложение. Проверка живости — `/api/health`.
-7. Первый пользователь (один раз): в сервисе приложения → Variables добавь `BOOTSTRAP_ADMIN_EMAIL`, `BOOTSTRAP_ADMIN_PASSWORD` (мин. 10 знаков), по желанию `BOOTSTRAP_ADMIN_NAME`, `BOOTSTRAP_ORG_NAME` (по умолчанию Barowo), `BOOTSTRAP_ORG_EMAIL`, `BOOTSTRAP_ORG_PHONE`. При старте, если пользователей ещё нет, создаётся администратор и фирма с документами Barowo. После входа **удали** эти переменные.
+7. **Главный админ (OWO Ads)** — в сервисе приложения → Variables: `ADMIN_LOGIN` (логин или e-mail), `ADMIN_PASSWORD` (мин. 10 знаков), по желанию `ADMIN_NAME`, `AGENCY_ORG_NAME` (по умолчанию «OWO Ads»). При каждом запуске аккаунт создаётся или обновляется (новый пароль в переменных = новый пароль, старые сессии закрываются), получает доступ ко всем бизнесам, а кабинет агентства «OWO Ads» создаётся сам. Переменные можно не удалять.
+8. Первый пользователь Barowo (один раз, если база пустая): в сервисе приложения → Variables добавь `BOOTSTRAP_ADMIN_EMAIL`, `BOOTSTRAP_ADMIN_PASSWORD` (мин. 10 знаков), по желанию `BOOTSTRAP_ADMIN_NAME`, `BOOTSTRAP_ORG_NAME` (по умолчанию Barowo), `BOOTSTRAP_ORG_EMAIL`, `BOOTSTRAP_ORG_PHONE`. При старте, если пользователей ещё нет, создаётся администратор и фирма с документами Barowo. После входа **удали** эти переменные.
    Сейчас: проект `owo-crm`, регион Amsterdam (europe-west4), адрес https://crm-production-85886771.up.railway.app
 
 Реплика приложения — **ровно одна** (воркер и live-обновления живут в процессе).
