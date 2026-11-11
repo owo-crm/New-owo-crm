@@ -103,6 +103,17 @@ create policy "members update" on leads for update using (is_member(organization
 - `agency_client_from_lead(org, lead)` — клиент агентства из лида на этапе «Klient».
 - Продавец и исполнители — только участники агентства (триггер). Привязать `client_org_id` можно только к фирме, где ты сам участник.
 
+### Абонемент (миграция `20261111000021_billing.sql`, решение 022)
+| Таблица | Ключевые поля |
+|---|---|
+| `organization_modules` | organization_id, module (`leads/channels/documents/payments/calendar`), enabled_at, enabled_by. Читают участники и обслуживающее агентство; меняет только `set_organization_modules` |
+| `module_requests` | заявка клиента «Poproś o moduł»: module, requested_by, handled_at (закрывается при включении) |
+| `organization_billing` | ad_client, discount_bp, billing_email, stripe_customer_id, stripe_subscription_id, status, monthly_net_grosze, billed_seats, current_period_end, last_error. Пишет только сервер |
+| `billing_events` | журнал вебхуков Stripe (id события — ключ): повтор не обрабатывается |
+| `agency_orders.stripe_invoice_id` | оплаченный счёт Stripe → заказ агентства, без дублей |
+
+Функции: `has_module(org, module)`, `manages_organization(org)`, `billable_seats(org)` (без обслуживающих аккаунтов). Шаг чек-листа с `agency_setup_steps.module` показывается, только если модуль включён; шаг `subscription` отмечается сам при активной подписке.
+
 ## Правила
 
 - Телефон храним в E.164 (`+48...`), e-mail в нижнем регистре — для дедупликации.
