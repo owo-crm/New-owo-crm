@@ -1,0 +1,203 @@
+{
+  "version": 2,
+  "skills": {
+    "audit-ai-design-slop": {
+      "source": "MengTo/Skills",
+      "sourceType": "github",
+      "skillPath": "agent-skills/ui/audit-ai-design-slop/SKILL.md",
+      "computedHash": "3397b8c0b2f8510f5eae67351501079e9e7a65189268ff62d7f4ce2b7da99d32"
+    },
+    "better-accessibility": {
+      "source": "jakubkrehel/skills",
+      "sourceType": "github",
+      "skillPath": "skills/better-accessibility/SKILL.md",
+      "computedHash": "b08dea072cfa1a31ec93a7f50849780d09b5a36aa82ce50a3a3f06408bc679f1"
+    },
+    "better-colors": {
+      "source": "jakubkrehel/skills",
+      "sourceType": "github",
+      "skillPath": "skills/better-colors/SKILL.md",
+      "computedHash": "6c40244bd9bc5ed1ddb4357ddc1a4787d0f3d8743928627979c4d3edda98f665"
+    },
+    "better-interface": {
+      "source": "jakubkrehel/skills",
+      "sourceType": "github",
+      "skillPath": "skills/better-interface/SKILL.md",
+      "computedHash": "37ae068dc11f7548c3064848cb6d97f4e4626e689ad374c192ddc05d11641c04"
+    },
+    "better-layout": {
+      "source": "jakubkrehel/skills",
+      "sourceType": "github",
+      "skillPath": "skills/better-layout/SKILL.md",
+      "computedHash": "1c42c9853d688e741b9ee520040171e2eb40e6cbab2302cd8bd351b447a6d4c7"
+    },
+    "better-typography": {
+      "source": "jakubkrehel/skills",
+      "sourceType": "github",
+      "skillPath": "skills/better-typography/SKILL.md",
+      "computedHash": "7c81bcecb6b765269959cc06c3bd1af2719df7594bbda02817d1b284f4991812"
+    },
+    "better-ui": {
+      "source": "jakubkrehel/skills",
+      "sourceType": "github",
+      "skillPath": "skills/better-ui/SKILL.md",
+      "computedHash": "36417d09a0d91fb8c8cbbbeeb14f0ac0c0d4399342d80bcec02c8c446ebadce3"
+    },
+    "better-writing": {
+      "source": "jakubkrehel/skills",
+      "sourceType": "github",
+      "skillPath": "skills/better-writing/SKILL.md",
+      "computedHash": "1a0f637280dfd4d2a3245ab6a0dad4b48b22a4a2ced64915eb51876012cf46f0"
+    },
+    "canvas-design": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "skillPath": "skills/canvas-design/SKILL.md",
+      "computedHash": "1866477474e694f562261008bb6a817e53f027b6347b062fbd1e2ee2eb83f20d"
+    },
+    "clean": {
+      "source": "bergside/awesome-design-skills",
+      "sourceType": "github",
+      "skillPath": "skills/clean/SKILL.md",
+      "computedHash": "6c2ea556ed46bc2aa89edf2e0e50a8746587f6b80f7593a5ac58008400505016"
+    },
+    "color-system": {
+      "source": "Owl-Listener/designer-skills",
+      "sourceType": "github",
+      "skillPath": "ui-design/skills/color-system/SKILL.md",
+      "computedHash": "f550f81c7f2979c9d6cb54b5c7b0f19c912e5d3e84d81b4c9d392e5a588a1c4c"
+    },
+    "critique-information-density": {
+      "source": "Owl-Listener/designer-skills",
+      "sourceType": "github",
+      "skillPath": "visual-critique/skills/critique-information-density/SKILL.md",
+      "computedHash": "d542f26e8d9526904c181a1e4c082caa676a88285f3a54bd56812c9977a1fee4"
+    },
+    "dark-mode-design": {
+      "source": "Owl-Listener/designer-skills",
+      "sourceType": "github",
+      "skillPath": "ui-design/skills/dark-mode-design/SKILL.md",
+      "computedHash": "a04e8eb924c96d387b374cd0307037c4e15b90587301fdb193b9ecc25bf473f4"
+    },
+    "design-first-ui-prompting": {
+      "source": "MengTo/Skills",
+      "sourceType": "github",
+      "skillPath": "agent-skills/ui/design-first-ui-prompting/SKILL.md",
+      "computedHash": "6ddc051f3401e74f56763a8e5cfba3f300e66c714c51b4364b247d6a330f84f9"
+    },
+    "emil-design-eng": {
+      "source": "emilkowalski/skills",
+      "sourceType": "github",
+      "skillPath": "skills/emil-design-eng/SKILL.md",
+      "computedHash": "55735a70a886326ee8ba1dd4d1ee040e4e9503a536891467e4ed7e114a69b0dd"
+    },
+    "error-handling-ux": {
+      "source": "Owl-Listener/designer-skills",
+      "sourceType": "github",
+      "skillPath": "interaction-design/skills/error-handling-ux/SKILL.md",
+      "computedHash": "f810f7aafa8fd8442bde18550039dfd820a19edf84e6084251194fa2a1c9d521"
+    },
+    "form-design": {
+      "source": "Owl-Listener/designer-skills",
+      "sourceType": "github",
+      "skillPath": "interaction-design/skills/form-design/SKILL.md",
+      "computedHash": "683cb7a36df743692c625e3ceb6bb9f8ce2e43423cfcb40afb9925b37082738c"
+    },
+    "frontend-design": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "skillPath": "skills/frontend-design/SKILL.md",
+      "computedHash": "83485963700bcf11d5bf78118facb301676b69d918fee2e45a95e7f1a2840f6c"
+    },
+    "heuristic-evaluation": {
+      "source": "Owl-Listener/designer-skills",
+      "sourceType": "github",
+      "skillPath": "prototyping-testing/skills/heuristic-evaluation/SKILL.md",
+      "computedHash": "0fffd830cdbdb8807363173506b34e6c856844cfa0d503f144c63282f1d265b8"
+    },
+    "improve-animations": {
+      "source": "emilkowalski/skills",
+      "sourceType": "github",
+      "skillPath": "skills/improve-animations/SKILL.md",
+      "computedHash": "197db8a2e4a2f009ad5aeef57fb9aafbec83f9023bfff269a4bf5ede1106584a"
+    },
+    "information-architecture": {
+      "source": "Owl-Listener/designer-skills",
+      "sourceType": "github",
+      "skillPath": "ux-strategy/skills/information-architecture/SKILL.md",
+      "computedHash": "072cd213ecb30ad7aed7c3d2e4b7b3db904a9932b4460a6c60220122cab99725"
+    },
+    "interface-review": {
+      "source": "jakubkrehel/skills",
+      "sourceType": "github",
+      "skillPath": "skills/interface-review/SKILL.md",
+      "computedHash": "635ca1213ec840ddbe45d21463f8122dad06cd92643610e09a0304bf2563388a"
+    },
+    "loading-states": {
+      "source": "Owl-Listener/designer-skills",
+      "sourceType": "github",
+      "skillPath": "interaction-design/skills/loading-states/SKILL.md",
+      "computedHash": "84670507ec9ceebb3411a57e202a939073d29b7035ef2b8f63a23982c2256a64"
+    },
+    "minimal": {
+      "source": "bergside/awesome-design-skills",
+      "sourceType": "github",
+      "skillPath": "skills/minimal/SKILL.md",
+      "computedHash": "5a28eb85c981007fb61b0b2be5b5fe329bd435e7262ee3db541e41cc3a63f15a"
+    },
+    "navigation-patterns": {
+      "source": "Owl-Listener/designer-skills",
+      "sourceType": "github",
+      "skillPath": "interaction-design/skills/navigation-patterns/SKILL.md",
+      "computedHash": "8c3621a27652067dc10159e7013ce436f01db7e3b6b873491fdd950c353a6ba2"
+    },
+    "no-ai-design-slop": {
+      "source": "MengTo/Skills",
+      "sourceType": "github",
+      "skillPath": "agent-skills/ui/no-ai-design-slop/SKILL.md",
+      "computedHash": "9c83a9f3855b69dab04224cec2bfc821107d3f0d1da2f5584bdfc550807446b3"
+    },
+    "remove-animations": {
+      "source": "emilkowalski/skills",
+      "sourceType": "github",
+      "skillPath": "skills/remove-animations/SKILL.md",
+      "computedHash": "f6eec22d000b9d9779b7f1b1734f930d37d37ead204f36f1b4b097cd47f9f16d"
+    },
+    "review-animations": {
+      "source": "emilkowalski/skills",
+      "sourceType": "github",
+      "skillPath": "skills/review-animations/SKILL.md",
+      "computedHash": "7d23a794b6cb0191a68485b87d546adc9bb5ea93aa4168b299e2fefeea940790"
+    },
+    "spacing-system": {
+      "source": "Owl-Listener/designer-skills",
+      "sourceType": "github",
+      "skillPath": "ui-design/skills/spacing-system/SKILL.md",
+      "computedHash": "b2b0e0c85bae270f40829ca43b27be5e5518c649abdc47482bb162a1105d12d3"
+    },
+    "state-machine": {
+      "source": "jakubkrehel/skills",
+      "sourceType": "github",
+      "skillPath": "skills/state-machine/SKILL.md",
+      "computedHash": "17ec370138b8959afdcf60f6e0a4765497cbcc723269225745f9ac5c11677ec2"
+    },
+    "typography-scale": {
+      "source": "Owl-Listener/designer-skills",
+      "sourceType": "github",
+      "skillPath": "ui-design/skills/typography-scale/SKILL.md",
+      "computedHash": "61f0458e6a23207bdb10aba692c54532493093ca2f88f76093de0c897855cc63"
+    },
+    "variant": {
+      "source": "jakubkrehel/skills",
+      "sourceType": "github",
+      "skillPath": "skills/variant/SKILL.md",
+      "computedHash": "3f761b70ef27b2c7e19451c00f5d70877ac9d296967b1363c97254f747ac23dc"
+    },
+    "visual-hierarchy": {
+      "source": "Owl-Listener/designer-skills",
+      "sourceType": "github",
+      "skillPath": "ui-design/skills/visual-hierarchy/SKILL.md",
+      "computedHash": "587a321ecba609102957251f39bd4cc1ddfcbce551466a589c14f9f0898156f6"
+    }
+  }
+}

@@ -49,6 +49,7 @@
 
 - `.agents/skills/` — инструкции для агентов (Codex читает отсюда; Claude — по ссылке из этого файла).
 - **Перед любой работой с интерфейсом** прочитай `.agents/skills/frontend-design/SKILL.md` и раздел «Визуальный стиль» в `docs/07-ux.md` + решение 011 в `docs/decisions.md`. Не меняй дизайн-токены (`app/globals.css`) без записи в decisions.
+- **Дизайн-скиллы (редизайн, решение 024)** — в `.agents/skills/` и `.claude/skills/`: `frontend-design`, `canvas-design` (anthropics); `emil-design-eng`, `review-animations`, `improve-animations`, `remove-animations` (emilkowalski); `better-ui`, `better-interface`, `better-layout`, `better-typography`, `better-colors`, `better-accessibility`, `better-writing`, `interface-review`, `state-machine`, `variant` (jakubkrehel); `minimal`, `clean` (bergside); `no-ai-design-slop`, `audit-ai-design-slop`, `design-first-ui-prompting` (MengTo); `information-architecture`, `navigation-patterns`, `form-design`, `visual-hierarchy`, `spacing-system`, `typography-scale`, `color-system`, `dark-mode-design`, `loading-states`, `error-handling-ux`, `heuristic-evaluation`, `critique-information-density` (Owl-Listener). Перед любой UI-работой читать `frontend-design`, `no-ai-design-slop`, `better-ui`.
 - Новые скиллы ставить командой `npx skills add <repo> -a codex -a claude-code` (CLI vercel-labs/skills) в папку проекта и записывать сюда.
 
 ## Команды
