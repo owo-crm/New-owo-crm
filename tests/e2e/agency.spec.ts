@@ -162,7 +162,7 @@ test("абонемент: CRM клиента с модулями, закрыты
   await expect(page.getByRole("link", { name: client }).first()).toBeVisible();
 });
 
-test("услуги: каталог с ответственными → услуга клиенту со своей ценой → заказ, 65 % ответственному", async ({
+test("услуги: каталог с ответственными → услуга клиенту → заказ, 65 % ответственному", async ({
   page,
 }, info) => {
   await login(page);
@@ -184,12 +184,12 @@ test("услуги: каталог с ответственными → услу�
   const panel = page.getByTestId("client-services");
   await panel.getByLabel("Wybierz usługę").click();
   await panel.getByRole("option", { name: "Strony internetowe" }).click();
-  await panel.getByPlaceholder("Cena (zł)").fill("3500");
-  await panel.getByRole("button", { name: "Przypisz usługę" }).click();
+  await panel.getByRole("button", { name: "Przypisz" }).click();
   await expect(panel).toContainText("Strony internetowe");
 
+  // Цены у услуги нет: сумма заказа договорная и вводится руками (решение владельца 12.11).
   await panel.getByRole("link", { name: "Utwórz zlecenie" }).click();
-  await expect(page.getByLabel("Kwota netto (zł)")).toHaveValue("3500");
+  await page.getByLabel("Kwota netto (zł)").fill("3500");
   await expect(page.getByText(/65 % otrzymuje osoba odpowiedzialna/)).toBeVisible();
   await expect(page.getByTestId("split-preview")).toContainText(/Ty dostaniesz: 2625,00\s*zł/);
   await page.screenshot({
