@@ -17,6 +17,8 @@ import { formatMoney } from "@/lib/finance/money";
 import { addMonths, plDate, warsawToday } from "@/lib/format";
 import { t, type MessageKey } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
+import { StatCards } from "@/components/app-shell/stat-cards";
+import { AlarmClock, CircleCheck, Hourglass, ReceiptText } from "lucide-react";
 
 export const metadata: Metadata = { title: t("agency.pageTitle") };
 
@@ -33,13 +35,30 @@ export default async function AgencyPage({ searchParams }: PageProps<"/agencja">
   const link = (iso: string) => `/agencja?m=${iso.slice(0, 7)}`;
 
   const stats = [
-    { value: data.invoiced_grosze, label: t("agency.stats.invoiced") },
-    { value: data.received_grosze, label: t("agency.stats.received") },
-    { value: data.expected_grosze, label: t("agency.stats.expected") },
     {
-      value: data.overdue_grosze,
+      value: formatMoney(data.invoiced_grosze),
+      label: t("agency.stats.invoiced"),
+      icon: ReceiptText,
+      tone: "#8b6cf0",
+    },
+    {
+      value: formatMoney(data.received_grosze),
+      label: t("agency.stats.received"),
+      icon: CircleCheck,
+      tone: "var(--ok)",
+    },
+    {
+      value: formatMoney(data.expected_grosze),
+      label: t("agency.stats.expected"),
+      icon: Hourglass,
+      tone: "var(--info)",
+    },
+    {
+      value: formatMoney(data.overdue_grosze),
       label: t("agency.stats.overdue"),
       urgent: data.overdue_grosze > 0,
+      icon: AlarmClock,
+      tone: "var(--urgent)",
     },
   ];
   const { totals, attention } = data;
@@ -88,21 +107,7 @@ export default async function AgencyPage({ searchParams }: PageProps<"/agencja">
         }
       />
 
-      <div className="border-line bg-surface mb-5 grid grid-cols-2 gap-px overflow-hidden rounded-xl border lg:grid-cols-4">
-        {stats.map((s) => (
-          <div key={s.label} className="bg-surface px-4 py-3.5">
-            <p
-              className={cn(
-                "text-[clamp(1.1rem,4vw,1.4rem)] leading-none font-semibold tabular-nums",
-                s.urgent && "text-urgent",
-              )}
-            >
-              {formatMoney(s.value)}
-            </p>
-            <p className="text-ink-soft mt-1.5 text-[13px]">{s.label}</p>
-          </div>
-        ))}
-      </div>
+      <StatCards items={stats} className="lg:grid-cols-4" />
       {data.ad_budget_grosze > 0 ? (
         <p className="text-ink-soft -mt-2 mb-5 text-[13px]">
           {t("agency.stats.adBudget", { amount: formatMoney(data.ad_budget_grosze) })}

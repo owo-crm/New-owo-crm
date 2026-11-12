@@ -7,7 +7,8 @@
     "email": "E-mail",
     "password": "Hasło",
     "loading": "Chwileczkę…",
-    "unknownError": "Coś poszło nie tak. Spróbuj ponownie za chwilę."
+    "unknownError": "Coś poszło nie tak. Spróbuj ponownie za chwilę.",
+    "close": "Zamknij"
   },
   "auth": {
     "login": {
@@ -81,7 +82,11 @@
     "finance": "Finanse",
     "agency": "Agencja",
     "dashboard": "Pulpit",
-    "stats": "Statystyka"
+    "stats": "Statystyka",
+    "groupWork": "Praca",
+    "groupMoney": "Pieniądze",
+    "groupCompany": "Firma",
+    "menu": "Menu"
   },
   "today": {
     "title": "Dzisiaj",
@@ -262,7 +267,15 @@
       "listopad",
       "grudzień"
     ],
-    "weekdays": ["pon", "wt", "śr", "czw", "pt", "sob", "ndz"]
+    "weekdays": [
+      "pon",
+      "wt",
+      "śr",
+      "czw",
+      "pt",
+      "sob",
+      "ndz"
+    ]
   },
   "documents": {
     "emptyTitle": "Oferty i umowy",

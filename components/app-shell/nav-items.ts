@@ -1,10 +1,22 @@
-import { BarChart3, Briefcase, Inbox, LayoutDashboard, Settings } from "lucide-react";
+import {
+  BarChart3,
+  Bell,
+  Briefcase,
+  CalendarDays,
+  CreditCard,
+  Inbox,
+  LayoutDashboard,
+  Layers,
+  PlugZap,
+  Settings,
+  Upload,
+  Users,
+} from "lucide-react";
 import type { MessageKey } from "@/lib/i18n";
 
 /**
- * Навигация (решение 024): Pulpit · Leady · Agencja (только у OWO Ads) · Statystyka · Ustawienia.
- * Календарь — вкладка в «Leady», финансы — в «Statystyka», документы — в карточке лида.
- * Общий модуль: им пользуются и серверная оболочка, и клиентское меню.
+ * Навигация (решение 032): все разделы видны сразу, по группам — Praca · Pieniądze · Firma.
+ * Ничего не прячется в «Ustawienia». Общий модуль для серверной оболочки и клиентского меню.
  */
 export type NavItem = {
   href: string;
@@ -12,30 +24,101 @@ export type NavItem = {
   icon: React.ComponentType<{ className?: string }>;
   /** Другие адреса, которые подсвечивают этот пункт. */
   also?: string[];
+  /** Подсвечивать только точный адрес (а не вложенные). */
+  exact?: boolean;
+  /** Модуль абонемента, без которого пункт скрыт. */
+  module?: string;
+  /** Только для кабинета агентства. */
+  agency?: boolean;
+  /** Только владелец/админ бизнеса. */
+  admin?: boolean;
 };
+
+export type NavGroup = { label: MessageKey; items: NavItem[] };
 
 export const DASHBOARD: NavItem = {
   href: "/dzisiaj",
   label: "nav.dashboard",
   icon: LayoutDashboard,
 };
-export const LEADS: NavItem = {
-  href: "/leady",
-  label: "nav.leads",
-  icon: Inbox,
-  also: ["/kalendarz"],
+export const LEADS: NavItem = { href: "/leady", label: "nav.leads", icon: Inbox };
+export const CALENDAR: NavItem = {
+  href: "/kalendarz",
+  label: "nav.calendar",
+  icon: CalendarDays,
+  module: "calendar",
 };
-export const AGENCY: NavItem = { href: "/agencja", label: "nav.agency", icon: Briefcase };
+export const AGENCY: NavItem = {
+  href: "/agencja",
+  label: "nav.agency",
+  icon: Briefcase,
+  agency: true,
+  also: ["/agencja/klienci", "/agencja/zlecenia"],
+  exact: true,
+};
+export const SERVICES: NavItem = {
+  href: "/agencja/uslugi",
+  label: "agency.services.title",
+  icon: Layers,
+  agency: true,
+};
 export const STATS: NavItem = {
   href: "/statystyka",
   label: "nav.stats",
   icon: BarChart3,
   also: ["/finanse"],
 };
-export const SETTINGS: NavItem = { href: "/ustawienia", label: "nav.settings", icon: Settings };
+export const TEAM: NavItem = { href: "/ustawienia/zespol", label: "settings.team", icon: Users };
+export const CHANNELS: NavItem = {
+  href: "/ustawienia/zrodla",
+  label: "settings.channels",
+  icon: PlugZap,
+  admin: true,
+};
+export const NOTIFICATIONS: NavItem = {
+  href: "/ustawienia/powiadomienia",
+  label: "settings.notifications",
+  icon: Bell,
+};
+export const SUBSCRIPTION: NavItem = {
+  href: "/ustawienia/abonament",
+  label: "billing.settings.title",
+  icon: CreditCard,
+};
+export const IMPORT: NavItem = {
+  href: "/ustawienia/import",
+  label: "settings.import",
+  icon: Upload,
+  admin: true,
+};
+export const SETTINGS: NavItem = {
+  href: "/ustawienia",
+  label: "nav.settings",
+  icon: Settings,
+  exact: true,
+};
 
-export function navItems(agency: boolean): NavItem[] {
-  return agency ? [DASHBOARD, LEADS, AGENCY, STATS] : [DASHBOARD, LEADS, STATS];
+export const NAV_GROUPS: NavGroup[] = [
+  { label: "nav.groupWork", items: [DASHBOARD, LEADS, CALENDAR] },
+  { label: "nav.groupMoney", items: [AGENCY, SERVICES, STATS] },
+  {
+    label: "nav.groupCompany",
+    items: [TEAM, CHANNELS, NOTIFICATIONS, SUBSCRIPTION, IMPORT, SETTINGS],
+  },
+];
+
+export const NAV_ALL = NAV_GROUPS.flatMap((g) => g.items);
+
+export type NavContext = { agency: boolean; modules: string[]; admin: boolean };
+
+export function visible(item: NavItem, ctx: NavContext) {
+  if (item.agency && !ctx.agency) return false;
+  if (item.module && !ctx.modules.includes(item.module)) return false;
+  if (item.admin && !ctx.admin) return false;
+  return true;
 }
 
-export const NAV_ALL = [DASHBOARD, LEADS, AGENCY, STATS, SETTINGS];
+/** Плоский список для поиска ⌘K. */
+export function navItems(ctx: NavContext) {
+  return NAV_ALL.filter((i) => visible(i, ctx));
+}

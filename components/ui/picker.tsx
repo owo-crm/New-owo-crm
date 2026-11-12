@@ -42,6 +42,20 @@ type PickerProps = {
   menuClassName?: string;
 };
 
+/**
+ * Классы оформления старого <select> (рамка, фон, высота) к обёртке не применяем —
+ * у списка своё оформление; оставляем только раскладку (ширина, flex, отступы снаружи).
+ */
+function layoutOnly(className?: string) {
+  return className
+    ?.split(/\s+/)
+    .filter(
+      (c) =>
+        !/^(lg:)?(border|bg-|h-\d|rounded|px-|py-|text-|placeholder|hover:|focus:|aria-)/.test(c),
+    )
+    .join(" ");
+}
+
 function readOptions(children: ReactNode): Option[] {
   const out: Option[] = [];
   Children.forEach(children, (child) => {
@@ -146,7 +160,7 @@ export function Picker({
   }
 
   return (
-    <div ref={root} className={cn("relative min-w-0", className)}>
+    <div ref={root} className={cn("relative min-w-0", layoutOnly(className))}>
       {name ? <input type="hidden" name={name} value={current} required={required} /> : null}
       <button
         type="button"

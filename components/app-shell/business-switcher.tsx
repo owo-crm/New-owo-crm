@@ -53,7 +53,12 @@ export function BusinessSwitcher({
         else start(() => switchOrganization(value));
       }}
       trigger={
-        <span className="hover:bg-surface-2 flex h-10 items-center gap-2.5 rounded-lg px-2.5 transition-colors lg:h-9">
+        <span
+          className={cn(
+            "hover:bg-surface-2 flex h-10 items-center gap-2.5 rounded-lg px-2.5 transition-colors lg:h-9",
+            className,
+          )}
+        >
           <span
             className="size-2.5 shrink-0 rounded-[3px]"
             style={{ background: current.brandColor }}

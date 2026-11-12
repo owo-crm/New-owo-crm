@@ -1,6 +1,17 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, CalendarDays, Check, Phone } from "lucide-react";
+import {
+  ArrowRight,
+  CalendarDays,
+  Check,
+  Hourglass,
+  Inbox,
+  Phone,
+  Timer,
+  Trophy,
+  UserRound,
+} from "lucide-react";
+import { StatCards } from "@/components/app-shell/stat-cards";
 import { Card, PageHeader } from "@/components/app-shell/page";
 import { QueueRow } from "@/components/leads/queue";
 import { LiveUpdates } from "@/components/leads/live-updates";
@@ -18,14 +29,22 @@ export default async function TodayPage() {
   const q = await getWorkQueue();
 
   const stats = [
-    { value: String(q.waiting_count), label: t("today.statWaiting"), urgent: q.waiting_count > 0 },
+    {
+      value: String(q.waiting_count),
+      label: t("today.statWaiting"),
+      urgent: q.waiting_count > 0,
+      icon: Hourglass,
+      tone: "var(--urgent)",
+    },
     {
       value: q.response_minutes === null ? "—" : formatWaiting(Math.round(q.response_minutes)),
       label: t("today.statResponse"),
+      icon: Timer,
+      tone: "var(--info)",
     },
-    { value: String(q.mine_count), label: t("today.statMine") },
-    { value: String(q.month_leads), label: t("today.statMonth") },
-    { value: String(q.month_won), label: t("today.statWon") },
+    { value: String(q.mine_count), label: t("today.statMine"), icon: UserRound, tone: "#8b6cf0" },
+    { value: String(q.month_leads), label: t("today.statMonth"), icon: Inbox, tone: "var(--hold)" },
+    { value: String(q.month_won), label: t("today.statWon"), icon: Trophy, tone: "var(--ok)" },
   ];
 
   return (
@@ -36,21 +55,7 @@ export default async function TodayPage() {
         aside={<LiveUpdates organizationId={organization.id} />}
       />
 
-      <div className="border-line bg-line mb-6 grid grid-cols-2 gap-px overflow-hidden rounded-xl border sm:grid-cols-3 lg:grid-cols-5">
-        {stats.map((s) => (
-          <div key={s.label} className="bg-surface px-4 py-3.5">
-            <p
-              className={cn(
-                "text-[22px] leading-none font-semibold tabular-nums",
-                s.urgent && "text-urgent",
-              )}
-            >
-              {s.value}
-            </p>
-            <p className="text-ink-soft mt-1.5 text-[13px]">{s.label}</p>
-          </div>
-        ))}
-      </div>
+      <StatCards items={stats} />
 
       <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
         <Card>

@@ -4,7 +4,6 @@ import { cn } from "@/lib/utils";
 
 export function PageHeader({
   title,
-  subtitle,
   aside,
   back,
 }: {
@@ -15,23 +14,26 @@ export function PageHeader({
   back?: { href: string; label: string };
 }) {
   return (
-    <header className="mb-6 flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
+    <header className="mb-5 flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
       <div className="max-w-full min-w-0">
         {back ? (
-          <Link
-            href={back.href}
-            className="text-ink-soft hover:text-ink mb-2 -ml-1 inline-flex h-8 items-center gap-1 rounded-md pr-2 pl-1 text-[13px] font-medium transition-colors hover:bg-[var(--surface-2)]"
+          <nav
+            aria-label="breadcrumb"
+            className="text-ink-faint mb-1 flex items-center gap-1 text-[13px]"
           >
-            <ChevronLeft className="size-4" aria-hidden />
-            {back.label}
-          </Link>
+            <Link
+              href={back.href}
+              className="hover:text-ink inline-flex items-center gap-1 transition-colors"
+            >
+              <ChevronLeft className="size-4" aria-hidden />
+              {back.label}
+            </Link>
+            <span aria-hidden>/</span>
+            <span className="text-ink-soft truncate">{title}</span>
+          </nav>
         ) : null}
-        <h1 className="text-[20px] leading-7 font-semibold tracking-[-0.015em] break-words">
-          {title}
-        </h1>
-        {subtitle ? (
-          <p className="text-ink-soft mt-0.5 max-w-[44rem] text-[13.5px]">{subtitle}</p>
-        ) : null}
+        <h1 className="text-[24px] leading-8 font-bold tracking-[-0.02em] break-words">{title}</h1>
+        {/* Подписи под заголовком убраны (решение 032): экран говорит сам за себя. */}
       </div>
       {aside}
     </header>
@@ -67,9 +69,12 @@ export function Card({
 }) {
   return (
     <section
-      className={cn("border-line bg-surface rounded-xl border px-4 py-4 sm:px-5", className)}
+      className={cn(
+        "border-line bg-surface rounded-2xl border px-4 py-4 shadow-[var(--shadow)] sm:px-5",
+        className,
+      )}
     >
-      {title ? <h2 className="mb-3 text-[13.5px] font-semibold">{title}</h2> : null}
+      {title ? <h2 className="mb-3 text-[15px] font-semibold">{title}</h2> : null}
       {children}
     </section>
   );

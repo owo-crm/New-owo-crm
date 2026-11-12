@@ -9,17 +9,17 @@ export function AgencyTabs({ current }: { current: "overview" | "services" }) {
     { key: "services", href: "/agencja/uslugi", label: "agency.services.title" },
   ];
   return (
-    <nav aria-label={t("nav.agency")} className="bg-surface-2 flex rounded-lg p-0.5">
+    <nav aria-label={t("nav.agency")} className="border-line flex gap-1 border-b">
       {tabs.map((tab) => (
         <Link
           key={tab.key}
           href={tab.href}
           aria-current={current === tab.key ? "page" : undefined}
           className={cn(
-            "h-8 rounded-md px-3 text-[13px] leading-8 font-medium lg:h-7 lg:leading-7",
+            "-mb-px border-b-2 px-3 pt-1 pb-2.5 text-[13.5px] font-medium transition-colors duration-150",
             current === tab.key
-              ? "bg-surface text-ink shadow-[var(--shadow)]"
-              : "text-ink-soft hover:text-ink",
+              ? "border-accent text-accent"
+              : "text-ink-soft hover:text-ink border-transparent",
           )}
         >
           {t(tab.label)}

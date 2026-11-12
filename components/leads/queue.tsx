@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useTransition } from "react";
 import { Phone } from "lucide-react";
+import { Avatar } from "@/components/ui/avatar";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { markContacted } from "@/lib/leads/actions";
 import { formatWaiting, HOT_AFTER_MINUTES, plDate } from "@/lib/format";
@@ -35,14 +36,17 @@ export function QueueRow({ lead, now }: { lead: WaitingLead; now: string }) {
       >
         {formatWaiting(minutes)}
       </p>
-      <div className="min-w-0">
-        <Link href={`/leady/${lead.id}`} className="truncate font-semibold hover:underline">
-          {lead.client_name}
-        </Link>
-        <p className="text-ink-soft text-[13px]">
-          {lead.phone_e164 || lead.email || t("leads.noContact")} · {lead.source_label}
-        </p>
-        {details ? <p className="text-ink-soft text-[13px]">{details}</p> : null}
+      <div className="flex min-w-0 items-start gap-3">
+        <Avatar name={lead.client_name} size={32} className="mt-0.5" />
+        <div className="min-w-0">
+          <Link href={`/leady/${lead.id}`} className="truncate font-semibold hover:underline">
+            {lead.client_name}
+          </Link>
+          <p className="text-ink-soft text-[13px]">
+            {lead.phone_e164 || lead.email || t("leads.noContact")} · {lead.source_label}
+          </p>
+          {details ? <p className="text-ink-soft text-[13px]">{details}</p> : null}
+        </div>
       </div>
       <div className="flex flex-wrap gap-2">
         {lead.phone_e164 ? (

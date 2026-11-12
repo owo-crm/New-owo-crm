@@ -12,7 +12,6 @@ import { requireOrganization } from "@/lib/auth/session";
 import { getLeadOptions, getLeads } from "@/lib/leads/queries";
 import { leadPageUrl, parseLeadFilters } from "@/lib/leads/filters";
 import { t } from "@/lib/i18n";
-import { cn } from "@/lib/utils";
 export const metadata: Metadata = { title: t("nav.leads") };
 export default async function Page({ searchParams }: PageProps<"/leady">) {
   const { organization } = await requireOrganization();
@@ -27,22 +26,17 @@ export default async function Page({ searchParams }: PageProps<"/leady">) {
         aside={
           <div className="flex flex-wrap items-center gap-2">
             <LiveUpdates organizationId={organization.id} />
-            <LeadViewTabs
-              current={filters.view === "board" ? "board" : "list"}
-              listHref={leadPageUrl({ ...filters, view: "list" }, 1)}
-              boardHref={leadPageUrl({ ...filters, view: "board" }, 1)}
-              calendar={organization.modules.includes("calendar")}
-            />
-            {/* На телефоне новый лид добавляется кнопкой «＋» в нижней панели. */}
-            <Link
-              href="/leady/nowy"
-              className={cn(buttonVariants({ variant: "primary" }), "max-sm:hidden")}
-            >
-              {t("leads.addLead")}
-            </Link>
           </div>
         }
       />
+      <div className="mb-4">
+        <LeadViewTabs
+          current={filters.view === "board" ? "board" : "list"}
+          listHref={leadPageUrl({ ...filters, view: "list" }, 1)}
+          boardHref={leadPageUrl({ ...filters, view: "board" }, 1)}
+          calendar={organization.modules.includes("calendar")}
+        />
+      </div>
       <LeadFiltersForm key={JSON.stringify(filters)} filters={filters} options={options} />
       {filters.view === "board" ? (
         <Kanban leads={leads} stages={options.stages} total={total} />

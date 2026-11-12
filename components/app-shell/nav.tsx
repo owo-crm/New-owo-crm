@@ -2,19 +2,28 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, Plus } from "lucide-react";
-import { AGENCY, DASHBOARD, LEADS, NAV_ALL, STATS, navItems, type NavItem } from "./nav-items";
+import { useEffect, useState } from "react";
+import { BarChart3, Briefcase, Inbox, LayoutDashboard, Menu, Plus, X } from "lucide-react";
+import { NAV_ALL, NAV_GROUPS, visible, type NavContext, type NavItem } from "./nav-items";
 import { cn } from "@/lib/utils";
 import { t } from "@/lib/i18n";
 
 function isActive(pathname: string, item: NavItem) {
-  return [item.href, ...(item.also ?? [])].some(
-    (h) => pathname === h || pathname.startsWith(h + "/"),
-  );
+  if (pathname === item.href) return true;
+  if (!item.exact && pathname.startsWith(item.href + "/")) return true;
+  return (item.also ?? []).some((h) => pathname === h || pathname.startsWith(h + "/"));
 }
 
 /** Пункт меню по адресу (иконки нельзя передавать с сервера — ищем пункт здесь). */
-export function NavLink({ href, badge }: { href: string; badge?: number }) {
+export function NavLink({
+  href,
+  badge,
+  onNavigate,
+}: {
+  href: string;
+  badge?: number;
+  onNavigate?: () => void;
+}) {
   const pathname = usePathname();
   const item = NAV_ALL.find((i) => i.href === href)!;
   const active = isActive(pathname, item);
@@ -22,16 +31,17 @@ export function NavLink({ href, badge }: { href: string; badge?: number }) {
   return (
     <Link
       href={item.href}
+      onClick={onNavigate}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "flex h-9 items-center gap-2.5 rounded-lg px-2.5 text-[13.5px] transition-colors duration-150",
+        "flex h-10 items-center gap-3 rounded-xl px-3 text-[14px] transition-colors duration-150 lg:h-9",
         active
-          ? "bg-accent/10 text-ink font-semibold"
+          ? "bg-accent/10 text-accent font-semibold"
           : "text-ink-soft hover:bg-surface-2 hover:text-ink",
       )}
     >
-      <Icon className={cn("size-4", active ? "text-accent" : "text-ink-faint")} />
-      <span className="flex-1">{t(item.label)}</span>
+      <Icon className={cn("size-[18px] shrink-0", active ? "text-accent" : "text-ink-faint")} />
+      <span className="min-w-0 flex-1 truncate">{t(item.label)}</span>
       {badge ? (
         <span className="bg-urgent min-w-5 rounded-full px-1.5 text-center text-[11px] leading-5 font-semibold text-white">
           {badge}
@@ -41,46 +51,70 @@ export function NavLink({ href, badge }: { href: string; badge?: number }) {
   );
 }
 
-/** Боковое меню на компьютере. waiting — сколько лидов ждут ответа (красный значок). */
-export function SidebarNav({
+/** Меню группами: Praca · Pieniądze · Firma. Пустые группы не показываются. */
+export function GroupedNav({
+  ctx,
   waiting = 0,
-  agency = false,
+  onNavigate,
 }: {
+  ctx: NavContext;
   waiting?: number;
-  agency?: boolean;
+  onNavigate?: () => void;
 }) {
   return (
-    <nav aria-label="Menu główne" className="grid gap-0.5">
-      {navItems(agency).map((item) => (
-        <NavLink
-          key={item.href}
-          href={item.href}
-          badge={item.href === "/leady" ? waiting : undefined}
-        />
-      ))}
+    <nav aria-label="Menu główne" className="grid gap-5">
+      {NAV_GROUPS.map((group) => {
+        const items = group.items.filter((i) => visible(i, ctx));
+        if (!items.length) return null;
+        return (
+          <div key={group.label} className="grid gap-0.5">
+            <p className="text-ink-faint mb-1 px-3 text-[12px] font-medium">{t(group.label)}</p>
+            {items.map((item) => (
+              <NavLink
+                key={item.href}
+                href={item.href}
+                badge={item.href === "/leady" ? waiting : undefined}
+                onNavigate={onNavigate}
+              />
+            ))}
+          </div>
+        );
+      })}
     </nav>
   );
 }
 
-/** Нижняя панель на телефоне: Pulpit · Leady · ＋ · Agencja/Statystyka · Więcej. */
-export function BottomNav({ agency = false }: { agency?: boolean }) {
+/**
+ * Нижняя панель на телефоне: Pulpit · Leady · ＋ · Agencja/Statystyka · Menu.
+ * «Menu» открывает шторку со всеми разделами — те же группы, что на компьютере.
+ */
+export function BottomNav({ ctx, waiting = 0 }: { ctx: NavContext; waiting?: number }) {
   const pathname = usePathname();
-  const items: (NavItem | "plus")[] = [
-    DASHBOARD,
-    LEADS,
-    "plus",
-    agency ? AGENCY : STATS,
-    { href: "/ustawienia", label: "nav.more", icon: Menu, also: agency ? ["/statystyka"] : [] },
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    document.body.style.overflow = open ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [open]);
+  const fourth = ctx.agency
+    ? { href: "/agencja", label: t("nav.agency"), icon: Briefcase }
+    : { href: "/statystyka", label: t("nav.stats"), icon: BarChart3 };
+  const tabs = [
+    { href: "/dzisiaj", label: t("nav.dashboard"), icon: LayoutDashboard },
+    { href: "/leady", label: t("nav.leads"), icon: Inbox },
+    null,
+    fourth,
   ];
   return (
-    <nav
-      aria-label="Menu główne"
-      className="border-line bg-surface/95 fixed inset-x-0 bottom-0 z-30 border-t pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
-    >
-      <ul className="mx-auto grid h-16 max-w-md grid-cols-5 items-center">
-        {items.map((item) => {
-          if (item === "plus") {
-            return (
+    <>
+      <nav
+        aria-label="Menu główne"
+        className="border-line bg-surface/95 fixed inset-x-0 bottom-0 z-30 border-t pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
+      >
+        <ul className="mx-auto grid h-16 w-full max-w-md grid-cols-5 items-center">
+          {tabs.map((tab) =>
+            tab === null ? (
               <li key="plus" className="flex justify-center">
                 <Link
                   href="/leady/nowy"
@@ -90,27 +124,69 @@ export function BottomNav({ agency = false }: { agency?: boolean }) {
                   <Plus className="size-5" />
                 </Link>
               </li>
-            );
-          }
-          const active = isActive(pathname, item);
-          const Icon = item.icon;
-          return (
-            <li key={item.href}>
-              <Link
-                href={item.href}
-                aria-current={active ? "page" : undefined}
-                className={cn(
-                  "flex flex-col items-center gap-1 py-2 text-[11px] font-medium",
-                  active ? "text-accent" : "text-ink-faint",
-                )}
+            ) : (
+              <li key={tab.href} className="min-w-0">
+                <Link
+                  href={tab.href}
+                  aria-current={pathname.startsWith(tab.href) ? "page" : undefined}
+                  className={cn(
+                    "relative flex flex-col items-center gap-1 py-2 text-[11px] font-medium",
+                    pathname.startsWith(tab.href) ? "text-accent" : "text-ink-faint",
+                  )}
+                >
+                  <tab.icon className="size-5" />
+                  <span className="max-w-full truncate px-1">{tab.label}</span>
+                  {tab.href === "/leady" && waiting ? (
+                    <span className="bg-urgent absolute top-1 left-1/2 ml-2 min-w-4 rounded-full px-1 text-center text-[10px] leading-4 font-semibold text-white">
+                      {waiting}
+                    </span>
+                  ) : null}
+                </Link>
+              </li>
+            ),
+          )}
+          <li className="min-w-0">
+            <button
+              type="button"
+              onClick={() => setOpen(true)}
+              aria-expanded={open}
+              className="text-ink-faint flex w-full flex-col items-center gap-1 py-2 text-[11px] font-medium"
+            >
+              <Menu className="size-5" />
+              {t("nav.menu")}
+            </button>
+          </li>
+        </ul>
+      </nav>
+      {open ? (
+        <div
+          className="fixed inset-0 z-50 lg:hidden"
+          role="dialog"
+          aria-modal="true"
+          aria-label={t("nav.menu")}
+        >
+          <button
+            type="button"
+            aria-label={t("common.close")}
+            className="absolute inset-0 bg-black/30"
+            onClick={() => setOpen(false)}
+          />
+          <div className="bg-surface absolute inset-x-0 bottom-0 max-h-[85dvh] overflow-y-auto rounded-t-2xl px-3 pt-3 pb-[calc(1rem+env(safe-area-inset-bottom))] shadow-[var(--shadow-pop)]">
+            <div className="mb-2 flex items-center justify-between px-3">
+              <span className="bg-line-strong mx-auto h-1 w-10 rounded-full" aria-hidden />
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                aria-label={t("common.close")}
+                className="text-ink-faint absolute right-4 flex size-9 items-center justify-center rounded-lg"
               >
-                <Icon className="size-5" />
-                {t(item.label)}
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
-    </nav>
+                <X className="size-5" />
+              </button>
+            </div>
+            <GroupedNav ctx={ctx} waiting={waiting} onNavigate={() => setOpen(false)} />
+          </div>
+        </div>
+      ) : null}
+    </>
   );
 }

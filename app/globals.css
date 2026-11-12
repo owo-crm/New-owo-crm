@@ -7,65 +7,65 @@
 */
 :root {
   color-scheme: light;
-  --bg: #f7f7f5;
+  --bg: #f4f5f8;
   --surface: #ffffff;
-  --surface-2: #f2f2ef;
-  --line: #e7e7e3;
-  --line-strong: #d4d4cf;
-  --ink: #18181b;
-  --ink-soft: #5d5d65;
-  --ink-faint: #8b8b93;
-  --urgent: #d92d20;
-  --hold: #b45309;
-  --ok: #15803d;
+  --surface-2: #f1f3f6;
+  --line: #e7e9ee;
+  --line-strong: #d5d9e0;
+  --ink: #161a23;
+  --ink-soft: #596171;
+  --ink-faint: #8a91a0;
+  --urgent: #e0453a;
+  --hold: #c27410;
+  --ok: #13945b;
   --brand: #e8000d;
   --focus: #2563eb;
   /* Акцент интерфейса (решение 028): главные действия, активный пункт меню, ссылки. */
-  --accent: #5b5bd6;
+  --accent: #3d6cf4;
   --accent-ink: #ffffff;
-  --info: #0b6bcb;
-  --shadow: 0 0 0 1px rgb(24 24 27 / 0.04), 0 1px 2px rgb(24 24 27 / 0.04);
+  --info: #0b8bd9;
+  --shadow: 0 1px 2px rgb(22 26 35 / 0.04), 0 2px 8px -2px rgb(22 26 35 / 0.05);
   --shadow-pop: 0 0 0 1px rgb(24 24 27 / 0.06), 0 8px 24px -6px rgb(24 24 27 / 0.16);
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
-    --bg: #0e0e10;
-    --surface: #151517;
-    --surface-2: #1c1c1f;
-    --line: #26262a;
-    --line-strong: #35353b;
-    --ink: #ededef;
-    --ink-soft: #a1a1a9;
-    --ink-faint: #6f6f78;
-    --urgent: #ff5a52;
-    --hold: #f0a742;
-    --ok: #46c27f;
+    --bg: #0d0f13;
+    --surface: #161920;
+    --surface-2: #1e222a;
+    --line: #272c35;
+    --line-strong: #363c47;
+    --ink: #eceef3;
+    --ink-soft: #a3aab8;
+    --ink-faint: #707888;
+    --urgent: #ff6a5f;
+    --hold: #f2ad4e;
+    --ok: #3fcb85;
     --focus: #7aa5ff;
-    --accent: #8b8bf5;
+    --accent: #7193ff;
     --accent-ink: #0e0e10;
-    --info: #5aa9ff;
+    --info: #4fb6f2;
     --shadow: 0 0 0 1px rgb(255 255 255 / 0.04);
     --shadow-pop: 0 0 0 1px rgb(255 255 255 / 0.08), 0 12px 32px -8px rgb(0 0 0 / 0.6);
   }
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #0e0e10;
-  --surface: #151517;
-  --surface-2: #1c1c1f;
-  --line: #26262a;
-  --line-strong: #35353b;
-  --ink: #ededef;
-  --ink-soft: #a1a1a9;
-  --ink-faint: #6f6f78;
-  --urgent: #ff5a52;
-  --hold: #f0a742;
-  --ok: #46c27f;
+  --bg: #0d0f13;
+  --surface: #161920;
+  --surface-2: #1e222a;
+  --line: #272c35;
+  --line-strong: #363c47;
+  --ink: #eceef3;
+  --ink-soft: #a3aab8;
+  --ink-faint: #707888;
+  --urgent: #ff6a5f;
+  --hold: #f2ad4e;
+  --ok: #3fcb85;
   --focus: #7aa5ff;
-  --accent: #8b8bf5;
+  --accent: #7193ff;
   --accent-ink: #0e0e10;
-  --info: #5aa9ff;
+  --info: #4fb6f2;
   --shadow: 0 0 0 1px rgb(255 255 255 / 0.04);
   --shadow-pop: 0 0 0 1px rgb(255 255 255 / 0.08), 0 12px 32px -8px rgb(0 0 0 / 0.6);
 }
@@ -78,7 +78,7 @@
   border-radius: 999px;
   padding: 0.2rem 0.6rem;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   white-space: nowrap;
   color: var(--badge, var(--ink-soft));
   background: color-mix(in srgb, var(--badge, var(--ink-soft)) 13%, transparent);

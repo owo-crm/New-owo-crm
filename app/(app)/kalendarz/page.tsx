@@ -53,12 +53,6 @@ export default async function CalendarPage({ searchParams }: PageProps<"/kalenda
         subtitle={`${MONTHS[m - 1]} ${year} · ${t("calendar.intro")}`}
         aside={
           <div className="flex flex-wrap items-center gap-2">
-            <LeadViewTabs
-              current="calendar"
-              listHref="/leady"
-              boardHref="/leady?view=board"
-              calendar
-            />
             <Link
               href={link(addMonths(month, -1))}
               aria-label={t("calendar.prev")}
@@ -79,6 +73,9 @@ export default async function CalendarPage({ searchParams }: PageProps<"/kalenda
           </div>
         }
       />
+      <div className="mb-4">
+        <LeadViewTabs current="calendar" listHref="/leady" boardHref="/leady?view=board" calendar />
+      </div>
       <p className="text-ink-soft mb-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px]">
         <span className="flex items-center gap-2">
           <span className="bg-ok/25 border-ok/50 size-3 rounded border" aria-hidden />

@@ -10,6 +10,8 @@ import { formatMoney } from "@/lib/finance/money";
 import { addMonths, plDate, warsawToday } from "@/lib/format";
 import { t } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
+import { StatCards } from "@/components/app-shell/stat-cards";
+import { AlarmClock, FileSignature, Hourglass, Wallet } from "lucide-react";
 
 export const metadata: Metadata = { title: t("nav.stats") };
 
@@ -47,14 +49,31 @@ export default async function FinancePage({ searchParams }: PageProps<"/statysty
   const link = (iso: string) => `/statystyka?m=${iso.slice(0, 7)}`;
 
   const stats = [
-    { value: formatMoney(data.paid_grosze), label: t("finance.statPaid") },
-    { value: formatMoney(data.expected_grosze), label: t("finance.statExpected") },
+    {
+      value: formatMoney(data.paid_grosze),
+      label: t("finance.statPaid"),
+      icon: Wallet,
+      tone: "var(--ok)",
+    },
+    {
+      value: formatMoney(data.expected_grosze),
+      label: t("finance.statExpected"),
+      icon: Hourglass,
+      tone: "var(--info)",
+    },
     {
       value: formatMoney(data.overdue_grosze),
       label: t("finance.statOverdue"),
       urgent: data.overdue_grosze > 0,
+      icon: AlarmClock,
+      tone: "var(--urgent)",
     },
-    { value: formatMoney(data.signed_grosze), label: t("finance.statSigned") },
+    {
+      value: formatMoney(data.signed_grosze),
+      label: t("finance.statSigned"),
+      icon: FileSignature,
+      tone: "#8b6cf0",
+    },
   ];
   const maxMonth = Math.max(1, ...data.months.map((x) => x.paid_grosze));
   const maxStage = Math.max(1, ...data.funnel.map((s) => s.leads));
@@ -87,21 +106,7 @@ export default async function FinancePage({ searchParams }: PageProps<"/statysty
         }
       />
 
-      <div className="border-line bg-surface mb-5 grid grid-cols-2 gap-px overflow-hidden rounded-xl border lg:grid-cols-4">
-        {stats.map((s) => (
-          <div key={s.label} className="bg-surface px-4 py-3.5">
-            <p
-              className={cn(
-                "text-[22px] leading-none font-semibold tabular-nums",
-                s.urgent && "text-urgent",
-              )}
-            >
-              {s.value}
-            </p>
-            <p className="text-ink-soft mt-1.5 text-[13px]">{s.label}</p>
-          </div>
-        ))}
-      </div>
+      <StatCards items={stats} className="lg:grid-cols-4" />
 
       <div className="grid items-start gap-5 lg:grid-cols-2">
         <Card title={t("finance.overdueTitle")}>
