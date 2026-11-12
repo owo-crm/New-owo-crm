@@ -114,7 +114,7 @@ create policy "members update" on leads for update using (is_member(organization
 
 Функции: `has_module(org, module)`, `manages_organization(org)`, `billable_seats(org)` (без обслуживающих аккаунтов). Шаг чек-листа с `agency_setup_steps.module` показывается, только если модуль включён; шаг `subscription` отмечается сам при активной подписке.
 
-### Почта фирмы (миграция `20261112000027_business_mail.sql`, решение 035)
+### Почта фирмы (миграция `20261112000028_business_mail.sql`, решение 035)
 | Таблица | Ключевые поля |
 |---|---|
 | `organization_mail_settings` | organization_id (PK), transport (`none`/`smtp`/`resend`), from_name, from_email, reply_to, smtp_host, smtp_port, smtp_user, secret_ciphertext (AES-256-GCM, **нет select у пользователя**), daily_limit, last_test_* |
