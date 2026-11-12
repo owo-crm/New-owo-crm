@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { AUTH_PAGES, isPublicPath } from "@/lib/auth/paths";
+import { isPublicPath } from "@/lib/auth/paths";
 
 // Next.js 16: бывший middleware.ts. Быстрая проверка наличия cookie сессии;
 // настоящая проверка (сессия в базе) — в requireUser() на каждой закрытой странице.
@@ -16,12 +16,9 @@ export function proxy(request: NextRequest) {
     if (pathname !== "/") loginUrl.searchParams.set("next", pathname + search);
     return NextResponse.redirect(loginUrl);
   }
-  if (hasSession && AUTH_PAGES.includes(pathname)) {
-    const appUrl = request.nextUrl.clone();
-    appUrl.pathname = "/dzisiaj";
-    appUrl.search = "";
-    return NextResponse.redirect(appUrl);
-  }
+  // С экрана входа вошедшего уводит сама страница, проверив сессию в базе.
+  // Здесь этого делать нельзя: cookie может остаться от удалённой сессии,
+  // и тогда /logowanie → /dzisiaj → requireUser() → /logowanie зацикливается.
   return NextResponse.next();
 }
 

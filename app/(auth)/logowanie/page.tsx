@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { SignInForm } from "../_components/auth-forms";
 import { AuthHeading } from "../_components/auth-heading";
+import { redirect } from "next/navigation";
+import { getCurrentUser } from "@/lib/auth/session";
 import { t } from "@/lib/i18n";
 import { appConfig } from "@/lib/config";
 import { safeNextPath } from "@/lib/auth/schemas";
@@ -11,6 +13,8 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: t("auth.login.title") };
 
 export default async function LoginPage({ searchParams }: PageProps<"/logowanie">) {
+  // Вошедшего уводим в приложение, но только если сессия и правда жива.
+  if (await getCurrentUser()) redirect("/dzisiaj");
   const { next } = await searchParams;
   const nextPath = typeof next === "string" ? safeNextPath(next) : undefined;
   return (
