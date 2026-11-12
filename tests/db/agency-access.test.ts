@@ -27,7 +27,9 @@ beforeAll(async () => {
   for (const id of [NIKON, IVAN, HELPER, CLIENT]) await createUser(pg, id);
   agency = (
     await asUser(pg, NIKON, () =>
-      pg.query<{ id: string }>("select public.create_organization('OWO Ads','owo-ads','agency') as id"),
+      pg.query<{ id: string }>(
+        "select public.create_organization('OWO Ads','owo-ads','agency') as id",
+      ),
     )
   ).rows[0].id;
   await pg.query(
@@ -36,7 +38,9 @@ beforeAll(async () => {
   );
   client = (
     await asUser(pg, CLIENT, () =>
-      pg.query<{ id: string }>("select public.create_organization('Kwiaciarnia','kwiaciarnia') as id"),
+      pg.query<{ id: string }>(
+        "select public.create_organization('Kwiaciarnia','kwiaciarnia') as id",
+      ),
     )
   ).rows[0].id;
   await pg.query(
@@ -84,6 +88,26 @@ describe("сервисный доступ агентства", () => {
       [agency, HELPER],
     );
     expect(await access(HELPER)).toEqual([]);
+  });
+
+  it("владелец агентства, он же владелец кабинета клиента, остаётся настоящим владельцем", async () => {
+    // Случай Вани: wlaściciel и в OWO Ads, и в Barowo одновременно.
+    expect(
+      (
+        await pg.query<{ role: string; is_service: boolean }>(
+          "select role, is_service from public.memberships where organization_id=$1 and user_id=$2",
+          [client, CLIENT],
+        )
+      ).rows,
+    ).toEqual([{ role: "owner", is_service: false }]);
+
+    await pg.query(
+      "insert into public.memberships (organization_id, user_id, role) values ($1,$2,'owner')",
+      [agency, CLIENT],
+    );
+    expect(await access(CLIENT)).toEqual([{ role: "owner", is_service: false }]);
+    const seats = await pg.query<{ n: number }>("select public.billable_seats($1) as n", [client]);
+    expect(seats.rows[0].n).toBe(1); // он сам; команда агентства местами не считается
   });
 
   it("уход из агентства забирает доступ ко всем клиентам", async () => {

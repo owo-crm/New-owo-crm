@@ -31,19 +31,21 @@ beforeAll(async () => {
     )
   ).rows[0].id;
   await asUser(db, AGENCY, () => db.query("select public.mark_service_membership($1)", [org]));
-  // Передаём владение клиенту, агентство остаётся администратором: именно в этом
-  // состоянии защиту обеспечивает признак is_service, а не правило «владельца не трогать».
+  // Владение забирает клиент; агентство остаётся администратором — mark_service_membership
+  // понижает создателя сам (решение 038): владелец кабинета всегда человек клиента.
   await db.query(
     "insert into public.memberships (organization_id, user_id, role) values ($1,$2,'owner'), ($1,$3,'member')",
     [org, CLIENT, STAFF],
-  );
-  await asUser(db, AGENCY, () =>
-    db.query("select public.set_member_role($1,$2,'admin')", [org, AGENCY]),
   );
 });
 afterAll(() => db.close());
 
 describe("обслуживающее участие агентства", () => {
+  it("создатель кабинета клиента остаётся администратором, а не владельцем", async () => {
+    expect(await role(AGENCY)).toBe("admin");
+    expect(await role(CLIENT)).toBe("owner");
+  });
+
   it("видно клиенту в списке команды", async () => {
     const rows = await asUser(db, CLIENT, () =>
       db.query<{ user_id: string; is_service: boolean }>(

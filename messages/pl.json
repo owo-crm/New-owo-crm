@@ -284,15 +284,7 @@
       "listopad",
       "grudzień"
     ],
-    "weekdays": [
-      "pon",
-      "wt",
-      "śr",
-      "czw",
-      "pt",
-      "sob",
-      "ndz"
-    ],
+    "weekdays": ["pon", "wt", "śr", "czw", "pt", "sob", "ndz"],
     "showPast": "Pokaż minione",
     "onlyAhead": "Tylko nadchodzące",
     "monthCount": "{days} dni · {events} wydarzeń",
@@ -498,7 +490,8 @@
   },
   "shell": {
     "theme": "Jasny / ciemny",
-    "import": "Import"
+    "import": "Import",
+    "collapseNav": "Zwiń albo rozwiń menu"
   },
   "time": {
     "minutes": "{count} min",
