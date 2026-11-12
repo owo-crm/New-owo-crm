@@ -4,7 +4,7 @@ import { z } from "zod";
 import { getDb } from "@/lib/db";
 import { withOrg } from "@/lib/db/user";
 import { t, type MessageKey } from "@/lib/i18n";
-import { encryptSecret, isMailSecretKeyConfigured } from "./secret";
+import { encryptSecret, mailKeyStatus } from "./secret";
 import { sendBusinessMail } from "./service";
 import { MailError } from "./transport";
 
@@ -63,8 +63,15 @@ export async function saveMailSettings(
   const data = parsed.data;
   // Пробелы из пароля приложения Google («abcd efgh ijkl mnop») убираем — Gmail их не ждёт.
   const secretPlain = data.transport === "none" ? "" : data.secret.replace(/\s+/g, "");
-  if (secretPlain && !isMailSecretKeyConfigured())
-    return { error: t("mail.errors.secret_key_missing") };
+  const keyStatus = mailKeyStatus();
+  if (secretPlain && keyStatus !== "ok")
+    return {
+      error: t(
+        keyStatus === "invalid"
+          ? "mail.errors.secret_key_invalid"
+          : "mail.errors.secret_key_missing",
+      ),
+    };
   try {
     await withOrg(async (tx, { organization, user }) => {
       if (!["owner", "admin"].includes(organization.role)) throw new Error("forbidden");

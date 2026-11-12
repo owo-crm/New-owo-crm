@@ -965,7 +965,7 @@
     "lastTestFailed": "Ostatni test nie powiódł się: {error}",
     "errors": {
       "not_configured": "Poczta nie jest skonfigurowana dla tej firmy.",
-      "secret_key_missing": "Serwer nie ma klucza szyfrowania (MAIL_SECRET_KEY). Dodaj go w zmiennych Railway, zanim zapiszesz hasło.",
+      "secret_key_missing": "Serwer nie widzi klucza szyfrowania (MAIL_SECRET_KEY). Dodaj go w zmiennych Railway i wdróż zmiany (Deploy), zanim zapiszesz hasło.",
       "too_many_recipients": "Za dużo odbiorców w jednej wiadomości (maksymalnie 100).",
       "no_recipients": "Brak adresu odbiorcy.",
       "daily_limit": "Osiągnięto dzienny limit wysyłki. Reszta wyjdzie jutro.",
@@ -974,7 +974,8 @@
       "connection_failed": "Nie udało się połączyć z serwerem poczty. Sprawdź serwer i port.",
       "attachment_too_large": "Załączniki są za duże (maksymalnie 25 MB).",
       "recipient_rejected": "Serwer odrzucił adres odbiorcy. Sprawdź adres e-mail.",
-      "send_failed": "Nie udało się wysłać wiadomości."
+      "send_failed": "Nie udało się wysłać wiadomości.",
+      "secret_key_invalid": "Klucz MAIL_SECRET_KEY jest w złym formacie. Wygeneruj go poleceniem: openssl rand -base64 32 (44 znaki, zwykle kończy się na „=”) i wklej bez cudzysłowów."
     }
   }
 }

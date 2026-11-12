@@ -193,3 +193,21 @@ describe("wysyłka Resend (firmy z własną domeną)", () => {
     ).rejects.toMatchObject({ code });
   });
 });
+
+describe("klucz MAIL_SECRET_KEY: tolerancja na kopiowanie i jasna diagnoza", () => {
+  it("base64 z cudzysłowami/spacjami/nową linią, base64url i hex są poprawne", async () => {
+    const { mailKeyStatus, parseMailKey } = await import("@/lib/mail/secret");
+    const b64 = randomBytes(32).toString("base64");
+    expect(mailKeyStatus(` "${b64}"\n`)).toBe("ok");
+    expect(mailKeyStatus(randomBytes(32).toString("base64url"))).toBe("ok");
+    expect(mailKeyStatus(randomBytes(32).toString("hex"))).toBe("ok");
+    expect(parseMailKey(`'${b64}'`)?.equals(Buffer.from(b64, "base64"))).toBe(true);
+  });
+  it("puste → missing, zła długość albo znaki → invalid", async () => {
+    const { mailKeyStatus } = await import("@/lib/mail/secret");
+    expect(mailKeyStatus(undefined)).toBe("missing");
+    expect(mailKeyStatus("   ")).toBe("missing");
+    expect(mailKeyStatus(randomBytes(16).toString("base64"))).toBe("invalid");
+    expect(mailKeyStatus("moje-tajne-haslo!")).toBe("invalid");
+  });
+});
