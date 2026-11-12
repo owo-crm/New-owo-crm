@@ -339,7 +339,9 @@ async function stageForward(tx: Queryable, orgId: string, leadId: string, target
     ]);
 }
 
-let contractTemplate: Uint8Array | null = null;
+// Встроенный шаблон читаем один раз; шаблон фирмы берём из базы на каждую генерацию,
+// иначе загруженный файл начал бы действовать только после перезапуска.
+let builtInTemplate: Uint8Array | null = null;
 
 export async function generateContract(
   tx: Queryable,
@@ -360,12 +362,17 @@ export async function generateContract(
   } catch (error) {
     userError(error);
   }
-  contractTemplate ??= new Uint8Array(
+  const { rows: own } = await tx.query<{ content: Buffer }>(
+    "select content from public.organization_templates where organization_id=$1 and kind='contract'",
+    [actor.orgId],
+  );
+  builtInTemplate ??= new Uint8Array(
     readFileSync(path.join(process.cwd(), "lib/documents/barowo/umowa-template.docx")),
   );
+  const template = own[0] ? new Uint8Array(own[0].content) : builtInTemplate;
   const saved = await saveDocument(tx, actor, leadId, "contract", snapshot, async (number) => {
     const base = fileBase("contract", "BAROWO", number);
-    const docx = fillDocxTemplate(contractTemplate!, contractTemplateValues(e, snapshot, number));
+    const docx = fillDocxTemplate(template, contractTemplateValues(e, snapshot, number));
     return { base, docx, pdf: await docxToPdf(docx) };
   });
   await syncLead(tx, actor, lead, {

@@ -66,6 +66,7 @@ export function LeadEditor({
   team,
   history,
   documentsCard,
+  attachmentsCard,
   paymentsCard,
   agencyCard,
   documentsCount,
@@ -76,6 +77,7 @@ export function LeadEditor({
   team: { id: string; name: string }[];
   history: LeadEvent[];
   documentsCard?: React.ReactNode;
+  attachmentsCard?: React.ReactNode;
   paymentsCard?: React.ReactNode;
   agencyCard?: React.ReactNode;
   documentsCount?: number;
@@ -362,13 +364,13 @@ export function LeadEditor({
             key: "docs",
             label: "leads.tabDocs",
             count: documentsCount,
-            content:
-              agencyCard || documentsCard ? (
-                <div className="gap-5 lg:columns-2 [&>*]:mb-5 [&>*]:break-inside-avoid">
-                  {agencyCard}
-                  {documentsCard}
-                </div>
-              ) : null,
+            content: (
+              <div className="gap-5 lg:columns-2 [&>*]:mb-5 [&>*]:break-inside-avoid">
+                {agencyCard}
+                {documentsCard}
+                {attachmentsCard}
+              </div>
+            ),
           },
           { key: "money", label: "leads.tabMoney", content: paymentsCard },
           {

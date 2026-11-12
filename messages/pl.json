@@ -8,7 +8,8 @@
     "password": "Hasło",
     "loading": "Chwileczkę…",
     "unknownError": "Coś poszło nie tak. Spróbuj ponownie za chwilę.",
-    "close": "Zamknij"
+    "close": "Zamknij",
+    "required": "Wypełnij to pole poprawnie."
   },
   "auth": {
     "login": {
@@ -217,7 +218,8 @@
       "contacted": "Skontaktowano",
       "call": "Zadzwoniono",
       "other": "Zdarzenie",
-      "document_generated": "Dokument wygenerowany"
+      "document_generated": "Dokument wygenerowany",
+      "file_uploaded": "Dodano plik"
     },
     "view": "Widok leadów",
     "listView": "Lista",
@@ -304,9 +306,9 @@
   "settings": {
     "title": "Ustawienia",
     "company": "Firma",
-    "companyText": "Dane do umów, logo, kolor i czcionki.",
+    "companyText": "Dane do umów i faktur, kolor marki.",
     "templates": "Szablony",
-    "templatesText": "Umowy, oferty i pakiety.",
+    "templatesText": "Szablon umowy, z którego powstają dokumenty.",
     "channels": "Źródła leadów",
     "channelsText": "Strona, Meta, Google Ads, e-mail.",
     "notifications": "Powiadomienia",
@@ -1089,5 +1091,58 @@
     "settings": "Ustawienia poczty",
     "emptyTitle": "Nie ma do kogo pisać",
     "emptyText": "Mailing idzie do klientów, którzy zostawili adres e-mail. Na razie takich nie ma."
+  },
+  "attachments": {
+    "title": "Własne pliki",
+    "intro": "Skan podpisanej umowy, plan sali, lista gości — cokolwiek, co dotyczy tego zlecenia.",
+    "add": "Dodaj plik",
+    "note": "Opis (opcjonalnie)",
+    "empty": "Nie ma jeszcze żadnych plików.",
+    "pickFile": "Wybierz plik.",
+    "tooBig": "Plik jest za duży — maksymalnie 10 MB.",
+    "failed": "Nie udało się zapisać pliku.",
+    "remove": "Usuń",
+    "uploading": "Wysyłam…"
+  },
+  "company": {
+    "title": "Dane firmy",
+    "intro": "Te dane wchodzą w nagłówek umowy, w faktury i w stopkę e-maili.",
+    "name": "Nazwa krótka",
+    "nameHint": "Tak firma nazywa się w panelu i w podpisie wiadomości.",
+    "legalName": "Nazwa pełna",
+    "legalNameHint": "Tak, jak w KRS albo CEIDG — ta nazwa trafia do umowy.",
+    "nip": "NIP",
+    "nipHint": "Dziesięć cyfr, bez kresek.",
+    "address": "Adres",
+    "phone": "Telefon",
+    "email": "E-mail",
+    "website": "Strona",
+    "bank": "Numer konta",
+    "bankHint": "Wchodzi do umowy i do przypomnień o płatności.",
+    "brandColor": "Kolor marki",
+    "brandColorHint": "Kolor przycisków i akcentów w panelu.",
+    "save": "Zapisz dane",
+    "saved": "Zapisane.",
+    "invalidNip": "NIP to dziesięć cyfr."
+  },
+  "templates": {
+    "title": "Szablon umowy",
+    "intro": "Dokumenty powstają z pliku .docx: panel podstawia w nim nazwę klienta, datę, kwoty i numer umowy. Wbudowany szablon działa od razu.",
+    "builtIn": "Wbudowany szablon",
+    "builtInText": "Nic nie trzeba wgrywać — panel używa go, dopóki nie wgrasz własnego.",
+    "own": "Twój szablon",
+    "inUse": "W użyciu",
+    "download": "Pobierz szablon",
+    "upload": "Wgraj własny .docx",
+    "uploadHint": "Najprościej: pobierz wbudowany, zmień w Wordzie wygląd i treść, zostaw znaczniki w nawiasach — i wgraj tutaj.",
+    "reset": "Wróć do wbudowanego",
+    "noFile": "Wybierz plik .docx.",
+    "onlyDocx": "Przyjmujemy tylko pliki .docx.",
+    "saved": "Szablon zapisany.",
+    "fields": "Znaczniki, które panel podstawia",
+    "updated": "Wgrany {date}"
+  },
+  "files": {
+    "tooBig": "Plik jest za duży — maksymalnie 10 MB."
   }
 }

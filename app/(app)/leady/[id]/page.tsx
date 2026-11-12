@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { LeadEditor } from "@/components/leads/lead-editor";
+import { AttachmentsCard } from "@/components/documents/attachments-card";
 import { DocumentsCard } from "@/components/documents/documents-card";
 import { getLead, getLeadHistory, getLeadOptions } from "@/lib/leads/queries";
 import { LiveUpdates } from "@/components/leads/live-updates";
@@ -9,13 +10,14 @@ import { leadPayments, listDocuments } from "@/lib/documents/service";
 import { PaymentsCard } from "@/components/finance/payments-card";
 import { LeadClientCard } from "@/components/agency/lead-client-card";
 import { clientIdForLead } from "@/lib/agency/repository";
+import { listAttachments } from "@/lib/documents/attachments";
 export default async function LeadPage({ params, searchParams }: PageProps<"/leady/[id]">) {
   const { id } = await params;
   const { dokument } = await searchParams;
   if (!z.uuid().safeParse(id).success) notFound();
   const lead = await getLead(id);
   if (!lead) notFound();
-  const [options, history, docs, agencyClient] = await Promise.all([
+  const [options, history, docs, agencyClient, files] = await Promise.all([
     getLeadOptions(),
     getLeadHistory(id),
     withOrg(async (tx, { organization }) => ({
@@ -28,6 +30,7 @@ export default async function LeadPage({ params, searchParams }: PageProps<"/lea
       documentsModule: organization.modules.includes("documents"),
     })),
     clientIdForLead(id),
+    listAttachments(id),
   ]);
   // Агентство: на этапе «Klient» (или если клиент уже заведён) — кнопка клиента агентства.
   const showAgency = docs.agency && (lead.stage_key === "client" || agencyClient !== null);
@@ -40,9 +43,10 @@ export default async function LeadPage({ params, searchParams }: PageProps<"/lea
         history={history}
         // Пришли с готовым документом — сразу открываем вкладку документов.
         initialTab={typeof dokument === "string" ? "docs" : undefined}
-        documentsCount={docs.list.length}
+        documentsCount={docs.list.length + files.length}
         agencyCard={showAgency ? <LeadClientCard leadId={id} clientId={agencyClient} /> : null}
         paymentsCard={docs.paymentsModule ? <PaymentsCard payments={docs.payments} /> : null}
+        attachmentsCard={<AttachmentsCard leadId={id} files={files} />}
         documentsCard={
           docs.documentsModule ? (
             <DocumentsCard

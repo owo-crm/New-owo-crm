@@ -300,15 +300,18 @@ describe("чек-лист настройки", () => {
       ).rows.map((r) => [r.step_key, r.done_at !== null]),
     );
 
-  it("автоматические шаги отмечаются по фактам в базе (даже если сотрудник не входит в фирму клиента)", async () => {
+  it("автоматические шаги отмечаются по фактам в базе", async () => {
     let s = await status();
     expect(Object.keys(s)).toHaveLength(12);
     expect(s.org_created).toBe(true);
-    expect(s.service_member).toBe(false);
+    // Сервисный доступ выдаётся сам: команда агентства — участники кабинета клиента (решение 038).
+    expect(s.service_member).toBe(true);
     expect(s.owner_joined).toBe(false); // владелец фирмы клиента — Иван из OWO Ads, не считается
 
     await db.query(
-      "insert into public.memberships (organization_id, user_id, role, is_service) values ($1,$2,'admin',true)",
+      `insert into public.memberships (organization_id, user_id, role, is_service)
+       values ($1,$2,'admin',true)
+       on conflict (organization_id, user_id) do update set is_service = true`,
       [clientOrg, SERVICE],
     );
     const ch = await db.query<{ id: string }>(

@@ -41,7 +41,9 @@ export function NavLink({
       )}
     >
       <Icon className={cn("size-[18px] shrink-0", active ? "text-accent" : "text-ink-faint")} />
-      <span className="min-w-0 flex-1 truncate">{t(item.label)}</span>
+      <span className="min-w-0 flex-1 truncate lg:opacity-0 lg:transition-opacity lg:duration-150 lg:group-focus-within/nav:opacity-100 lg:group-hover/nav:opacity-100">
+        {t(item.label)}
+      </span>
       {badge ? (
         <span className="bg-urgent min-w-5 rounded-full px-1.5 text-center text-[11px] leading-5 font-semibold text-white">
           {badge}
@@ -68,7 +70,9 @@ export function GroupedNav({
         if (!items.length) return null;
         return (
           <div key={group.label} className="grid gap-0.5">
-            <p className="text-ink-faint mb-1 px-3 text-[12px] font-medium">{t(group.label)}</p>
+            <p className="text-ink-faint mb-1 px-3 text-[12px] font-medium opacity-0 transition-opacity duration-150 group-focus-within/nav:opacity-100 group-hover/nav:opacity-100">
+              {t(group.label)}
+            </p>
             {items.map((item) => (
               <NavLink
                 key={item.href}

@@ -31,42 +31,53 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
   const name = user.fullName || user.email;
   return (
     <div
-      className="min-h-dvh lg:grid lg:grid-cols-[256px_minmax(0,1fr)]"
+      className="min-h-dvh lg:grid lg:grid-cols-[4.25rem_minmax(0,1fr)]"
       style={{ "--brand": organization.brandColor } as React.CSSProperties}
     >
-      <aside className="bg-surface border-line hidden border-r lg:block">
-        <div className="sticky top-0 flex h-dvh flex-col gap-5 px-4 py-5">
-          <Link href="/dzisiaj" className="flex items-center gap-2.5 px-2">
-            <span className="bg-accent text-accent-ink flex size-8 items-center justify-center rounded-lg text-[15px] font-bold">
-              o
-            </span>
-            <span className="text-[17px] font-bold tracking-tight">{appConfig.productName}</span>
-          </Link>
-          <BusinessSwitcher
-            current={organization}
-            organizations={organizations}
-            canCreate={user.isPlatformAdmin}
-            className="border-line rounded-xl border"
-          />
-          <div className="-mx-1 min-h-0 flex-1 overflow-y-auto px-1">
-            <GroupedNav ctx={ctx} waiting={queue.waiting_count} />
-          </div>
-          <div className="border-line flex items-center gap-3 border-t px-1 pt-4">
-            <Avatar name={name} size={36} />
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-[13.5px] font-semibold">{name}</p>
-              <p className="text-ink-faint truncate text-[12px]">{user.email}</p>
+      {/*
+        Решение 038: меню свёрнуто в полоску с иконками и разворачивается при наведении
+        (и при фокусе с клавиатуры) поверх содержимого — страница при этом не дёргается.
+      */}
+      <aside className="hidden w-[4.25rem] lg:block">
+        <div className="group/nav bg-surface border-line fixed top-0 bottom-0 left-0 z-40 w-[4.25rem] overflow-hidden border-r transition-[width,box-shadow] duration-200 ease-out focus-within:w-64 focus-within:shadow-[var(--shadow-pop)] hover:w-64 hover:shadow-[var(--shadow-pop)]">
+          <div className="flex h-dvh w-64 flex-col gap-5 px-4 py-5">
+            <Link href="/dzisiaj" className="flex items-center gap-2.5 px-2">
+              <span className="bg-accent text-accent-ink flex size-8 items-center justify-center rounded-lg text-[15px] font-bold">
+                o
+              </span>
+              <span className="text-[17px] font-bold tracking-tight opacity-0 transition-opacity duration-150 group-focus-within/nav:opacity-100 group-hover/nav:opacity-100">
+                {appConfig.productName}
+              </span>
+            </Link>
+            <BusinessSwitcher
+              current={organization}
+              organizations={organizations}
+              canCreate={user.isPlatformAdmin}
+              className="border-line rounded-xl border"
+            />
+            <div className="-mx-1 min-h-0 flex-1 overflow-y-auto px-1">
+              <GroupedNav ctx={ctx} waiting={queue.waiting_count} />
             </div>
-            <form action={signOut}>
-              <button
-                type="submit"
-                aria-label={t("auth.logout")}
-                title={t("auth.logout")}
-                className="text-ink-faint hover:text-urgent hover:bg-urgent/10 flex size-9 items-center justify-center rounded-lg transition-colors"
+            <div className="border-line flex items-center gap-3 border-t px-1 pt-4">
+              <Avatar name={name} size={36} />
+              <div className="min-w-0 flex-1 opacity-0 transition-opacity duration-150 group-focus-within/nav:opacity-100 group-hover/nav:opacity-100">
+                <p className="truncate text-[13.5px] font-semibold">{name}</p>
+                <p className="text-ink-faint truncate text-[12px]">{user.email}</p>
+              </div>
+              <form
+                action={signOut}
+                className="opacity-0 transition-opacity duration-150 group-focus-within/nav:opacity-100 group-hover/nav:opacity-100"
               >
-                <LogOut className="size-4" />
-              </button>
-            </form>
+                <button
+                  type="submit"
+                  aria-label={t("auth.logout")}
+                  title={t("auth.logout")}
+                  className="text-ink-faint hover:text-urgent hover:bg-urgent/10 flex size-9 items-center justify-center rounded-lg transition-colors"
+                >
+                  <LogOut className="size-4" />
+                </button>
+              </form>
+            </div>
           </div>
         </div>
       </aside>

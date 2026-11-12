@@ -45,6 +45,8 @@ const TONE: Partial<Record<string, string>> = {
 };
 
 const LINKS: Partial<Record<string, string>> = {
+  "settings.company": "/ustawienia/firma",
+  "settings.templates": "/ustawienia/szablony",
   "settings.notifications": "/ustawienia/powiadomienia",
   "settings.channels": "/ustawienia/zrodla",
   "settings.import": "/ustawienia/import",
