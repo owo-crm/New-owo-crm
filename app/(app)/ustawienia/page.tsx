@@ -1,6 +1,15 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { BarChart3, Mail, Bell, Building2, FileStack, LogOut, PlugZap, Upload } from "lucide-react";
+import {
+  BarChart3,
+  Bell,
+  Building2,
+  CreditCard,
+  FileStack,
+  LogOut,
+  PlugZap,
+  Upload,
+} from "lucide-react";
 import { PageHeader } from "@/components/app-shell/page";
 import { Button } from "@/components/ui/button";
 import { requireOrganization } from "@/lib/auth/session";
@@ -18,8 +27,8 @@ const SECTIONS: {
   { title: "settings.templates", text: "settings.templatesText", icon: FileStack },
   { title: "settings.channels", text: "settings.channelsText", icon: PlugZap },
   { title: "settings.notifications", text: "settings.notificationsText", icon: Bell },
-  { title: "settings.mail", text: "settings.mailText", icon: Mail },
   { title: "settings.import", text: "settings.importText", icon: Upload },
+  { title: "billing.settings.title", text: "billing.settings.text", icon: CreditCard },
   // На телефоне у агентства в нижней панели «Agencja» — статистика доступна отсюда.
   { title: "nav.stats", text: "settings.statsText", icon: BarChart3 },
 ];
@@ -30,16 +39,16 @@ const TONE: Partial<Record<string, string>> = {
   "settings.templates": "var(--hold)",
   "settings.channels": "var(--info)",
   "settings.notifications": "var(--urgent)",
-  "settings.mail": "var(--info)",
   "settings.import": "var(--ink-soft)",
+  "billing.settings.title": "var(--accent)",
   "nav.stats": "var(--info)",
 };
 
 const LINKS: Partial<Record<string, string>> = {
   "settings.notifications": "/ustawienia/powiadomienia",
   "settings.channels": "/ustawienia/zrodla",
-  "settings.mail": "/ustawienia/poczta",
   "settings.import": "/ustawienia/import",
+  "billing.settings.title": "/ustawienia/abonament",
   "nav.stats": "/statystyka",
 };
 

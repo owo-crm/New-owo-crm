@@ -14,8 +14,16 @@ export async function runNotifications(leadId?: string) {
     if (!leadId) await repository.prepare(); // уборка журнала и сессий всё равно нужна
     return { processed: 0, disabled: true };
   }
-  return runNotificationBatch(repository, createDeliverySender(db, config), {
+  const result = await runNotificationBatch(repository, createDeliverySender(db, config), {
     enabled: true,
     leadId,
   });
+  // Рассылки едут той же минутной очередью: отдельный планировщик не нужен.
+  if (!leadId) {
+    const { runMailingQueue } = await import("@/lib/mailing/sender");
+    await runMailingQueue(
+      process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || "http://localhost:3000",
+    ).catch((error) => console.error("[mailing]", (error as Error).message));
+  }
+  return result;
 }

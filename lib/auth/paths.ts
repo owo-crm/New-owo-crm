@@ -5,6 +5,7 @@ const PUBLIC_PREFIXES = [
   "/reset-hasla",
   "/nowe-haslo",
   "/zaproszenie",
+  "/wypisz",
   "/o/",
   "/api/",
   "/sw.js",
