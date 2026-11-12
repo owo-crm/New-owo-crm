@@ -10,6 +10,15 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        // Скрипт формы для сайтов клиентов (решение 034): короткий кэш, чтобы исправления доходили быстро.
+        source: "/embed/:file*",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=300" },
+          { key: "Content-Type", value: "application/javascript; charset=utf-8" },
+          { key: "Access-Control-Allow-Origin", value: "*" },
+        ],
+      },
+      {
         source: "/sw.js",
         headers: [
           { key: "Cache-Control", value: "no-cache, no-store, must-revalidate" },

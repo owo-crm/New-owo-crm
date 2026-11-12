@@ -8,6 +8,7 @@ const PUBLIC_PREFIXES = [
   "/o/",
   "/api/",
   "/sw.js",
+  "/embed/",
 ];
 /** Страницы входа: вошедшего пользователя с них уводим в приложение. */
 export const AUTH_PAGES = ["/logowanie", "/rejestracja", "/reset-hasla"];

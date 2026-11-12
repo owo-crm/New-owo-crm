@@ -61,3 +61,22 @@ Google Ads позволяет указать webhook URL + key. Endpoint `POST /
 ### Реализовано в 1.3
 
 `lib/channels/website.ts` — общий тестируемый обработчик; `supabase/functions/intake/index.ts` — тонкий Deno-вход. Tenant берётся только из активного website-канала. CORS — точные `config.allowedOrigins`, honeypot `website`, согласие RODO, тело максимум 32 KiB. `reserve_intake` атомарно резервирует попытку в `intake_log` (10/час на фирму + HMAC IP), работает между экземплярами Edge. Журнал содержит только хеш и код результата, а не текст/телефон клиента. Успех обновляет `channels.last_received_at`. Неизвестный канал нельзя записать в фирменный журнал, preflight не считается заявкой. Очистку 30-дневного журнала добавляем в cron в 1.11.
+
+## Подключение формы на сайте клиента (решение 034)
+
+Одинаково для Barowo и любого клиента OWO Ads — ничего не делается «под клиента», кроме ключа и домена.
+
+1. В CRM клиента: «Źródła leadów» → канал «Strona» → скопировать адрес приёма `https://<crm>/api/intake/<ключ>` и вписать домен сайта в разрешённые.
+2. На сайте — одна строка перед `</body>`:
+   ```html
+   <script src="https://cdn.jsdelivr.net/gh/owo-crm/new-owo-crm@embed-v1/public/embed/v1.js" defer></script>
+   ```
+3. Форма: `action` = адрес приёма, атрибут `data-owo`. Поля: `name`, `phone`, `email`, `event_type`, `event_date`, `city`, `guests`, `message`, `consent` (обязательно), скрытое `return_url` — куда перейти после отправки. Без `return_url` форма заменяется текстом из `data-owo-success`.
+   ```html
+   <form data-owo action="https://<crm>/api/intake/<ключ>" method="POST"
+         data-owo-success="Dziękujemy! Odezwiemy się wkrótce.">
+   ```
+4. Если у сайта своя обработка формы на JS — вместо `fetch` вызвать `OWO.send(form.action, new FormData(form))`: результат `{ok, queued}`, при отказе — ошибка с `code`.
+5. Проверка: отправить тестовую заявку; в «Źródła leadów» должна появиться «Ostatnie zgłoszenie».
+
+Обновление скрипта: изменить `public/embed/v1.js` → тест → новый тег (`embed-v1` переставить или выпустить `embed-v1.1`) → jsDelivr отдаёт новый файл. Несовместимые изменения — только как `v2.js`, чтобы не сломать сайты, где стоит v1.
