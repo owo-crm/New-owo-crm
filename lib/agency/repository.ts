@@ -30,8 +30,10 @@ async function withAgency<T>(fn: Parameters<typeof withOrg<T>>[0]) {
 export type Member = { userId: string; name: string };
 
 async function members(tx: Queryable, org: string): Promise<Member[]> {
+  // Деньги делятся только между участниками кабинета OWO Ads (основателями);
+  // обслуживающие аккаунты в выбор продавцов, исполнителей и ответственных не попадают.
   const { rows } = await tx.query<{ user_id: string; name: string | null; login: string }>(
-    "select user_id, name, login from public.team_members($1) order by coalesce(name, login)",
+    "select user_id, name, login from public.team_members($1) where not is_service order by coalesce(name, login)",
     [org],
   );
   return rows.map((r) => ({ userId: r.user_id, name: r.name || r.login }));
