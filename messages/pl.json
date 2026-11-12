@@ -976,6 +976,8 @@
       "recipient_rejected": "Serwer odrzucił adres odbiorcy. Sprawdź adres e-mail.",
       "send_failed": "Nie udało się wysłać wiadomości.",
       "secret_key_invalid": "Klucz MAIL_SECRET_KEY jest w złym formacie. Wygeneruj go poleceniem: openssl rand -base64 32 (44 znaki, zwykle kończy się na „=”) i wklej bez cudzysłowów."
-    }
+    },
+    "testTo": "Wyślij test na adres",
+    "testNoAddress": "Wpisz adres e-mail, na który wysłać wiadomość testową."
   }
 }

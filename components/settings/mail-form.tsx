@@ -20,6 +20,8 @@ export type MailSettingsView = {
   lastTestOk: boolean | null;
   lastTestError: string | null;
   sentToday: number;
+  /** Куда слать тест по умолчанию. */
+  testTo: string;
 };
 
 function Result({ state }: { state: MailFormState }) {
@@ -50,7 +52,7 @@ export function MailSettingsForm({
 }) {
   const [transport, setTransport] = useState(initial.transport);
   const [saveState, save] = useActionState<MailFormState, FormData>(saveMailSettings, {});
-  const [testState, test] = useActionState<MailFormState>(sendTestMail, {});
+  const [testState, test] = useActionState<MailFormState, FormData>(sendTestMail, {});
   const disabled = !canEdit;
   const secretHint = initial.secretSet ? t("mail.secretSetHint") : undefined;
 
@@ -190,6 +192,13 @@ export function MailSettingsForm({
                 : t("mail.lastTestFailed", { error: initial.lastTestError ?? "" })
               : t("mail.testHint")}
           </p>
+          <Field
+            name="testTo"
+            type="email"
+            label={t("mail.testTo")}
+            defaultValue={initial.testTo}
+            autoComplete="email"
+          />
           <Result state={testState} />
           <div>
             <SubmitButton variant="secondary">{t("mail.testSend")}</SubmitButton>

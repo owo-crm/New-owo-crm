@@ -10,7 +10,7 @@ import { t } from "@/lib/i18n";
 export const metadata: Metadata = { title: t("mail.title") };
 
 export default async function MailSettingsPage() {
-  const { view, canEdit, orgId } = await withOrg(async (tx, { organization }) => {
+  const { view, canEdit, orgId } = await withOrg(async (tx, { organization, user }) => {
     const row = (
       await tx.query<{
         transport: MailSettingsView["transport"];
@@ -50,6 +50,7 @@ export default async function MailSettingsPage() {
       lastTestOk: row?.last_test_ok ?? null,
       lastTestError: row?.last_test_error ?? null,
       sentToday: 0,
+      testTo: user.email.includes("@") ? user.email : (row?.from_email ?? row?.smtp_user ?? ""),
     };
     return {
       view,
