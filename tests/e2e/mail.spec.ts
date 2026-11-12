@@ -28,10 +28,12 @@ test("poczta: zapis SMTP, hasło tylko do wpisania, test pokazuje błąd serwera
   expect(await page.content()).not.toContain("v1:");
 
   await page.getByRole("button", { name: "Wyślij wiadomość testową" }).click();
-  await expect(page.getByText(/Nie udało się połączyć z serwerem poczty/).first()).toBeVisible({
+  await expect(
+    page.getByRole("alert").filter({ hasText: /Nie udało się połączyć z serwerem poczty/ }),
+  ).toBeVisible({
     timeout: 20_000,
   });
-  await expect(page.getByText(/ECONNREFUSED/).first()).toBeVisible();
+  await expect(page.getByRole("alert").filter({ hasText: /ECONNREFUSED/ })).toBeVisible();
   await page.screenshot({
     path: `tests/screenshots/${info.project.name}-mail-settings.png`,
     fullPage: true,
