@@ -51,9 +51,15 @@ export function getLeads(filters: LeadFilters) {
       .filter(Boolean)
       .join(" and ");
     const where = extra ? `where ${extra}` : "";
+    // Кто ждёт ответа — всегда сверху (решение 033): отдельного экрана «Kolejka» больше нет,
+    // список лидов сам ставит их первыми.
+    const waitingFirst = `(first_response_at is null and stage_key in
+       (select key from public.pipeline_stages where organization_id = $1 and kind = 'open')) desc`;
     const { rows } = await tx.query<Lead & { total: number }>(
       `select ${COLUMNS}, count(*) over() as total
-       from public.search_leads($1,$2,$3,$4,$5,$6,$7) ${where} limit 50 offset $8`,
+       from public.search_leads($1,$2,$3,$4,$5,$6,$7) ${where}
+       order by ${waitingFirst}, created_at desc
+       limit 50 offset $8`,
       [...args, (filters.page - 1) * 50],
     );
     let total = rows[0]?.total ?? 0;

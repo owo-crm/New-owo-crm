@@ -2,10 +2,9 @@ import type { Metadata } from "next";
 import { ModuleLocked } from "@/components/billing/module-locked";
 import { moduleAccess } from "@/lib/billing/gate";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { PageHeader } from "@/components/app-shell/page";
 import { LeadViewTabs } from "@/components/leads/view-tabs";
-import { MonthCalendar, MonthList } from "@/components/calendar/month";
+import { Agenda } from "@/components/calendar/agenda";
 import { buttonVariants } from "@/components/ui/button";
 import { getCalendarEvents } from "@/lib/leads/dashboard";
 import { addMonths, warsawToday } from "@/lib/format";
@@ -39,38 +38,23 @@ export default async function CalendarPage({ searchParams }: PageProps<"/kalenda
       </>
     );
   const today = warsawToday();
-  const raw = (await searchParams).m;
-  const month =
-    typeof raw === "string" && /^\d{4}-\d{2}$/.test(raw) ? `${raw}-01` : `${today.slice(0, 7)}-01`;
-  // Сетка показывает «хвосты» соседних месяцев, поэтому берём неделю до и после.
-  const events = await getCalendarEvents(addMonths(month, -1), addMonths(month, 2));
-  const [year, m] = month.split("-").map(Number);
-  const link = (iso: string) => `/kalendarz?m=${iso.slice(0, 7)}`;
+  // Список дат, а не сетка месяца: берём год вперёд, а прошедшее — по запросу.
+  const past = (await searchParams).past === "1";
+  const events = await getCalendarEvents(
+    past ? addMonths(`${today.slice(0, 7)}-01`, -12) : today,
+    addMonths(`${today.slice(0, 7)}-01`, 13),
+  );
   return (
     <>
       <PageHeader
-        title={t("nav.leads")}
-        subtitle={`${MONTHS[m - 1]} ${year} · ${t("calendar.intro")}`}
+        title={t("calendar.title")}
         aside={
-          <div className="flex flex-wrap items-center gap-2">
-            <Link
-              href={link(addMonths(month, -1))}
-              aria-label={t("calendar.prev")}
-              className={buttonVariants({ variant: "secondary", size: "icon" })}
-            >
-              <ChevronLeft className="size-4" />
-            </Link>
-            <Link href="/kalendarz" className={buttonVariants({ variant: "secondary" })}>
-              {t("calendar.today")}
-            </Link>
-            <Link
-              href={link(addMonths(month, 1))}
-              aria-label={t("calendar.next")}
-              className={buttonVariants({ variant: "secondary", size: "icon" })}
-            >
-              <ChevronRight className="size-4" />
-            </Link>
-          </div>
+          <Link
+            href={past ? "/kalendarz" : "/kalendarz?past=1"}
+            className={buttonVariants({ variant: "secondary" })}
+          >
+            {t(past ? "calendar.onlyAhead" : "calendar.showPast")}
+          </Link>
         }
       />
       <div className="mb-4">
@@ -78,28 +62,15 @@ export default async function CalendarPage({ searchParams }: PageProps<"/kalenda
       </div>
       <p className="text-ink-soft mb-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px]">
         <span className="flex items-center gap-2">
-          <span className="bg-ok/25 border-ok/50 size-3 rounded border" aria-hidden />
+          <span className="bg-ok size-3 rounded-[3px]" aria-hidden />
           {t("calendar.confirmed")}
         </span>
         <span className="flex items-center gap-2">
-          <span className="border-hold/60 size-3 rounded border border-dashed" aria-hidden />
+          <span className="bg-hold size-3 rounded-[3px]" aria-hidden />
           {t("calendar.planned")}
         </span>
       </p>
-      {events.length === 0 ? (
-        <p className="border-line-strong text-ink-soft rounded-xl border border-dashed px-6 py-12 text-center">
-          {t("calendar.emptyMonth")}
-        </p>
-      ) : (
-        <>
-          <div className="hidden md:block">
-            <MonthCalendar month={month} events={events} today={today} />
-          </div>
-          <div className="md:hidden">
-            <MonthList events={events} />
-          </div>
-        </>
-      )}
+      <Agenda events={events} today={today} />
     </>
   );
 }

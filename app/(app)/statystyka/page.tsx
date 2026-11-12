@@ -11,7 +11,7 @@ import { addMonths, plDate, warsawToday } from "@/lib/format";
 import { t } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { StatCards } from "@/components/app-shell/stat-cards";
-import { AlarmClock, FileSignature, Hourglass, Wallet } from "lucide-react";
+import { FileSignature, Hourglass, Wallet } from "lucide-react";
 
 export const metadata: Metadata = { title: t("nav.stats") };
 
@@ -62,13 +62,6 @@ export default async function FinancePage({ searchParams }: PageProps<"/statysty
       tone: "var(--info)",
     },
     {
-      value: formatMoney(data.overdue_grosze),
-      label: t("finance.statOverdue"),
-      urgent: data.overdue_grosze > 0,
-      icon: AlarmClock,
-      tone: "var(--urgent)",
-    },
-    {
       value: formatMoney(data.signed_grosze),
       label: t("finance.statSigned"),
       icon: FileSignature,
@@ -76,15 +69,16 @@ export default async function FinancePage({ searchParams }: PageProps<"/statysty
     },
   ];
   const maxMonth = Math.max(1, ...data.months.map((x) => x.paid_grosze));
-  const maxStage = Math.max(1, ...data.funnel.map((s) => s.leads));
 
   return (
     <>
       <PageHeader
-        title={`${t("nav.stats")} · ${MONTHS[m - 1]} ${year}`}
-        subtitle={t("finance.pageIntro")}
+        title={t("nav.stats")}
         aside={
           <div className="flex items-center gap-2">
+            <span className="mr-1 text-[15px] font-semibold">
+              {MONTHS[m - 1]} {year}
+            </span>
             <Link
               href={link(addMonths(month, -1))}
               aria-label={t("finance.prev")}
@@ -106,63 +100,9 @@ export default async function FinancePage({ searchParams }: PageProps<"/statysty
         }
       />
 
-      <StatCards items={stats} className="lg:grid-cols-4" />
+      <StatCards items={stats} className="lg:grid-cols-3" />
 
       <div className="grid items-start gap-5 lg:grid-cols-2">
-        <Card title={t("finance.overdueTitle")}>
-          {data.overdue.length === 0 ? (
-            <p className="text-ink-soft text-sm">{t("finance.overdueEmpty")}</p>
-          ) : (
-            <ul className="divide-line divide-y">
-              {data.overdue.map((p) => (
-                <li key={p.id} className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">
-                  <div className="min-w-0 flex-1">
-                    <Link
-                      href={`/leady/${p.lead_id}`}
-                      className="truncate font-semibold hover:underline"
-                    >
-                      {p.client_name}
-                    </Link>
-                    <p className="text-urgent text-[13px] font-semibold">
-                      {p.label} · {t("finance.wasDue", { date: plDate(p.due_date) })}
-                    </p>
-                  </div>
-                  <span className="shrink-0 font-semibold tabular-nums">
-                    {formatMoney(p.amount_grosze)}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Card>
-
-        <Card title={t("finance.upcomingTitle")}>
-          {data.upcoming.length === 0 ? (
-            <p className="text-ink-soft text-sm">{t("finance.upcomingEmpty")}</p>
-          ) : (
-            <ul className="divide-line divide-y">
-              {data.upcoming.map((p) => (
-                <li key={p.id} className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">
-                  <div className="min-w-0 flex-1">
-                    <Link
-                      href={`/leady/${p.lead_id}`}
-                      className="truncate font-semibold hover:underline"
-                    >
-                      {p.client_name}
-                    </Link>
-                    <p className="text-ink-soft text-[13px]">
-                      {p.label} · {t("finance.due", { date: plDate(p.due_date) })}
-                    </p>
-                  </div>
-                  <span className="shrink-0 font-semibold tabular-nums">
-                    {formatMoney(p.amount_grosze)}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Card>
-
         <Card title={t("finance.sourcesTitle")}>
           {data.by_source.length === 0 ? (
             <p className="text-ink-soft text-sm">{t("finance.sourcesEmpty")}</p>
@@ -215,33 +155,6 @@ export default async function FinancePage({ searchParams }: PageProps<"/statysty
                 ))}
               </ul>
             )}
-          </Card>
-
-          <Card title={t("finance.funnelTitle")}>
-            <ul className="grid gap-2">
-              {data.funnel.map((s) => (
-                <li
-                  key={s.key}
-                  className="grid grid-cols-[9rem_1fr_2rem] items-center gap-3 text-sm"
-                >
-                  <span className="text-ink-soft truncate">{s.label}</span>
-                  <span className="bg-surface-2 h-2 rounded-full">
-                    <span
-                      className={cn(
-                        "block h-2 rounded-full",
-                        s.kind === "won"
-                          ? "bg-ok"
-                          : s.kind === "lost"
-                            ? "bg-ink-faint"
-                            : "bg-ink-soft",
-                      )}
-                      style={{ width: `${Math.max(2, (s.leads / maxStage) * 100)}%` }}
-                    />
-                  </span>
-                  <span className="text-right tabular-nums">{s.leads}</span>
-                </li>
-              ))}
-            </ul>
           </Card>
         </div>
       </div>

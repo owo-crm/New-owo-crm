@@ -275,15 +275,12 @@
       "listopad",
       "grudzień"
     ],
-    "weekdays": [
-      "pon",
-      "wt",
-      "śr",
-      "czw",
-      "pt",
-      "sob",
-      "ndz"
-    ]
+    "weekdays": ["pon", "wt", "śr", "czw", "pt", "sob", "ndz"],
+    "showPast": "Pokaż minione",
+    "onlyAhead": "Tylko nadchodzące",
+    "monthCount": "{days} dni · {events} wydarzeń",
+    "emptyTitle": "Brak zajętych terminów",
+    "emptyText": "Tu pojawią się dni, na które ktoś już jedzie — osobno te z podpisaną umową i te dopiero wstępne."
   },
   "documents": {
     "emptyTitle": "Oferty i umowy",
