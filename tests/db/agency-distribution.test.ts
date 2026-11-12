@@ -167,7 +167,7 @@ describe("распределение по документу партнёров"
       )
     )[0].id;
     await q(
-      "insert into public.agency_client_services (organization_id, client_id, service_id, price_grosze) values ($1,$2,$3,350000)",
+      "insert into public.agency_client_services (organization_id, client_id, service_id) values ($1,$2,$3)",
       [org, client, service],
     );
     const id = await order(350_000);

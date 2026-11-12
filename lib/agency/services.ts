@@ -13,9 +13,8 @@ export type Service = {
   description: string | null;
   owner_id: string;
   kind: "retainer" | "project";
-  default_price_grosze: number | null;
   active: boolean;
-  system_key: "crm" | null;
+  system_key: "crm" | "ads" | null;
 };
 
 export type ClientService = {
@@ -24,7 +23,8 @@ export type ClientService = {
   name: string;
   owner_id: string;
   kind: "retainer" | "project";
-  price_grosze: number;
+  system_key: "crm" | "ads" | null;
+  monthly_budget_grosze: number | null;
   active: boolean;
 };
 
@@ -36,14 +36,12 @@ async function agency<T>(fn: Parameters<typeof withOrg<T>>[0]) {
 export const listServices = cache(() =>
   agency(async (tx, { organization }) => {
     const { rows } = await tx.query<Service>(
-      `select id, name, description, owner_id, kind, default_price_grosze, active, system_key
-       from public.agency_services where organization_id=$1 order by active desc, name`,
+      `select id, name, description, owner_id, kind, active, system_key
+       from public.agency_services where organization_id=$1
+       order by active desc, (system_key is null), system_key, name`,
       [organization.id],
     );
-    return rows.map((r) => ({
-      ...r,
-      default_price_grosze: r.default_price_grosze === null ? null : Number(r.default_price_grosze),
-    }));
+    return rows;
   }),
 );
 
@@ -53,9 +51,8 @@ export async function saveService(input: {
   description: string | null;
   ownerId: string;
   kind: "retainer" | "project";
-  defaultPriceGrosze: number | null;
   active: boolean;
-  systemKey?: "crm" | null;
+  systemKey?: "crm" | "ads" | null;
 }) {
   return agency(async (tx, { organization }) => {
     const v = [
@@ -64,19 +61,18 @@ export async function saveService(input: {
       input.description,
       input.ownerId,
       input.kind,
-      input.defaultPriceGrosze,
       input.active,
     ];
     if (input.id)
       await tx.query(
-        `update public.agency_services set name=$2, description=$3, owner_id=$4, kind=$5, default_price_grosze=$6, active=$7
-         where organization_id=$1 and id=$8`,
+        `update public.agency_services set name=$2, description=$3, owner_id=$4, kind=$5, active=$6
+         where organization_id=$1 and id=$7`,
         [...v, input.id],
       );
     else
       await tx.query(
-        `insert into public.agency_services (organization_id, name, description, owner_id, kind, default_price_grosze, active, system_key)
-         values ($1,$2,$3,$4,$5,$6,$7,$8)`,
+        `insert into public.agency_services (organization_id, name, description, owner_id, kind, active, system_key)
+         values ($1,$2,$3,$4,$5,$6,$7)`,
         [...v, input.systemKey ?? null],
       );
   });
@@ -85,28 +81,32 @@ export async function saveService(input: {
 export const listClientServices = cache((clientId: string) =>
   agency(async (tx, { organization }) => {
     const { rows } = await tx.query<ClientService>(
-      `select cs.id, cs.service_id, s.name, s.owner_id, s.kind, cs.price_grosze, cs.active
+      `select cs.id, cs.service_id, s.name, s.owner_id, s.kind, s.system_key, cs.monthly_budget_grosze, cs.active
        from public.agency_client_services cs join public.agency_services s on s.id = cs.service_id
        where cs.organization_id=$1 and cs.client_id=$2 order by cs.active desc, s.name`,
       [organization.id, clientId],
     );
-    return rows.map((r) => ({ ...r, price_grosze: Number(r.price_grosze) }));
+    return rows.map((r) => ({
+      ...r,
+      monthly_budget_grosze:
+        r.monthly_budget_grosze === null ? null : Number(r.monthly_budget_grosze),
+    }));
   }),
 );
 
-/** Назначить услугу клиенту или изменить её цену (повторное назначение = новая цена). */
+/** Назначить услугу клиенту. У услуги цены нет; бюджет имеет смысл только для рекламы. */
 export async function setClientService(input: {
   clientId: string;
   serviceId: string;
-  priceGrosze: number;
+  monthlyBudgetGrosze: number | null;
   active: boolean;
 }) {
   return agency((tx, { organization }) =>
     tx.query(
-      `insert into public.agency_client_services (organization_id, client_id, service_id, price_grosze, active)
+      `insert into public.agency_client_services (organization_id, client_id, service_id, monthly_budget_grosze, active)
        values ($1,$2,$3,$4,$5)
-       on conflict (client_id, service_id) do update set price_grosze = excluded.price_grosze, active = excluded.active`,
-      [organization.id, input.clientId, input.serviceId, input.priceGrosze, input.active],
+       on conflict (client_id, service_id) do update set monthly_budget_grosze = excluded.monthly_budget_grosze, active = excluded.active`,
+      [organization.id, input.clientId, input.serviceId, input.monthlyBudgetGrosze, input.active],
     ),
   );
 }

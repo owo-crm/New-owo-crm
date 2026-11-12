@@ -267,15 +267,7 @@
       "listopad",
       "grudzień"
     ],
-    "weekdays": [
-      "pon",
-      "wt",
-      "śr",
-      "czw",
-      "pt",
-      "sob",
-      "ndz"
-    ]
+    "weekdays": ["pon", "wt", "śr", "czw", "pt", "sob", "ndz"]
   },
   "documents": {
     "emptyTitle": "Oferty i umowy",
@@ -773,7 +765,7 @@
       "inactive": "nieaktywna",
       "client": "Usługi klienta",
       "clientEmpty": "Klient nie ma jeszcze przypisanych usług.",
-      "assign": "Przypisz usługę",
+      "assign": "Przypisz",
       "price": "Cena (zł)",
       "order": "Utwórz zlecenie",
       "remove": "Usuń",
@@ -791,7 +783,17 @@
         "web": "Strony internetowe",
         "automation": "Automatyzacja i oprogramowanie",
         "crm": "CRM (abonament)"
-      }
+      },
+      "budget": "Budżet miesięczny",
+      "budgetShort": "budżet {sum}/mies.",
+      "system": {
+        "crm": "Usługa wbudowana. Opłaty za system trafiają tu automatycznie.",
+        "ads": "Usługa wbudowana. Budżet reklamowy klienta rozliczany jest osobno i nie wchodzi do podziału."
+      },
+      "builtIn": "Usługi wbudowane",
+      "builtInHint": "Nazwy nie da się zmienić — ustawiasz tylko osobę odpowiedzialną, która dostaje 65 % ze zleceń tej usługi.",
+      "other": "Pozostałe usługi",
+      "otherHint": "Usługa nie ma ceny. Służy do przypisania odpowiedzialnego i podziału zysku według kierunków — kwotę wpisujesz przy każdym zleceniu."
     },
     "tabs": {
       "overview": "Przegląd"

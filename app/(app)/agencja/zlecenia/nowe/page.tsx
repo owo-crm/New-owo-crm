@@ -12,12 +12,10 @@ export default async function NewOrderPage({ searchParams }: PageProps<"/agencja
   const params = await searchParams;
   const data = await getOrderFormData();
   const preset = typeof params.klient === "string" ? params.klient : "";
-  // ?usluga=<id> из карточки клиента: услуга, её цена у клиента, название и тип.
+  // ?usluga=<id> из карточки клиента: услуга, её название и тип. Цены у услуги нет —
+  // сумма заказа договорная и вводится руками.
   const preService = data.services.find((x) => x.id === params.usluga)?.id ?? null;
   const svc = data.services.find((x) => x.id === preService);
-  const svcPrice = data.clientServices.find(
-    (c) => c.client_id === preset && c.service_id === preService,
-  )?.price_grosze;
   const month =
     typeof params.m === "string" && /^\d{4}-\d{2}$/.test(params.m)
       ? params.m
@@ -40,7 +38,7 @@ export default async function NewOrderPage({ searchParams }: PageProps<"/agencja
           clientId: data.clients.some((c) => c.id === preset) ? preset : "",
           title: svc ? svc.name : "",
           kind: svc?.kind ?? "project",
-          amountGrosze: svcPrice ?? 0,
+          amountGrosze: 0,
           directCostsGrosze: 0,
           adBudgetGrosze: 0,
           sellers: [{ userId: data.currentUserId, shareBp: 10000 }],

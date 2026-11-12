@@ -24,9 +24,8 @@ type Service = {
   name: string;
   owner_id: string;
   kind: "retainer" | "project";
-  default_price_grosze: number | null;
   active: boolean;
-  system_key: "crm" | null;
+  system_key: "crm" | "ads" | null;
 };
 
 const input =
@@ -71,31 +70,40 @@ function MemberSelect({
   );
 }
 
-/** Строка услуги: название, ответственный, тип, цена-ориентир — правка на месте. */
+/**
+ * Строка услуги. Цены у услуги нет: она нужна, чтобы назначить ответственного (он получает
+ * фонд исполнителей 65 % по её заказам) и разделить прибыль по направлениям.
+ * У зашитых услуг (абонемент CRM, реклама) название не меняется — только ответственный.
+ */
 export function ServiceRow({ service, members }: { service: Service; members: Member[] }) {
+  const system = service.system_key !== null;
   const [name, setName] = useState(service.name);
   const [owner, setOwner] = useState(service.owner_id);
   const [kind, setKind] = useState(service.kind);
-  const [price, setPrice] = useState(moneyFieldValue(service.default_price_grosze ?? 0));
   const [active, setActive] = useState(service.active);
   const { pending, error, run } = useRun();
   const dirty =
     name !== service.name ||
     owner !== service.owner_id ||
     kind !== service.kind ||
-    active !== service.active ||
-    price !== moneyFieldValue(service.default_price_grosze ?? 0);
+    active !== service.active;
   return (
-    <li className="grid gap-2 py-3 sm:grid-cols-[minmax(0,1fr)_11rem_9rem_7rem_auto] sm:items-center">
+    <li className="grid gap-2 py-3 sm:grid-cols-[minmax(0,1fr)_11rem_9rem_auto] sm:items-center">
       <span className="grid gap-0.5">
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          aria-label={t("agency.services.name")}
-          className={input}
-        />
-        {service.system_key === "crm" ? (
-          <span className="text-ink-faint text-[12px]">{t("agency.services.crm")}</span>
+        {system ? (
+          <span className="truncate text-[13.5px] font-semibold">{service.name}</span>
+        ) : (
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            aria-label={t("agency.services.name")}
+            className={input}
+          />
+        )}
+        {system ? (
+          <span className="text-ink-faint text-[12px]">
+            {t(`agency.services.system.${service.system_key}` as MessageKey)}
+          </span>
         ) : null}
       </span>
       <MemberSelect
@@ -109,28 +117,23 @@ export function ServiceRow({ service, members }: { service: Service; members: Me
         onChange={(e) => setKind(e.target.value as typeof kind)}
         aria-label={t("agency.services.kind")}
         className={input}
+        disabled={system}
       >
         <option value="retainer">{t("agency.kind.retainer")}</option>
         <option value="project">{t("agency.kind.project")}</option>
       </Picker>
-      <input
-        value={price}
-        onChange={(e) => setPrice(e.target.value)}
-        inputMode="decimal"
-        placeholder="0"
-        aria-label={t("agency.services.defaultPrice")}
-        className={`${input} text-right`}
-      />
       <span className="flex items-center gap-2">
-        <label className="text-ink-soft flex items-center gap-1.5 text-[12px]">
-          <input
-            type="checkbox"
-            checked={active}
-            onChange={(e) => setActive(e.target.checked)}
-            className="size-4"
-          />
-          {t("agency.services.active")}
-        </label>
+        {system ? null : (
+          <label className="text-ink-soft flex items-center gap-1.5 text-[12px]">
+            <input
+              type="checkbox"
+              checked={active}
+              onChange={(e) => setActive(e.target.checked)}
+              className="size-4"
+            />
+            {t("agency.services.active")}
+          </label>
+        )}
         {dirty ? (
           <Button
             size="sm"
@@ -139,11 +142,10 @@ export function ServiceRow({ service, members }: { service: Service; members: Me
               run(() =>
                 saveServiceAction({
                   id: service.id,
-                  name,
+                  name: system ? service.name : name,
                   description: null,
                   ownerId: owner,
                   kind,
-                  defaultPriceGrosze: price ? parseMoneyField(price) : null,
                   active,
                 }),
               )
@@ -153,7 +155,7 @@ export function ServiceRow({ service, members }: { service: Service; members: Me
           </Button>
         ) : null}
       </span>
-      {error ? <span className="text-urgent text-[12px] sm:col-span-5">{error}</span> : null}
+      {error ? <span className="text-urgent text-[12px] sm:col-span-4">{error}</span> : null}
     </li>
   );
 }
@@ -181,7 +183,6 @@ export function NewServiceForm({
               description: null,
               ownerId: owner,
               kind,
-              defaultPriceGrosze: null,
               active: true,
             }),
           () => setName(""),
@@ -220,13 +221,12 @@ export function NewServiceForm({
   );
 }
 
-const STARTER: { key: string; kind: "retainer" | "project"; crm?: boolean }[] = [
+// Абонемент CRM и реклама заводятся миграцией как зашитые услуги, здесь их нет.
+const STARTER: { key: string; kind: "retainer" | "project" }[] = [
   { key: "social", kind: "retainer" },
-  { key: "ads", kind: "retainer" },
   { key: "seo", kind: "retainer" },
   { key: "web", kind: "project" },
   { key: "automation", kind: "project" },
-  { key: "crm", kind: "retainer", crm: true },
 ];
 
 /** Каталог из документа услуг: 5 направлений + абонемент CRM; ответственного выбирают сами. */
@@ -276,9 +276,7 @@ export function StarterCatalog({
                 description: null,
                 ownerId: r.owner,
                 kind: r.kind,
-                defaultPriceGrosze: null,
                 active: true,
-                systemKey: r.crm ? "crm" : null,
               });
               if (res.error) return res;
             }
@@ -292,7 +290,10 @@ export function StarterCatalog({
   );
 }
 
-/** Услуги клиента: цена у каждого клиента своя и меняется прямо здесь. */
+/**
+ * Услуги клиента: что ему оказываем. Цены здесь нет — она договорная и живёт в заказе.
+ * У рекламы есть месячный бюджет: это деньги клиента, в раздел прибыли они не входят.
+ */
 export function ClientServicesPanel({
   clientId,
   items,
@@ -305,7 +306,8 @@ export function ClientServicesPanel({
     service_id: string;
     name: string;
     owner_id: string;
-    price_grosze: number;
+    system_key: "crm" | "ads" | null;
+    monthly_budget_grosze: number | null;
     active: boolean;
   }[];
   services: Service[];
@@ -314,8 +316,7 @@ export function ClientServicesPanel({
   const nameOf = (id: string) => members.find((m) => m.userId === id)?.name ?? "—";
   const free = services.filter((s) => s.active && !items.some((i) => i.service_id === s.id));
   const [pick, setPick] = useState(free[0]?.id ?? "");
-  const [price, setPrice] = useState("");
-  const [prices, setPrices] = useState<Record<string, string>>({});
+  const [budgets, setBudgets] = useState<Record<string, string>>({});
   const { pending, error, run } = useRun();
   return (
     <div className="grid gap-3" data-testid="client-services">
@@ -324,21 +325,33 @@ export function ClientServicesPanel({
       ) : (
         <ul className="divide-line divide-y">
           {items.map((i) => {
-            const value = prices[i.id] ?? moneyFieldValue(i.price_grosze);
-            const changed = value !== moneyFieldValue(i.price_grosze);
+            const ads = i.system_key === "ads";
+            const saved = moneyFieldValue(i.monthly_budget_grosze ?? 0);
+            const value = budgets[i.id] ?? saved;
+            const changed = ads && value !== saved;
             return (
               <li key={i.id} className="flex flex-wrap items-center gap-2 py-2">
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-[13.5px] font-medium">{i.name}</span>
-                  <span className="text-ink-faint text-[12px]">65 % → {nameOf(i.owner_id)}</span>
+                  <span className="text-ink-faint text-[12px]">
+                    65 % → {nameOf(i.owner_id)}
+                    {ads && i.monthly_budget_grosze
+                      ? ` · ${t("agency.services.budgetShort", {
+                          sum: formatMoney(i.monthly_budget_grosze),
+                        })}`
+                      : ""}
+                  </span>
                 </span>
-                <input
-                  value={value}
-                  onChange={(e) => setPrices({ ...prices, [i.id]: e.target.value })}
-                  inputMode="decimal"
-                  aria-label={`${t("agency.services.price")}: ${i.name}`}
-                  className={`${input} w-24 text-right`}
-                />
+                {ads ? (
+                  <input
+                    value={value}
+                    onChange={(e) => setBudgets({ ...budgets, [i.id]: e.target.value })}
+                    inputMode="decimal"
+                    placeholder="0"
+                    aria-label={`${t("agency.services.budget")}: ${i.name}`}
+                    className={`${input} w-28 text-right`}
+                  />
+                ) : null}
                 {changed ? (
                   <Button
                     size="sm"
@@ -348,7 +361,7 @@ export function ClientServicesPanel({
                         setClientServiceAction({
                           clientId,
                           serviceId: i.service_id,
-                          priceGrosze: parseMoneyField(value),
+                          monthlyBudgetGrosze: value ? parseMoneyField(value) : null,
                           active: i.active,
                         }),
                       )
@@ -382,11 +395,7 @@ export function ClientServicesPanel({
         <div className="flex flex-wrap items-center gap-2">
           <Picker
             value={pick}
-            onChange={(e) => {
-              setPick(e.target.value);
-              const s = services.find((x) => x.id === e.target.value);
-              setPrice(moneyFieldValue(s?.default_price_grosze ?? 0));
-            }}
+            onChange={(e) => setPick(e.target.value)}
             aria-label={t("agency.services.pick")}
             className={`${input} flex-1`}
           >
@@ -396,27 +405,17 @@ export function ClientServicesPanel({
               </option>
             ))}
           </Picker>
-          <input
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-            inputMode="decimal"
-            placeholder={t("agency.services.price")}
-            aria-label={t("agency.services.price")}
-            className={`${input} w-28 text-right`}
-          />
           <Button
             variant="secondary"
             disabled={pending || !pick}
             onClick={() =>
-              run(
-                () =>
-                  setClientServiceAction({
-                    clientId,
-                    serviceId: pick || free[0].id,
-                    priceGrosze: parseMoneyField(price) || 0,
-                    active: true,
-                  }),
-                () => setPrice(""),
+              run(() =>
+                setClientServiceAction({
+                  clientId,
+                  serviceId: pick || free[0].id,
+                  monthlyBudgetGrosze: null,
+                  active: true,
+                }),
               )
             }
           >
@@ -430,7 +429,6 @@ export function ClientServicesPanel({
   );
 }
 
-/** Вклады партнёров в общий фонд (например, Artem 7 500 zł). */
 export function ContributionsPanel({
   items,
   members,

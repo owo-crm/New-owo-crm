@@ -71,15 +71,14 @@ export const getOrderFormData = cache(async () =>
     const { rows: clientServices } = await tx.query<{
       client_id: string;
       service_id: string;
-      price_grosze: number;
     }>(
-      "select client_id, service_id, price_grosze from public.agency_client_services where organization_id=$1 and active",
+      "select client_id, service_id from public.agency_client_services where organization_id=$1 and active",
       [organization.id],
     );
     return {
       clients,
       services,
-      clientServices: clientServices.map((c) => ({ ...c, price_grosze: Number(c.price_grosze) })),
+      clientServices,
       members: await members(tx, organization.id),
       shares: await shares(tx, organization.id),
       currentUserId: user.id,

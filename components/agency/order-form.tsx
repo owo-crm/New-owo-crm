@@ -96,7 +96,7 @@ export function OrderForm({
   shares: Shares;
   currentUserId: string;
   services: { id: string; name: string; owner_id: string; kind: OrderKind }[];
-  clientServices: { client_id: string; service_id: string; price_grosze: number }[];
+  clientServices: { client_id: string; service_id: string }[];
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -294,10 +294,6 @@ export function OrderForm({
                 if (!sv) return;
                 setKind(sv.kind);
                 if (!title.trim()) setTitle(sv.name);
-                const cp = clientServices.find(
-                  (c) => c.client_id === clientId && c.service_id === id,
-                );
-                if (cp) setAmount(moneyFieldValue(cp.price_grosze));
               }}
               disabled={pending}
               name="serviceId"

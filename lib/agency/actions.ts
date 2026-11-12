@@ -231,9 +231,8 @@ export async function saveServiceAction(raw: unknown): Promise<ActionResult> {
       description: z.string().trim().max(500).nullable(),
       ownerId: z.uuid(),
       kind: z.enum(["retainer", "project"]),
-      defaultPriceGrosze: money.nullable(),
       active: z.boolean(),
-      systemKey: z.enum(["crm"]).nullable().optional(),
+      systemKey: z.enum(["crm", "ads"]).nullable().optional(),
     })
     .safeParse(raw);
   if (!parsed.success) return { error: t("agency.errors.invalid") };
@@ -250,7 +249,12 @@ export async function saveServiceAction(raw: unknown): Promise<ActionResult> {
 
 export async function setClientServiceAction(raw: unknown): Promise<ActionResult> {
   const parsed = z
-    .object({ clientId: z.uuid(), serviceId: z.uuid(), priceGrosze: money, active: z.boolean() })
+    .object({
+      clientId: z.uuid(),
+      serviceId: z.uuid(),
+      monthlyBudgetGrosze: money.nullable(),
+      active: z.boolean(),
+    })
     .safeParse(raw);
   if (!parsed.success) return { error: t("agency.errors.invalid") };
   try {

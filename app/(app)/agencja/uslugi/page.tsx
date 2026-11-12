@@ -20,6 +20,8 @@ export default async function ServicesPage() {
     getOrderFormData(),
     listContributions(),
   ]);
+  const system = services.filter((s) => s.system_key !== null);
+  const custom = services.filter((s) => s.system_key === null);
   return (
     <>
       <PageHeader
@@ -29,13 +31,22 @@ export default async function ServicesPage() {
         aside={<AgencyTabs current="services" />}
       />
       <div className="grid gap-5">
-        <Card title={services.length ? t("agency.services.title") : t("agency.services.starter")}>
-          {services.length === 0 ? (
+        <Card title={t("agency.services.builtIn")}>
+          <p className="text-ink-soft -mt-1 mb-1 text-[13px]">{t("agency.services.builtInHint")}</p>
+          <ul className="divide-line divide-y" data-testid="service-list-system">
+            {system.map((s) => (
+              <ServiceRow key={s.id} service={s} members={data.members} />
+            ))}
+          </ul>
+        </Card>
+        <Card title={t("agency.services.other")}>
+          <p className="text-ink-soft -mt-1 mb-1 text-[13px]">{t("agency.services.otherHint")}</p>
+          {custom.length === 0 ? (
             <StarterCatalog members={data.members} currentUserId={data.currentUserId} />
           ) : (
             <>
-              <ul className="divide-line -mt-2 divide-y" data-testid="service-list">
-                {services.map((s) => (
+              <ul className="divide-line divide-y" data-testid="service-list">
+                {custom.map((s) => (
                   <ServiceRow key={s.id} service={s} members={data.members} />
                 ))}
               </ul>
