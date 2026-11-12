@@ -34,6 +34,8 @@ export default defineConfig({
       NOTIFICATION_WORKER: "off",
       REGISTRATION_OPEN: "true",
       DEFAULT_DOCUMENT_ENGINE: "barowo",
+      // Тестовый ключ шифрования почты (32 нулевых байта) — только для e2e.
+      MAIL_SECRET_KEY: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
     },
   },
 });
