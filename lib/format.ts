@@ -59,3 +59,15 @@ export function monthGrid(monthIso: string) {
   }
   return weeks;
 }
+
+/**
+ * Польское множественное число: 1 umowa · 2–4 umowy · 5+ umów.
+ * Числа 12–14 идут по последней форме, как и положено в языке.
+ */
+export function plForm<T extends string>(n: number, one: T, few: T, many: T): T {
+  const d = Math.abs(n) % 10;
+  const h = Math.abs(n) % 100;
+  if (Math.abs(n) === 1) return one;
+  if (d >= 2 && d <= 4 && (h < 12 || h > 14)) return few;
+  return many;
+}

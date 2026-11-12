@@ -86,7 +86,9 @@
     "groupWork": "Praca",
     "groupMoney": "Pieniądze",
     "groupCompany": "Firma",
-    "menu": "Menu"
+    "menu": "Menu",
+    "clients": "Klienci",
+    "contracts": "Umowy"
   },
   "today": {
     "title": "Dzisiaj",
@@ -279,15 +281,7 @@
       "listopad",
       "grudzień"
     ],
-    "weekdays": [
-      "pon",
-      "wt",
-      "śr",
-      "czw",
-      "pt",
-      "sob",
-      "ndz"
-    ],
+    "weekdays": ["pon", "wt", "śr", "czw", "pt", "sob", "ndz"],
     "showPast": "Pokaż minione",
     "onlyAhead": "Tylko nadchodzące",
     "monthCount": "{days} dni · {events} wydarzeń",
@@ -1004,5 +998,22 @@
     },
     "testTo": "Wyślij test na adres",
     "testNoAddress": "Wpisz adres e-mail, na który wysłać wiadomość testową."
+  },
+  "clients": {
+    "searchHint": "Szukaj: imię, telefon, e-mail",
+    "emptyTitle": "Nie ma jeszcze klientów",
+    "emptyText": "Klientem staje się osoba, której wysłaliście umowę. Dopóki trwają rozmowy, zapytanie zostaje na liście leadów.",
+    "contractsOne": "{count} umowa",
+    "contractsFew": "{count} umowy",
+    "contractsMany": "{count} umów",
+    "leadsOne": "{count} zapytanie",
+    "leadsFew": "{count} zapytania",
+    "leadsMany": "{count} zapytań"
+  },
+  "contracts": {
+    "searchHint": "Szukaj: imię, telefon, numer umowy",
+    "paid": "wpłacono {sum}",
+    "emptyTitle": "Nie ma podpisanych umów",
+    "emptyText": "Umowa trafia tutaj, kiedy klient ją podpisze. Jeden klient może mieć ich kilka — każda to osobny wiersz."
   }
 }

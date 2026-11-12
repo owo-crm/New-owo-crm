@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addMonths, formatWaiting, monthGrid, plDate, warsawToday } from "@/lib/format";
+import { addMonths, formatWaiting, monthGrid, plDate, plForm, warsawToday } from "@/lib/format";
 
 describe("format", () => {
   it("czas oczekiwania", () => {
@@ -28,5 +28,23 @@ describe("format", () => {
         .flat()
         .filter((d) => d.inMonth),
     ).toHaveLength(28);
+  });
+});
+
+describe("plForm", () => {
+  it("польские формы: 1 umowa, 2–4 umowy, 5+ umów", () => {
+    const f = (n: number) => plForm(n, "one", "few", "many");
+    expect(f(1)).toBe("one");
+    expect([2, 3, 4, 22, 23, 104].map(f)).toEqual(["few", "few", "few", "few", "few", "few"]);
+    // 12–14 идут по последней форме, хотя оканчиваются на 2–4.
+    expect([0, 5, 11, 12, 13, 14, 25].map(f)).toEqual([
+      "many",
+      "many",
+      "many",
+      "many",
+      "many",
+      "many",
+      "many",
+    ]);
   });
 });

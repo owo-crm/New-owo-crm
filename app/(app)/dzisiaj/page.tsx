@@ -43,7 +43,7 @@ export default async function TodayPage() {
 
       <StatCards items={stats} />
 
-      <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+      <div className="gap-5 lg:columns-2 [&>*]:mb-5 [&>*]:break-inside-avoid">
         <Card title={t("today.chartFlow")}>
           <StackedBars
             rows={charts.months.map((m) => ({
@@ -124,38 +124,36 @@ export default async function TodayPage() {
           />
         </Card>
 
-        <div className="grid gap-5">
-          <Card title={t("today.chartSources")}>
-            <RankedBars
-              rows={charts.sources.map((s) => ({ label: s.source, value: s.leads }))}
-              color="var(--accent)"
-              empty={t("today.chartEmpty")}
-            />
-          </Card>
+        <Card title={t("today.chartSources")}>
+          <RankedBars
+            rows={charts.sources.map((s) => ({ label: s.source, value: s.leads }))}
+            color="var(--accent)"
+            empty={t("today.chartEmpty")}
+          />
+        </Card>
 
-          {!q.form_connected ? (
-            <Card title={t("today.setupTitle")}>
-              <ul className="grid gap-2">
-                {[
-                  ["/ustawienia/zrodla", "today.setupForm"],
-                  ["/ustawienia/zespol", "today.setupTeam"],
-                  ["/ustawienia/import", "today.setupImport"],
-                ].map(([href, label]) => (
-                  <li key={href}>
-                    <Link
-                      href={href}
-                      className="hover:bg-surface-2 -mx-2 flex items-center gap-2.5 rounded-lg px-2 py-2 text-sm font-semibold"
-                    >
-                      <Check className="text-ink-faint size-4" />
-                      {t(label as "today.setupForm")}
-                      <ArrowRight className="text-ink-faint ml-auto size-4" />
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </Card>
-          ) : null}
-        </div>
+        {!q.form_connected ? (
+          <Card title={t("today.setupTitle")}>
+            <ul className="grid gap-2">
+              {[
+                ["/ustawienia/zrodla", "today.setupForm"],
+                ["/ustawienia/zespol", "today.setupTeam"],
+                ["/ustawienia/import", "today.setupImport"],
+              ].map(([href, label]) => (
+                <li key={href}>
+                  <Link
+                    href={href}
+                    className="hover:bg-surface-2 -mx-2 flex items-center gap-2.5 rounded-lg px-2 py-2 text-sm font-semibold"
+                  >
+                    <Check className="text-ink-faint size-4" />
+                    {t(label as "today.setupForm")}
+                    <ArrowRight className="text-ink-faint ml-auto size-4" />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </Card>
+        ) : null}
       </div>
       <div className="mt-5 sm:hidden">
         <Link href="/leady/nowy" className={buttonVariants({ variant: "secondary" })}>

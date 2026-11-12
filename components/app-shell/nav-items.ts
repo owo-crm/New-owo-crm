@@ -4,6 +4,7 @@ import {
   Briefcase,
   CalendarDays,
   CreditCard,
+  FileSignature,
   Inbox,
   LayoutDashboard,
   Layers,
@@ -42,6 +43,13 @@ export const DASHBOARD: NavItem = {
   icon: LayoutDashboard,
 };
 export const LEADS: NavItem = { href: "/leady", label: "nav.leads", icon: Inbox };
+export const CLIENTS: NavItem = { href: "/klienci", label: "nav.clients", icon: Users };
+export const CONTRACTS: NavItem = {
+  href: "/umowy",
+  label: "nav.contracts",
+  icon: FileSignature,
+  module: "documents",
+};
 export const CALENDAR: NavItem = {
   href: "/kalendarz",
   label: "nav.calendar",
@@ -99,7 +107,7 @@ export const SETTINGS: NavItem = {
 };
 
 export const NAV_GROUPS: NavGroup[] = [
-  { label: "nav.groupWork", items: [DASHBOARD, LEADS, CALENDAR] },
+  { label: "nav.groupWork", items: [DASHBOARD, LEADS, CLIENTS, CONTRACTS, CALENDAR] },
   { label: "nav.groupMoney", items: [AGENCY, SERVICES, STATS] },
   { label: "nav.groupCompany", items: [TEAM, SUBSCRIPTION, SETTINGS] },
 ];

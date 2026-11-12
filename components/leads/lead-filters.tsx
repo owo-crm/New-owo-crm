@@ -36,6 +36,17 @@ export function LeadFiltersForm({
   const [query, setQuery] = useState(filters.q ?? "");
   const [pending, start] = useTransition();
   const first = useRef(true);
+  const box = useRef<HTMLInputElement>(null);
+  // Живое обновление списка перерисовывает экран и уводит курсор из поля.
+  // Возвращаем его, если человек печатал только что: через три секунды тишины
+  // фокус уже не наш — забирать его обратно было бы грубо.
+  const lastTyped = useRef(0);
+  useEffect(() => {
+    const el = box.current;
+    if (!el || document.activeElement === el || Date.now() - lastTyped.current > 3000) return;
+    el.focus();
+    el.setSelectionRange(el.value.length, el.value.length);
+  });
   useEffect(() => {
     if (first.current) {
       first.current = false;
@@ -59,8 +70,12 @@ export function LeadFiltersForm({
         <div className="relative min-w-0 flex-1 sm:max-w-sm" role="search">
           <Search className="text-ink-faint pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2" />
           <input
+            ref={box}
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => {
+              lastTyped.current = Date.now();
+              setQuery(e.target.value);
+            }}
             placeholder={t("leads.searchHint")}
             aria-label={t("leads.search")}
             className="border-line-strong bg-surface h-10 w-full rounded-lg border pr-9 pl-9 text-sm"

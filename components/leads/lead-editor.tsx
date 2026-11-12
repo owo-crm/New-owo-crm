@@ -204,7 +204,7 @@ export function LeadEditor({
             key: "data",
             label: "leads.tabData",
             content: (
-              <div className="grid items-start gap-5 lg:grid-cols-2">
+              <div className="gap-5 lg:columns-2 [&>*]:mb-5 [&>*]:break-inside-avoid">
                 {GROUPS.map((group) => (
                   <Card key={group.title} title={t(group.title)} tone={group.tone}>
                     <dl className="grid gap-x-6 sm:grid-cols-2">
@@ -364,7 +364,7 @@ export function LeadEditor({
             count: documentsCount,
             content:
               agencyCard || documentsCard ? (
-                <div className="grid items-start gap-5 lg:grid-cols-2">
+                <div className="gap-5 lg:columns-2 [&>*]:mb-5 [&>*]:break-inside-avoid">
                   {agencyCard}
                   {documentsCard}
                 </div>
@@ -375,7 +375,7 @@ export function LeadEditor({
             key: "history",
             label: "leads.tabHistory",
             content: (
-              <div className="grid items-start gap-5 lg:grid-cols-2">
+              <div className="grid items-start gap-5">
                 <Card title={t("leads.historyTitle")}>
                   <ol className="grid gap-4">
                     {history.map((event) => (
