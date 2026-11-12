@@ -4,7 +4,7 @@ import { MailSettingsForm, type MailSettingsView } from "@/components/settings/m
 import { getDb } from "@/lib/db";
 import { withOrg } from "@/lib/db/user";
 import { recipientsSentToday } from "@/lib/mail/service";
-import { isMailSecretKeyConfigured } from "@/lib/mail/secret";
+import { mailKeyStatus } from "@/lib/mail/secret";
 import { t } from "@/lib/i18n";
 
 export const metadata: Metadata = { title: t("mail.title") };
@@ -66,11 +66,7 @@ export default async function MailSettingsPage() {
         title={t("mail.title")}
       />
       <Card>
-        <MailSettingsForm
-          initial={view}
-          canEdit={canEdit}
-          keyConfigured={isMailSecretKeyConfigured()}
-        />
+        <MailSettingsForm initial={view} canEdit={canEdit} keyStatus={mailKeyStatus()} />
       </Card>
     </div>
   );

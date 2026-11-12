@@ -12,11 +12,34 @@ export class MailSecretKeyMissing extends Error {
   }
 }
 
+/** Убирает то, что часто прилипает при копировании: пробелы, переносы строк, кавычки. */
+function clean(raw: string) {
+  return raw
+    .trim()
+    .replace(/^["']|["']$/g, "")
+    .trim();
+}
+
+/** Ключ: 32 байта в base64 (openssl rand -base64 32) или 64 символа hex (openssl rand -hex 32). */
+export function parseMailKey(raw: string): Buffer | null {
+  const value = clean(raw);
+  if (/^[0-9a-fA-F]{64}$/.test(value)) return Buffer.from(value, "hex");
+  if (!/^[A-Za-z0-9+/_-]+={0,2}$/.test(value)) return null;
+  const buf = Buffer.from(value.replace(/-/g, "+").replace(/_/g, "/"), "base64");
+  return buf.length === 32 ? buf : null;
+}
+
 function key(raw = process.env.MAIL_SECRET_KEY): Buffer {
-  if (!raw) throw new MailSecretKeyMissing();
-  const buf = Buffer.from(raw, "base64");
-  if (buf.length !== 32) throw new Error("MAIL_SECRET_KEY: oczekiwano 32 bajtów w base64");
+  if (!raw || !clean(raw)) throw new MailSecretKeyMissing();
+  const buf = parseMailKey(raw);
+  if (!buf) throw new Error("mail_secret_key_invalid");
   return buf;
+}
+
+/** Состояние ключа для экрана настроек — без раскрытия самого ключа. */
+export function mailKeyStatus(raw = process.env.MAIL_SECRET_KEY): "ok" | "missing" | "invalid" {
+  if (!raw || !clean(raw)) return "missing";
+  return parseMailKey(raw) ? "ok" : "invalid";
 }
 
 export function encryptSecret(plain: string, rawKey?: string): string {
@@ -42,10 +65,5 @@ export function decryptSecret(stored: string, rawKey?: string): string {
 }
 
 export function isMailSecretKeyConfigured() {
-  try {
-    key();
-    return true;
-  } catch {
-    return false;
-  }
+  return mailKeyStatus() === "ok";
 }

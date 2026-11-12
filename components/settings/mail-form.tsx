@@ -42,11 +42,11 @@ function Result({ state }: { state: MailFormState }) {
 export function MailSettingsForm({
   initial,
   canEdit,
-  keyConfigured,
+  keyStatus,
 }: {
   initial: MailSettingsView;
   canEdit: boolean;
-  keyConfigured: boolean;
+  keyStatus: "ok" | "missing" | "invalid";
 }) {
   const [transport, setTransport] = useState(initial.transport);
   const [saveState, save] = useActionState<MailFormState, FormData>(saveMailSettings, {});
@@ -56,7 +56,15 @@ export function MailSettingsForm({
 
   return (
     <div className="grid gap-6">
-      {!keyConfigured ? <Notice tone="error">{t("mail.errors.secret_key_missing")}</Notice> : null}
+      {keyStatus !== "ok" ? (
+        <Notice tone="error">
+          {t(
+            keyStatus === "invalid"
+              ? "mail.errors.secret_key_invalid"
+              : "mail.errors.secret_key_missing",
+          )}
+        </Notice>
+      ) : null}
       {!canEdit ? <p className="text-ink-soft text-sm">{t("mail.readOnly")}</p> : null}
 
       <form action={save} className="grid gap-4">
