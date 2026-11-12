@@ -3,7 +3,8 @@ import { Bot } from "grammy";
 import { one, type Queryable } from "../db/core.ts";
 import { sendTelegramLead } from "./telegram.ts";
 import { sendPushLead, type StoredPushSubscription } from "./push.ts";
-import { sendEmailLead } from "./email.ts";
+import { emailContent, sendEmailLead } from "./email.ts";
+import { loadMailSettings, sendBusinessMail } from "../mail/service.ts";
 import type { DeliverySender } from "./queue.ts";
 export type DeliveryConfig = {
   enabled: boolean;
@@ -38,13 +39,29 @@ export function createDeliverySender(db: Queryable, config: DeliveryConfig): Del
       return "sent";
     }
     if (delivery.channel === "email") {
-      if (!config.resendKey || !config.emailFrom) throw new Error("email_not_configured");
       const recipient = await one<{ email: string }>(
         db,
         "select email from auth.users where id=$1",
         [delivery.user_id],
       );
       if (!recipient?.email || !recipient.email.includes("@")) return "skipped"; // login bez e-maila
+      // Почта фирмы (решение 035) — если настроена; иначе общий Resend платформы.
+      if (await loadMailSettings(db, delivery.organization_id)) {
+        const content = emailContent(lead, config.siteUrl, delivery.kind);
+        await sendBusinessMail(
+          db,
+          delivery.organization_id,
+          {
+            to: [recipient.email],
+            subject: content.subject,
+            text: content.text,
+            html: content.html,
+          },
+          { kind: "notification", leadId: lead.id },
+        );
+        return "sent";
+      }
+      if (!config.resendKey || !config.emailFrom) throw new Error("email_not_configured");
       await paceEmail();
       await sendEmailLead({
         lead,

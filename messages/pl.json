@@ -290,7 +290,9 @@
     "import": "Import leadów",
     "importText": "Przenieś leady z arkusza bota.",
     "finance": "Finanse",
-    "statsText": "Pieniądze, lejek i źródła zapytań."
+    "statsText": "Pieniądze, lejek i źródła zapytań.",
+    "mail": "Poczta",
+    "mailText": "Skąd wychodzą e-maile do klientów: Gmail, własna domena."
   },
   "presets": {
     "label": "Rodzaj biznesu",
@@ -923,5 +925,56 @@
   },
   "picker": {
     "search": "Szukaj…"
+  },
+  "mail": {
+    "title": "Poczta",
+    "transport": "Jak wysyłać e-maile do klientów",
+    "transportNone": "Wyłączone",
+    "transportSmtp": "Własna skrzynka (Gmail lub inna, SMTP)",
+    "transportResend": "Resend (własna domena firmy)",
+    "noneHint": "E-maile do klientów są wyłączone. Przyciski wysyłki ofert, umów i mailingu będą nieaktywne.",
+    "fromName": "Nazwa nadawcy",
+    "fromNameHint": "Tak klient zobaczy nadawcę, np. „Barowo”.",
+    "smtpUser": "Adres e-mail skrzynki",
+    "smtpUserHint": "Z tego adresu wyjdą wiadomości, a kopia trafi do „Wysłanych”.",
+    "smtpPassword": "Hasło aplikacji",
+    "smtpPasswordHint": "Dla Gmaila: Konto Google → Bezpieczeństwo → Hasła aplikacji (wymaga weryfikacji dwuetapowej). Nie wpisuj zwykłego hasła do konta.",
+    "secretSetHint": "Hasło jest zapisane i zaszyfrowane. Zostaw puste, żeby go nie zmieniać, albo wpisz nowe.",
+    "smtpHost": "Serwer SMTP",
+    "smtpPort": "Port",
+    "fromEmail": "Adres nadawcy",
+    "fromEmailHint": "Adres w domenie zweryfikowanej w Resend.",
+    "resendKey": "Klucz API Resend",
+    "replyTo": "Odpowiedzi kieruj na (opcjonalnie)",
+    "replyToHint": "Jeśli puste — odpowiedzi wracają na adres nadawcy.",
+    "dailyLimit": "Dzienny limit odbiorców",
+    "dailyLimitHint": "Dziś wysłano do {sent} odbiorców. Gmail pozwala na 500 dziennie — zostaw zapas.",
+    "save": "Zapisz ustawienia poczty",
+    "saved": "Zapisano. Wyślij wiadomość testową, żeby sprawdzić połączenie.",
+    "invalid": "Sprawdź pola: adresy e-mail, serwer, port (465 lub 587) i limit.",
+    "secretRequired": "Wpisz hasło aplikacji albo klucz API.",
+    "forbidden": "Tylko właściciel lub administrator może zmieniać pocztę.",
+    "readOnly": "Ustawienia poczty może zmieniać właściciel lub administrator.",
+    "testTitle": "Wiadomość testowa",
+    "testHint": "Wyślij wiadomość na swój adres, żeby sprawdzić, czy poczta działa.",
+    "testSend": "Wyślij wiadomość testową",
+    "testSent": "Wysłano na {email}. Sprawdź skrzynkę (także spam).",
+    "testSubject": "Test poczty — {firm}",
+    "testBody": "To jest wiadomość testowa z CRM. Jeśli ją widzisz, wysyłka e-maili do klientów działa.",
+    "lastTestOk": "Ostatni test: działa.",
+    "lastTestFailed": "Ostatni test nie powiódł się: {error}",
+    "errors": {
+      "not_configured": "Poczta nie jest skonfigurowana dla tej firmy.",
+      "secret_key_missing": "Serwer nie ma klucza szyfrowania (MAIL_SECRET_KEY). Dodaj go w zmiennych Railway, zanim zapiszesz hasło.",
+      "too_many_recipients": "Za dużo odbiorców w jednej wiadomości (maksymalnie 100).",
+      "no_recipients": "Brak adresu odbiorcy.",
+      "daily_limit": "Osiągnięto dzienny limit wysyłki. Reszta wyjdzie jutro.",
+      "auth_failed": "Serwer odrzucił login lub hasło. Dla Gmaila użyj hasła aplikacji, nie zwykłego hasła.",
+      "quota_exceeded": "Gmail zablokował wysyłkę: przekroczony dzienny limit konta. Spróbuj jutro.",
+      "connection_failed": "Nie udało się połączyć z serwerem poczty. Sprawdź serwer i port.",
+      "attachment_too_large": "Załączniki są za duże (maksymalnie 25 MB).",
+      "recipient_rejected": "Serwer odrzucił adres odbiorcy. Sprawdź adres e-mail.",
+      "send_failed": "Nie udało się wysłać wiadomości."
+    }
   }
 }

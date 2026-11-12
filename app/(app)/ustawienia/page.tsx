@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import {
   BarChart3,
+  Mail,
   Bell,
   Building2,
   CreditCard,
@@ -28,6 +29,7 @@ const SECTIONS: {
   { title: "settings.templates", text: "settings.templatesText", icon: FileStack },
   { title: "settings.channels", text: "settings.channelsText", icon: PlugZap },
   { title: "settings.notifications", text: "settings.notificationsText", icon: Bell },
+  { title: "settings.mail", text: "settings.mailText", icon: Mail },
   { title: "settings.team", text: "settings.teamText", icon: Users },
   { title: "settings.import", text: "settings.importText", icon: Upload },
   { title: "billing.settings.title", text: "billing.settings.text", icon: CreditCard },
@@ -41,6 +43,7 @@ const TONE: Partial<Record<string, string>> = {
   "settings.templates": "var(--hold)",
   "settings.channels": "var(--info)",
   "settings.notifications": "var(--urgent)",
+  "settings.mail": "var(--info)",
   "settings.team": "var(--ok)",
   "settings.import": "var(--ink-soft)",
   "billing.settings.title": "var(--accent)",
@@ -50,6 +53,7 @@ const TONE: Partial<Record<string, string>> = {
 const LINKS: Partial<Record<string, string>> = {
   "settings.notifications": "/ustawienia/powiadomienia",
   "settings.channels": "/ustawienia/zrodla",
+  "settings.mail": "/ustawienia/poczta",
   "settings.team": "/ustawienia/zespol",
   "settings.import": "/ustawienia/import",
   "billing.settings.title": "/ustawienia/abonament",
