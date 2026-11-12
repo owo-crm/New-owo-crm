@@ -16,7 +16,7 @@
 - [x] 0.6 Тест RLS «фирма A не видит фирму B» (Vitest + PGlite, без Docker)
 - [x] 0.7 CI GitHub Actions: `npm run check` на каждый push (ночной `pg_dump` бэкап — перед запуском в прод, задача 0.9)
 - [x] 0.11 Дизайн «Sezon»: тёмная тема, шрифты Barowo, полоса суббот, боны лидов (решение 011)
-- [ ] 0.9 Ночной бэкап базы `pg_dump` через GitHub Actions (нужен прод-проект Supabase)
+- [x] 0.9 Ночной бэкап базы `pg_dump` через GitHub Actions с проверочным восстановлением (решение 033, `docs/backup.md`; секреты и бэкапы Railway включает Иван)
 - [ ] 0.10 Первый запуск с настоящим Supabase: Иван создаёт проект, заполняет `.env.local`, проверяем регистрацию → фирма → Dzisiaj вживую
 - [ ] 0.8 ⚠️ Подать заявку на Meta Business Verification + App Review (делает Иван по инструкции из `05-lead-channels.md`)
 

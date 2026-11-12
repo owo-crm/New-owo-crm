@@ -1,0 +1,74 @@
+name: Nightly database backup
+
+# Каждую ночь: копия рабочей базы → шифрование → artifact на 30 дней →
+# проверка, что из этой копии база действительно поднимается.
+# Решение 028 (docs/decisions.md), инструкция — docs/backup.md.
+on:
+  schedule:
+    - cron: "17 1 * * *" # 01:17 UTC ≈ 2–3 ночи в Варшаве
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nightly-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      DB: ${{ secrets.BACKUP_DATABASE_URL }}
+      BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Secrets are set
+        run: |
+          [ -n "$DB" ] || { echo "::error::Brak sekretu BACKUP_DATABASE_URL (patrz docs/backup.md)"; exit 1; }
+          [ ${#BACKUP_PASSPHRASE} -ge 20 ] || { echo "::error::BACKUP_PASSPHRASE: brak albo krótsze niż 20 znaków"; exit 1; }
+
+      - name: Client tools matching the server version
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-common gnupg >/dev/null
+          MAJOR="$(psql "$DB" -Atqc 'show server_version_num' | cut -c1-2)"
+          echo "Postgres na serwerze: $MAJOR"
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y >/dev/null
+          sudo apt-get install -y -qq "postgresql-client-$MAJOR" >/dev/null
+          echo "MAJOR=$MAJOR" >> "$GITHUB_ENV"
+          echo "/usr/lib/postgresql/$MAJOR/bin" >> "$GITHUB_PATH"
+
+      - name: Dump
+        run: |
+          STAMP="$(date -u +%F)"
+          echo "STAMP=$STAMP" >> "$GITHUB_ENV"
+          pg_dump --format=custom --no-owner --file "owo-$STAMP.dump" "$DB"
+          ls -lh "owo-$STAMP.dump"
+
+      - name: Restore test into an empty Postgres of the same version
+        run: |
+          docker run -d --name restore -e POSTGRES_PASSWORD=restore -p 55432:5432 "postgres:$MAJOR" >/dev/null
+          for i in $(seq 1 30); do docker exec restore pg_isready -U postgres >/dev/null 2>&1 && break; sleep 2; done
+          psql postgresql://postgres:restore@localhost:55432/postgres -qc "create database owo_restore"
+          scripts/backup/restore.sh "owo-$STAMP.dump" postgresql://postgres:restore@localhost:55432/owo_restore | tee summary.txt
+          LEADS="$(grep '^leads = ' summary.txt | cut -d' ' -f3)"
+          [ "${LEADS:-0}" -gt 0 ] || { echo "::error::W odtworzonej bazie nie ma leadów — kopia podejrzana"; exit 1; }
+          {
+            echo "### Kopia $STAMP"; echo; echo '```'; cat summary.txt; echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Encrypt (the repository is public — never upload a plain dump)
+        run: |
+          gpg --batch --quiet --pinentry-mode loopback --passphrase-fd 3 --symmetric --cipher-algo AES256 \
+            --output "owo-$STAMP.dump.gpg" "owo-$STAMP.dump" 3<<<"$BACKUP_PASSPHRASE"
+          shred -u "owo-$STAMP.dump"
+          ls -lh "owo-$STAMP.dump.gpg"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: owo-db-${{ env.STAMP }}
+          path: owo-${{ env.STAMP }}.dump.gpg
+          retention-days: 30
+          if-no-files-found: error
