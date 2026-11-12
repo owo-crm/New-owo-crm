@@ -132,9 +132,29 @@ export async function saveMailSettings(
 }
 
 /** Тестовое письмо на адрес вошедшего пользователя. Показывает настоящую причину ошибки. */
-export async function sendTestMail(_prev: MailFormState): Promise<MailFormState> {
-  const ctx = await withOrg(async (_tx, { organization, user }) => ({ organization, user }));
+const looksLikeEmail = (v: unknown): v is string =>
+  typeof v === "string" && z.email().safeParse(v.trim()).success;
+
+/**
+ * Тестовое письмо. Кому: адрес из формы → e-mail вошедшего (если логин — это адрес) → сам ящик
+ * отправителя. Логин главного админа из Railway может быть не адресом — отсюда последний вариант.
+ * Показывает настоящую причину ошибки.
+ */
+export async function sendTestMail(_prev: MailFormState, form?: FormData): Promise<MailFormState> {
+  const ctx = await withOrg(async (tx, { organization, user }) => ({
+    organization,
+    user,
+    mailbox: (
+      await tx.query<{ a: string | null }>(
+        "select coalesce(from_email, smtp_user) as a from public.organization_mail_settings where organization_id=$1",
+        [organization.id],
+      )
+    ).rows[0]?.a,
+  }));
   if (!["owner", "admin"].includes(ctx.organization.role)) return { error: t("mail.forbidden") };
+  const typed = form?.get("testTo");
+  const to = [typed, ctx.user.email, ctx.mailbox].find(looksLikeEmail)?.trim().toLowerCase();
+  if (!to) return { error: t("mail.testNoAddress") };
   const db = getDb();
   let state: MailFormState;
   try {
@@ -142,16 +162,16 @@ export async function sendTestMail(_prev: MailFormState): Promise<MailFormState>
       db,
       ctx.organization.id,
       {
-        to: [ctx.user.email],
+        to: [to],
         subject: t("mail.testSubject", { firm: ctx.organization.name }),
         text: t("mail.testBody"),
       },
       { kind: "test", sentBy: ctx.user.id },
     );
-    state = { ok: t("mail.testSent", { email: ctx.user.email }) };
+    state = { ok: t("mail.testSent", { email: to }) };
   } catch (error) {
     const e = error instanceof MailError ? error : new MailError("send_failed");
-    state = { error: mailMessage(e.code), detail: e.detail };
+    state = { error: mailMessage(e.code), detail: e.detail ?? to };
   }
   await db.query(
     "update public.organization_mail_settings set last_test_at=now(), last_test_ok=$2, last_test_error=$3 where organization_id=$1",
