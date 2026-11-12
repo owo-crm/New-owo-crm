@@ -25,6 +25,8 @@ test("oferta → menu → umowa: PDF + Word, dane wracają do karty, etap rośni
   await page.getByText(name).click();
   await expect(page).toHaveURL(/\/leady\/[0-9a-f-]{36}/);
 
+  // Документы живут на своей вкладке карточки лида (решение 035).
+  await page.getByRole("tab", { name: "Dokumenty" }).click();
   await page.getByRole("link", { name: "Premium" }).click();
   await page.getByLabel("Goście").fill("70");
   await page.getByLabel("Miejsce").fill("Hotel Łazienki");
@@ -48,7 +50,12 @@ test("oferta → menu → umowa: PDF + Word, dane wracają do karty, etap rośni
     .evaluateAll((a) => a.map((x) => x.getAttribute("href")!));
   expect(files).toHaveLength(6);
   for (const href of files) expect((await page.request.get(href)).status()).toBe(200);
-  await expect(page.getByLabel("Etap", { exact: true })).toContainText("Umowa wysłana");
+  // Этап виден дорожкой, а не списком (решение 035).
+  await expect(page.getByRole("button", { name: "Umowa wysłana" })).toHaveAttribute(
+    "aria-current",
+    "step",
+  );
+  await page.getByRole("tab", { name: "Dane" }).click();
   await expect(page.getByText("Hotel Łazienki")).toBeVisible();
   await page.screenshot({
     path: `tests/screenshots/${info.project.name}-dokumenty.png`,

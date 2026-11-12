@@ -248,7 +248,11 @@
     "searchAction": "Szukaj",
     "groupContact": "Kontakt",
     "groupEvent": "Wydarzenie",
-    "groupContract": "Dane do umowy"
+    "groupContract": "Dane do umowy",
+    "tabData": "Dane",
+    "tabDocs": "Dokumenty",
+    "tabMoney": "Płatności",
+    "tabHistory": "Historia"
   },
   "calendar": {
     "title": "Kalendarz",
@@ -275,7 +279,15 @@
       "listopad",
       "grudzień"
     ],
-    "weekdays": ["pon", "wt", "śr", "czw", "pt", "sob", "ndz"],
+    "weekdays": [
+      "pon",
+      "wt",
+      "śr",
+      "czw",
+      "pt",
+      "sob",
+      "ndz"
+    ],
     "showPast": "Pokaż minione",
     "onlyAhead": "Tylko nadchodzące",
     "monthCount": "{days} dni · {events} wydarzeń",

@@ -38,19 +38,20 @@ export default async function LeadPage({ params, searchParams }: PageProps<"/lea
         stages={options.stages}
         team={options.team}
         history={history}
-        documents={
-          <>
-            {showAgency ? <LeadClientCard leadId={id} clientId={agencyClient} /> : null}
-            {docs.paymentsModule ? <PaymentsCard payments={docs.payments} /> : null}
-            {docs.documentsModule ? (
-              <DocumentsCard
-                leadId={id}
-                enabled={docs.enabled}
-                documents={docs.list}
-                flash={typeof dokument === "string" ? dokument.slice(0, 60) : undefined}
-              />
-            ) : null}
-          </>
+        // Пришли с готовым документом — сразу открываем вкладку документов.
+        initialTab={typeof dokument === "string" ? "docs" : undefined}
+        documentsCount={docs.list.length}
+        agencyCard={showAgency ? <LeadClientCard leadId={id} clientId={agencyClient} /> : null}
+        paymentsCard={docs.paymentsModule ? <PaymentsCard payments={docs.payments} /> : null}
+        documentsCard={
+          docs.documentsModule ? (
+            <DocumentsCard
+              leadId={id}
+              enabled={docs.enabled}
+              documents={docs.list}
+              flash={typeof dokument === "string" ? dokument.slice(0, 60) : undefined}
+            />
+          ) : null
         }
       />
       <div className="mt-5">

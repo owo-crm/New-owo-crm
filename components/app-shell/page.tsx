@@ -61,10 +61,13 @@ export function Stat({
 
 export function Card({
   title,
+  tone,
   children,
   className,
 }: {
   title?: string;
+  /** Цвет метки у заголовка: чтобы карточки на одном экране не сливались в стену. */
+  tone?: string;
   children: React.ReactNode;
   className?: string;
 }) {
@@ -75,7 +78,18 @@ export function Card({
         className,
       )}
     >
-      {title ? <h2 className="mb-3 text-[15px] font-semibold">{title}</h2> : null}
+      {title ? (
+        <h2 className="mb-3 flex items-center gap-2 text-[15px] font-semibold">
+          {tone ? (
+            <span
+              aria-hidden
+              className="h-4 w-1 shrink-0 rounded-full"
+              style={{ background: tone }}
+            />
+          ) : null}
+          {title}
+        </h2>
+      ) : null}
       {children}
     </section>
   );

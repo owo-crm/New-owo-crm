@@ -4,6 +4,8 @@ import { hasKnownResponse } from "@/lib/leads/response";
 import { useEffect, useOptimistic, useState, useTransition } from "react";
 import Link from "next/link";
 import { Card, PageHeader } from "@/components/app-shell/page";
+import { StageBar } from "./stage-bar";
+import { LeadTabs } from "./lead-tabs";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Field, Select } from "@/components/ui/field";
 import { t, type MessageKey } from "@/lib/i18n";
@@ -13,10 +15,16 @@ import type { Lead, PipelineStage } from "@/lib/leads/types";
 import type { LeadEvent } from "@/lib/leads/queries";
 import { eventDateLabel } from "./lead-list";
 /** Поля сгруппированы по смыслу: контакт, мероприятие, данные для договора. */
-const GROUPS: { title: MessageKey; fields: EditableField[] }[] = [
-  { title: "leads.groupContact", fields: ["client_name", "phone_e164", "email", "assigned_to"] },
+// У каждой группы свой цвет метки: иначе четыре одинаковые белые карточки сливаются.
+const GROUPS: { title: MessageKey; tone: string; fields: EditableField[] }[] = [
+  {
+    title: "leads.groupContact",
+    tone: "var(--accent)",
+    fields: ["client_name", "phone_e164", "email", "assigned_to"],
+  },
   {
     title: "leads.groupEvent",
+    tone: "var(--ok)",
     fields: [
       "event_date",
       "event_type",
@@ -28,7 +36,11 @@ const GROUPS: { title: MessageKey; fields: EditableField[] }[] = [
       "budget_grosze",
     ],
   },
-  { title: "leads.groupContract", fields: ["client_full_name", "client_address"] },
+  {
+    title: "leads.groupContract",
+    tone: "#8b6cf0",
+    fields: ["client_full_name", "client_address"],
+  },
 ];
 const inputTypes: Partial<Record<EditableField, string>> = {
   event_date: "date",
@@ -53,13 +65,21 @@ export function LeadEditor({
   stages,
   team,
   history,
-  documents,
+  documentsCard,
+  paymentsCard,
+  agencyCard,
+  documentsCount,
+  initialTab,
 }: {
   lead: Lead;
   stages: PipelineStage[];
   team: { id: string; name: string }[];
   history: LeadEvent[];
-  documents?: React.ReactNode;
+  documentsCard?: React.ReactNode;
+  paymentsCard?: React.ReactNode;
+  agencyCard?: React.ReactNode;
+  documentsCount?: number;
+  initialTab?: string;
 }) {
   const [current, optimistic] = useOptimistic(lead, (state: Lead, patch: Partial<Lead>) => ({
     ...state,
@@ -109,27 +129,18 @@ export function LeadEditor({
   }
   return (
     <>
-      <Link href="/leady" className="text-ink-soft mb-5 inline-flex min-h-11 items-center text-sm">
-        {t("leads.back")}
-      </Link>
-      <PageHeader
-        title={current.client_name}
-        subtitle={`#${current.number} · ${current.source_label}`}
-        aside={
-          <Select
-            label={t("leads.stage")}
-            value={current.stage_key}
-            disabled={pending}
-            onChange={(e) => change("stage_key", e.target.value)}
-          >
-            {stages.map((stage) => (
-              <option key={stage.key} value={stage.key}>
-                {stage.label_pl}
-              </option>
-            ))}
-          </Select>
-        }
-      />
+      <PageHeader title={current.client_name} back={{ href: "/leady", label: t("nav.leads") }} />
+      <p className="text-ink-soft -mt-3 mb-4 text-[13px]">
+        #{current.number} · {current.source_label}
+      </p>
+      <div className="border-line bg-surface mb-5 rounded-2xl border px-3 py-2.5 shadow-[var(--shadow)]">
+        <StageBar
+          stages={stages}
+          current={current.stage_key}
+          disabled={pending}
+          onChange={(key) => change("stage_key", key)}
+        />
+      </div>
       <div className="mb-6 flex flex-wrap gap-2">
         {current.phone_e164 ? (
           <>
@@ -153,14 +164,9 @@ export function LeadEditor({
             {t("leads.email")}
           </a>
         ) : null}
-        {!hasKnownResponse(current) &&
-        stages.find((s) => s.key === current.stage_key)?.kind === "open" ? (
-          <Button
-            disabled={pending}
-            onClick={() =>
-              change("stage_key", current.stage_key === "new" ? "contacted" : current.stage_key)
-            }
-          >
+        {/* Кнопка нужна только на первом этапе: дальше этап меняют дорожкой выше. */}
+        {!hasKnownResponse(current) && current.stage_key === "new" ? (
+          <Button disabled={pending} onClick={() => change("stage_key", "contacted")}>
             {t("leads.contacted")}
           </Button>
         ) : null}
@@ -191,191 +197,230 @@ export function LeadEditor({
           </Button>
         </div>
       ) : null}
-      <div className="grid items-start gap-5 lg:grid-cols-[1.2fr_1fr]">
-        <div className="grid gap-5">
-          {GROUPS.map((group) => (
-            <Card key={group.title} title={t(group.title)}>
-              <dl className="grid gap-x-6 sm:grid-cols-2">
-                {group.fields.map((field) => (
-                  <div
-                    key={field}
-                    className="border-line border-b py-2.5 last:border-0 sm:[&:nth-last-child(2)]:border-0"
-                  >
-                    <dt className="text-ink-faint text-xs font-semibold">{labelFor(field)}</dt>
-                    <dd>
-                      {editing === field ? (
-                        <form
-                          className="mt-2 grid gap-2"
-                          onSubmit={(e) => {
-                            e.preventDefault();
-                            change(field, String(new FormData(e.currentTarget).get("value") ?? ""));
-                          }}
+      <LeadTabs
+        initial={initialTab}
+        tabs={[
+          {
+            key: "data",
+            label: "leads.tabData",
+            content: (
+              <div className="grid items-start gap-5 lg:grid-cols-2">
+                {GROUPS.map((group) => (
+                  <Card key={group.title} title={t(group.title)} tone={group.tone}>
+                    <dl className="grid gap-x-6 sm:grid-cols-2">
+                      {group.fields.map((field) => (
+                        <div
+                          key={field}
+                          className="border-line border-b py-2.5 last:border-0 sm:[&:nth-last-child(2)]:border-0"
                         >
-                          {field === "assigned_to" ? (
-                            <Select
-                              name="value"
-                              label={labelFor(field)}
-                              defaultValue={valueFor(field)}
-                            >
-                              <option value="">{t("leads.unassigned")}</option>
-                              {team.map((member) => (
-                                <option key={member.id} value={member.id}>
-                                  {member.name}
-                                </option>
-                              ))}
-                            </Select>
-                          ) : (
-                            <Field
-                              name="value"
-                              label={labelFor(field)}
-                              defaultValue={valueFor(field)}
-                              type={inputTypes[field] ?? "text"}
-                              autoFocus
-                            />
-                          )}
-                          <div className="flex gap-2">
-                            <Button type="submit" size="sm" disabled={pending}>
-                              {t("leads.save")}
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              type="button"
-                              onClick={() => setEditing(null)}
-                            >
-                              {t("leads.cancel")}
-                            </Button>
-                          </div>
-                        </form>
-                      ) : (
-                        <button
-                          type="button"
-                          disabled={pending}
-                          onClick={() => setEditing(field)}
-                          aria-label={t("leads.editField", { field: labelFor(field) })}
-                          className="hover:bg-surface-2 -mx-2 mt-0.5 flex min-h-8 w-full items-center justify-between gap-3 rounded-lg px-2 py-1 text-left"
-                        >
-                          <span className="min-w-0 break-words">{displayFor(field)}</span>
-                          <span className="text-ink-faint shrink-0 text-xs">{t("leads.edit")}</span>
-                        </button>
-                      )}
-                    </dd>
-                  </div>
+                          <dt className="text-ink-faint text-xs font-semibold">
+                            {labelFor(field)}
+                          </dt>
+                          <dd>
+                            {editing === field ? (
+                              <form
+                                className="mt-2 grid gap-2"
+                                onSubmit={(e) => {
+                                  e.preventDefault();
+                                  change(
+                                    field,
+                                    String(new FormData(e.currentTarget).get("value") ?? ""),
+                                  );
+                                }}
+                              >
+                                {field === "assigned_to" ? (
+                                  <Select
+                                    name="value"
+                                    label={labelFor(field)}
+                                    defaultValue={valueFor(field)}
+                                  >
+                                    <option value="">{t("leads.unassigned")}</option>
+                                    {team.map((member) => (
+                                      <option key={member.id} value={member.id}>
+                                        {member.name}
+                                      </option>
+                                    ))}
+                                  </Select>
+                                ) : (
+                                  <Field
+                                    name="value"
+                                    label={labelFor(field)}
+                                    defaultValue={valueFor(field)}
+                                    type={inputTypes[field] ?? "text"}
+                                    autoFocus
+                                  />
+                                )}
+                                <div className="flex gap-2">
+                                  <Button type="submit" size="sm" disabled={pending}>
+                                    {t("leads.save")}
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    type="button"
+                                    onClick={() => setEditing(null)}
+                                  >
+                                    {t("leads.cancel")}
+                                  </Button>
+                                </div>
+                              </form>
+                            ) : (
+                              <button
+                                type="button"
+                                disabled={pending}
+                                onClick={() => setEditing(field)}
+                                aria-label={t("leads.editField", { field: labelFor(field) })}
+                                className="hover:bg-surface-2 -mx-2 mt-0.5 flex min-h-8 w-full items-center justify-between gap-3 rounded-lg px-2 py-1 text-left"
+                              >
+                                <span className="min-w-0 break-words">{displayFor(field)}</span>
+                                <span className="text-ink-faint shrink-0 text-xs">
+                                  {t("leads.edit")}
+                                </span>
+                              </button>
+                            )}
+                          </dd>
+                        </div>
+                      ))}
+                    </dl>
+                  </Card>
                 ))}
-              </dl>
-            </Card>
-          ))}
-          <Card title={t("leads.fields.message")}>
-            {editing === "message" ? (
-              <form
-                className="grid gap-2"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  change("message", String(new FormData(e.currentTarget).get("value") ?? ""));
-                }}
-              >
-                <textarea
-                  name="value"
-                  defaultValue={valueFor("message")}
-                  rows={6}
-                  maxLength={10000}
-                  className="border-line-strong bg-surface rounded-lg border p-3 text-sm"
-                />
-                <div className="flex gap-2">
-                  <Button type="submit" size="sm" disabled={pending}>
-                    {t("leads.save")}
-                  </Button>
-                  <Button variant="ghost" size="sm" type="button" onClick={() => setEditing(null)}>
-                    {t("leads.cancel")}
-                  </Button>
-                </div>
-              </form>
-            ) : (
-              <button
-                type="button"
-                onClick={() => setEditing("message")}
-                className="hover:bg-surface-2 -mx-2 block w-full rounded-lg px-2 py-1 text-left break-words whitespace-pre-wrap"
-              >
-                {current.message || (
-                  <span className="text-ink-faint">{t("leads.notProvided")}</span>
-                )}
-              </button>
-            )}
-          </Card>
-        </div>
-        <div className="grid gap-5">
-          {documents}
-          <Card title={t("leads.note")}>
-            <form
-              className="grid gap-3"
-              onSubmit={(e) => {
-                e.preventDefault();
-                const form = e.currentTarget;
-                const text = String(new FormData(form).get("note") ?? "");
-                startTransition(async () => {
-                  const result = await addLeadNote(lead.id, text);
-                  if (result.error) setError(result.error);
-                  else form.reset();
-                });
-              }}
-            >
-              <label className="grid gap-2 text-sm">
-                {t("leads.noteText")}
-                <textarea
-                  name="note"
-                  required
-                  maxLength={5000}
-                  rows={3}
-                  className="border-line-strong bg-surface rounded-lg border p-3 text-sm"
-                />
-              </label>
-              <Button type="submit" disabled={pending}>
-                {t("leads.addNote")}
-              </Button>
-            </form>
-          </Card>
-          <Card title={t("leads.historyTitle")}>
-            <ol className="grid gap-4">
-              {history.map((event) => (
-                <li key={event.id} className="border-line border-b pb-4 last:border-0">
-                  <p className="text-ink-soft text-xs">
-                    {new Intl.DateTimeFormat("pl-PL", {
-                      dateStyle: "short",
-                      timeStyle: "short",
-                      timeZone: "Europe/Warsaw",
-                    }).format(new Date(event.created_at))}
-                  </p>
-                  <p className="mt-1 font-semibold">
-                    {t(eventLabels[event.type] ?? "leads.history.other")}
-                  </p>
-                  {event.type === "document_generated" &&
-                  typeof event.payload.number === "string" ? (
-                    <p className="text-ink-soft mt-1 text-sm">
-                      {t(`docs.kind_${String(event.payload.kind)}` as MessageKey)}{" "}
-                      {event.payload.number}
-                    </p>
-                  ) : null}
-                  {typeof event.payload.text === "string" ? (
-                    <p className="text-ink-soft mt-1 text-sm break-words whitespace-pre-wrap">
-                      {event.payload.text}
-                    </p>
-                  ) : null}
-                  {event.type === "possible_duplicate" &&
-                  typeof event.payload.lead_id === "string" ? (
-                    <Link
-                      href={`/leady/${event.payload.lead_id}`}
-                      className="inline-flex min-h-11 items-center text-sm underline"
+                <Card title={t("leads.fields.message")} tone="var(--hold)">
+                  {editing === "message" ? (
+                    <form
+                      className="grid gap-2"
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        change("message", String(new FormData(e.currentTarget).get("value") ?? ""));
+                      }}
                     >
-                      {t("leads.openDuplicate")}
-                    </Link>
-                  ) : null}
-                </li>
-              ))}
-            </ol>
-            <p className="text-ink-soft mt-3 text-xs">{t("leads.historyLimit")}</p>
-          </Card>
-        </div>
-      </div>
+                      <textarea
+                        name="value"
+                        defaultValue={valueFor("message")}
+                        rows={6}
+                        maxLength={10000}
+                        className="border-line-strong bg-surface rounded-lg border p-3 text-sm"
+                      />
+                      <div className="flex gap-2">
+                        <Button type="submit" size="sm" disabled={pending}>
+                          {t("leads.save")}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          type="button"
+                          onClick={() => setEditing(null)}
+                        >
+                          {t("leads.cancel")}
+                        </Button>
+                      </div>
+                    </form>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setEditing("message")}
+                      className="hover:bg-surface-2 -mx-2 block w-full rounded-lg px-2 py-1 text-left break-words whitespace-pre-wrap"
+                    >
+                      {current.message || (
+                        <span className="text-ink-faint">{t("leads.notProvided")}</span>
+                      )}
+                    </button>
+                  )}
+                </Card>
+                <Card title={t("leads.note")} tone="var(--info)">
+                  <form
+                    className="grid gap-3"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      const form = e.currentTarget;
+                      const text = String(new FormData(form).get("note") ?? "");
+                      startTransition(async () => {
+                        const result = await addLeadNote(lead.id, text);
+                        if (result.error) setError(result.error);
+                        else form.reset();
+                      });
+                    }}
+                  >
+                    <label className="grid gap-2 text-sm">
+                      {t("leads.noteText")}
+                      <textarea
+                        name="note"
+                        required
+                        maxLength={5000}
+                        rows={3}
+                        className="border-line-strong bg-surface rounded-lg border p-3 text-sm"
+                      />
+                    </label>
+                    <Button type="submit" disabled={pending}>
+                      {t("leads.addNote")}
+                    </Button>
+                  </form>
+                </Card>
+              </div>
+            ),
+          },
+          {
+            key: "docs",
+            label: "leads.tabDocs",
+            count: documentsCount,
+            content:
+              agencyCard || documentsCard ? (
+                <div className="grid items-start gap-5 lg:grid-cols-2">
+                  {agencyCard}
+                  {documentsCard}
+                </div>
+              ) : null,
+          },
+          { key: "money", label: "leads.tabMoney", content: paymentsCard },
+          {
+            key: "history",
+            label: "leads.tabHistory",
+            content: (
+              <div className="grid items-start gap-5 lg:grid-cols-2">
+                <Card title={t("leads.historyTitle")}>
+                  <ol className="grid gap-4">
+                    {history.map((event) => (
+                      <li key={event.id} className="border-line border-b pb-4 last:border-0">
+                        <p className="text-ink-soft text-xs">
+                          {new Intl.DateTimeFormat("pl-PL", {
+                            dateStyle: "short",
+                            timeStyle: "short",
+                            timeZone: "Europe/Warsaw",
+                          }).format(new Date(event.created_at))}
+                        </p>
+                        <p className="mt-1 font-semibold">
+                          {t(eventLabels[event.type] ?? "leads.history.other")}
+                        </p>
+                        {event.type === "document_generated" &&
+                        typeof event.payload.number === "string" ? (
+                          <p className="text-ink-soft mt-1 text-sm">
+                            {t(`docs.kind_${String(event.payload.kind)}` as MessageKey)}{" "}
+                            {event.payload.number}
+                          </p>
+                        ) : null}
+                        {typeof event.payload.text === "string" ? (
+                          <p className="text-ink-soft mt-1 text-sm break-words whitespace-pre-wrap">
+                            {event.payload.text}
+                          </p>
+                        ) : null}
+                        {event.type === "possible_duplicate" &&
+                        typeof event.payload.lead_id === "string" ? (
+                          <Link
+                            href={`/leady/${event.payload.lead_id}`}
+                            className="inline-flex min-h-11 items-center text-sm underline"
+                          >
+                            {t("leads.openDuplicate")}
+                          </Link>
+                        ) : null}
+                      </li>
+                    ))}
+                  </ol>
+                  <p className="text-ink-soft mt-3 text-xs">{t("leads.historyLimit")}</p>
+                </Card>
+              </div>
+            ),
+          },
+        ]}
+      />
     </>
   );
 }
