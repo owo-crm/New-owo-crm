@@ -302,3 +302,88 @@ export async function addContributionAction(raw: unknown): Promise<ActionResult>
     return fail(error, "contribution");
   }
 }
+
+/**
+ * Новый лид агентства, пошаговой формой. Сначала создаётся обычный лид (как ручной),
+ * затем к нему пишутся данные агентства: кто привёл, услуги, рекламный бюджет.
+ */
+export async function createAgencyLeadAction(
+  raw: unknown,
+): Promise<{ id?: string; error?: string }> {
+  const parsed = z
+    .object({
+      name: z.string().trim().min(2).max(200),
+      contactName: z.string().trim().max(200).optional().default(""),
+      phone: z.string().trim().max(40).optional().default(""),
+      email: z.string().trim().max(254).optional().default(""),
+      city: z.string().trim().max(120).optional().default(""),
+      referredBy: z.uuid().nullable(),
+      serviceIds: z.array(z.uuid()).max(20),
+      monthlyBudgetGrosze: z.number().int().min(0).max(10_000_000_000).nullable(),
+      note: z.string().trim().max(2000).optional().default(""),
+    })
+    .safeParse(raw);
+  if (!parsed.success) return { error: t("agency.errors.invalid") };
+  const input = parsed.data;
+  if (!input.phone && !input.email) return { error: t("agency.lead.needContact") };
+
+  const { createManualLead } = await import("@/lib/leads/actions");
+  const form = new FormData();
+  form.set("name", input.name);
+  form.set("phone", input.phone);
+  form.set("email", input.email);
+  form.set("city", input.city);
+  const created = await createManualLead(form);
+  if (!created.id) return { error: created.error ?? t("agency.errors.invalid") };
+
+  try {
+    const { saveLeadDetails } = await import("./leads");
+    await saveLeadDetails(created.id, {
+      referredBy: input.referredBy,
+      contactName: input.contactName || null,
+      monthlyBudgetGrosze: input.monthlyBudgetGrosze,
+      note: input.note || null,
+      serviceIds: input.serviceIds,
+    });
+  } catch (error) {
+    // Лид уже создан — не теряем его из-за необязательных полей.
+    return { id: created.id, error: fail(error, "lead details").error };
+  }
+  revalidatePath("/leady");
+  revalidatePath("/agencja");
+  return { id: created.id };
+}
+
+/** Подключить рекламный кабинет клиента. Пока вводится вручную: импорт статистики впереди. */
+export async function saveAdAccountAction(raw: unknown): Promise<ActionResult> {
+  const parsed = z
+    .object({
+      clientId: z.uuid(),
+      platform: z.enum(["google", "meta"]),
+      externalId: z.string().trim().min(1).max(64),
+      label: z.string().trim().max(120).nullable(),
+    })
+    .safeParse(raw);
+  if (!parsed.success) return { error: t("agency.errors.invalid") };
+  try {
+    const { saveAdAccount } = await import("./ads");
+    await saveAdAccount(parsed.data);
+    refresh(parsed.data.clientId);
+    return { ok: true };
+  } catch (error) {
+    return fail(error, "ad account");
+  }
+}
+
+export async function removeAdAccountAction(clientId: string, id: string): Promise<ActionResult> {
+  const parsed = z.object({ clientId: z.uuid(), id: z.uuid() }).safeParse({ clientId, id });
+  if (!parsed.success) return { error: t("agency.errors.invalid") };
+  try {
+    const { removeAdAccount } = await import("./ads");
+    await removeAdAccount(parsed.data.clientId, parsed.data.id);
+    refresh(parsed.data.clientId);
+    return { ok: true };
+  } catch (error) {
+    return fail(error, "ad account");
+  }
+}

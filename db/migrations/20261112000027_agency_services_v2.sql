@@ -79,6 +79,8 @@ create table public.agency_lead_details (
   lead_id uuid not null,
   -- Кто привёл: по нему считается доля за приведение клиента.
   referred_by uuid references auth.users(id) on delete set null,
+  -- Контактное лицо: у лида агентства это человек, а client_name — название фирмы.
+  contact_name text check (char_length(contact_name) <= 200),
   -- Ожидаемый месячный рекламный бюджет, если среди услуг есть реклама.
   monthly_budget_grosze bigint
     check (monthly_budget_grosze is null or (monthly_budget_grosze >= 0 and monthly_budget_grosze <= 10000000000)),
@@ -117,24 +119,65 @@ begin
   end loop;
 end $$;
 grant update (label, external_id, spend_mtd_grosze, spend_month, spend_synced_at) on public.agency_ad_accounts to authenticated;
-grant update (referred_by, monthly_budget_grosze, note) on public.agency_lead_details to authenticated;
+grant update (referred_by, contact_name, monthly_budget_grosze, note) on public.agency_lead_details to authenticated;
 
--- ── Заводим зашитые услуги в каждом кабинете агентства ───────────────────────
--- Ответственным ставим первого владельца кабинета; меняется на экране услуг.
-insert into public.agency_services (organization_id, name, description, owner_id, kind, system_key)
-select o.id, v.name, v.description, m.user_id, v.kind, v.system_key
-from public.organizations o
-join lateral (
-  select m.user_id from public.memberships m
-  where m.organization_id = o.id and m.role = 'owner'
-  order by m.created_at limit 1
-) m on true
-cross join (values
-  ('Abonament CRM', 'Miesięczna opłata za system. Doliczana automatycznie po opłaceniu faktury.', 'retainer', 'crm'),
-  ('Reklama Meta i Google', 'Prowadzenie kampanii. Budżet reklamowy klienta rozliczany osobno.', 'retainer', 'ads')
-) as v(name, description, kind, system_key)
-where o.industry_preset = 'agency'
-  and not exists (
-    select 1 from public.agency_services s
-    where s.organization_id = o.id and (s.system_key = v.system_key or s.name = v.name)
-  );
+-- ── Зашитые услуги в кабинете агентства ─────────────────────────────────────
+-- Вызывается и миграцией (для существующих кабинетов), и при создании нового кабинета:
+-- кабинет агентства заводится при старте приложения, уже после миграций.
+create function public.agency_ensure_system_services(p_organization uuid) returns void
+language sql security definer set search_path = '' as $$
+  insert into public.agency_services (organization_id, name, description, owner_id, kind, system_key)
+  select o.id, v.name, v.description, m.user_id, v.kind, v.system_key
+  from public.organizations o
+  join lateral (
+    select m.user_id from public.memberships m
+    where m.organization_id = o.id
+    order by (m.role <> 'owner'), m.created_at limit 1
+  ) m on true
+  cross join (values
+    ('Abonament CRM', 'Usługa wbudowana. Opłaty za system trafiają tu automatycznie.', 'retainer', 'crm'),
+    ('Reklama Meta i Google', 'Usługa wbudowana. Budżet reklamowy klienta rozliczany jest osobno.', 'retainer', 'ads')
+  ) as v(name, description, kind, system_key)
+  where o.id = p_organization and o.industry_preset = 'agency'
+    and not exists (
+      select 1 from public.agency_services s
+      where s.organization_id = o.id and (s.system_key = v.system_key or s.name = v.name)
+    );
+$$;
+revoke all on function public.agency_ensure_system_services(uuid) from public, anon;
+grant execute on function public.agency_ensure_system_services(uuid) to authenticated, service_role;
+
+select public.agency_ensure_system_services(id)
+  from public.organizations where industry_preset = 'agency';
+
+-- ── Клиент из лида забирает с собой услуги, бюджет и того, кто его привёл ────
+create or replace function public.agency_client_from_lead(p_organization uuid, p_lead uuid)
+returns uuid language plpgsql security invoker set search_path = '' as $$
+declare v_id uuid; v_lead public.leads; v_details public.agency_lead_details;
+begin
+  select ac.id into v_id from public.agency_clients ac where ac.organization_id = p_organization and ac.lead_id = p_lead;
+  if found then return v_id; end if;
+  select * into v_lead from public.leads l where l.organization_id = p_organization and l.id = p_lead and l.deleted_at is null;
+  if not found then raise exception 'lead not found' using errcode = 'P0002'; end if;
+  select * into v_details from public.agency_lead_details d
+   where d.organization_id = p_organization and d.lead_id = p_lead;
+
+  insert into public.agency_clients (organization_id, name, contact_name, phone, email, city, lead_id, status, started_at, created_by)
+  values (p_organization, v_lead.client_name,
+          coalesce(nullif(v_details.contact_name, ''), v_lead.client_name),
+          v_lead.phone_e164, v_lead.email, v_lead.event_city,
+          p_lead, 'active', (now() at time zone 'Europe/Warsaw')::date, (select auth.uid()))
+  returning id into v_id;
+
+  -- Услуги, выбранные на этапе лида, становятся услугами клиента. Бюджет достаётся рекламе.
+  insert into public.agency_client_services (organization_id, client_id, service_id, monthly_budget_grosze)
+  select p_organization, v_id, ls.service_id,
+         case when s.system_key = 'ads' then v_details.monthly_budget_grosze end
+  from public.agency_lead_services ls
+  join public.agency_services s on s.organization_id = ls.organization_id and s.id = ls.service_id
+  where ls.organization_id = p_organization and ls.lead_id = p_lead
+  on conflict (client_id, service_id) do nothing;
+
+  return v_id;
+end;
+$$;

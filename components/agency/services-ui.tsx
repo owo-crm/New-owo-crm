@@ -112,16 +112,19 @@ export function ServiceRow({ service, members }: { service: Service; members: Me
         onChange={setOwner}
         label={t("agency.services.owner")}
       />
-      <Picker
-        value={kind}
-        onChange={(e) => setKind(e.target.value as typeof kind)}
-        aria-label={t("agency.services.kind")}
-        className={input}
-        disabled={system}
-      >
-        <option value="retainer">{t("agency.kind.retainer")}</option>
-        <option value="project">{t("agency.kind.project")}</option>
-      </Picker>
+      {system ? (
+        <span className="text-ink-soft text-[13px]">{t(`agency.kind.${service.kind}`)}</span>
+      ) : (
+        <Picker
+          value={kind}
+          onChange={(e) => setKind(e.target.value as typeof kind)}
+          aria-label={t("agency.services.kind")}
+          className={input}
+        >
+          <option value="retainer">{t("agency.kind.retainer")}</option>
+          <option value="project">{t("agency.kind.project")}</option>
+        </Picker>
+      )}
       <span className="flex items-center gap-2">
         {system ? null : (
           <label className="text-ink-soft flex items-center gap-1.5 text-[12px]">

@@ -41,6 +41,9 @@ export async function createBusinessAction(
       ]);
       // Участие OWO Ads помечаем обслуживающим: клиент его видит, но убрать не может.
       // Кабинет самого агентства — своя фирма, там участие обычное.
+      // Кабинет агентства сразу получает зашитые услуги (абонемент CRM и реклама).
+      if (preset === "agency")
+        await tx.query("select public.agency_ensure_system_services($1)", [row!.id]);
       if (preset !== "agency") {
         await tx.query("select public.mark_service_membership($1)", [row!.id]);
         // Новый бизнес клиента сразу появляется клиентом в кабинете OWO Ads (решение 025):

@@ -98,6 +98,8 @@ export async function ensureAgencyWorkspace(
          on conflict (organization_id, user_id) do update set role = 'owner', is_service = false`,
         [rows[0].id, admin.id],
       );
+    // Зашитые услуги: кабинет создаётся после миграций, поэтому заводим их здесь.
+    await tx.query("select public.agency_ensure_system_services($1)", [rows[0].id]);
     return rows[0].id;
   });
   log(`Agencja: utworzono kabinet „${name}” (${id}) dla administratorów platformy.`);
