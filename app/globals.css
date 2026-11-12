@@ -19,7 +19,7 @@
   --hold: #c27410;
   --ok: #13945b;
   --brand: #e8000d;
-  --focus: #2563eb;
+  --focus: #3d6cf4;
   /* Акцент интерфейса (решение 028): главные действия, активный пункт меню, ссылки. */
   --accent: #3d6cf4;
   --accent-ink: #ffffff;
@@ -154,6 +154,7 @@ body {
 :focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
+  border-radius: 10px;
 }
 
 /* «Бон»: нижний край зубчиками, как у чека с барного принтера. */

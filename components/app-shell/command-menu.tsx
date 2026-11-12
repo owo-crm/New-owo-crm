@@ -184,7 +184,11 @@ export function CommandButton({ className }: { className?: string }) {
   return (
     <button
       type="button"
-      onClick={() => window.dispatchEvent(new Event("owo:command"))}
+      onClick={(e) => {
+        // Щелчок мышью не должен оставлять рамку фокуса на «поле поиска».
+        e.currentTarget.blur();
+        window.dispatchEvent(new Event("owo:command"));
+      }}
       className={cn(
         "text-ink-soft hover:bg-surface-2 hover:text-ink flex h-9 w-full items-center gap-2.5 rounded-lg px-2.5 text-[13.5px] transition-colors",
         className,

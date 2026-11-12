@@ -5,12 +5,14 @@ import {
   isValidElement,
   useEffect,
   useId,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
   type ReactElement,
   type ReactNode,
 } from "react";
+import { createPortal } from "react-dom";
 import { Check, ChevronsUpDown, Search } from "lucide-react";
 import { t } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
@@ -20,6 +22,9 @@ import { cn } from "@/lib/utils";
  * поиск при длинном списке, клавиатура (стрелки, Enter, Esc, ввод букв).
  * API совместим с <select>: те же <option> внутри, value/defaultValue, name (скрытое поле
  * для форм), onChange получает { target: { value } } — замена без переписывания логики.
+ *
+ * Список рисуется порталом в <body> и позиционируется по месту кнопки. Иначе его режут
+ * карточки и правило overflow у страницы, и он прячется под соседними блоками.
  */
 type Option = { value: string; label: string; disabled?: boolean };
 
@@ -89,15 +94,17 @@ export function Picker({
   const selected = options.find((o) => o.value === current);
   const [open, setOpen] = useState(false);
   // Кнопка у правого края — меню раскрывается влево, чтобы не уйти за экран.
-  const [alignRight, setAlignRight] = useState(false);
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(0);
   const root = useRef<HTMLDivElement>(null);
   const search = useRef<HTMLInputElement>(null);
   const list = useRef<HTMLUListElement>(null);
+  const menu = useRef<HTMLDivElement>(null);
   const autoId = useId();
   const listId = `${id ?? autoId}-list`;
   const searchable = options.length > 6;
+  // Координаты списка: считаем по кнопке, потому что список живёт в <body>.
+  const [box, setBox] = useState<{ top: number; left: number; width: number; up: boolean }>();
 
   const shown = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -108,10 +115,37 @@ export function Picker({
   useEffect(() => {
     if (!open) return;
     const close = (e: MouseEvent) => {
-      if (!root.current?.contains(e.target as Node)) setOpen(false);
+      const target = e.target as Node;
+      if (!root.current?.contains(target) && !menu.current?.contains(target)) setOpen(false);
     };
     document.addEventListener("mousedown", close);
     return () => document.removeEventListener("mousedown", close);
+  }, [open]);
+
+  // Пересчёт положения: при открытии, при прокрутке страницы и при смене размера окна.
+  useLayoutEffect(() => {
+    if (!open) return;
+    const place = () => {
+      const r = root.current?.getBoundingClientRect();
+      if (!r) return;
+      const width = Math.max(r.width, 192);
+      const below = window.innerHeight - r.bottom;
+      // Не хватает места снизу, а сверху больше — раскрываем вверх.
+      const up = below < 240 && r.top > below;
+      setBox({
+        top: up ? r.top - 4 : r.bottom + 4,
+        left: Math.min(Math.max(8, r.left), Math.max(8, window.innerWidth - width - 8)),
+        width,
+        up,
+      });
+    };
+    place();
+    window.addEventListener("scroll", place, true);
+    window.addEventListener("resize", place);
+    return () => {
+      window.removeEventListener("scroll", place, true);
+      window.removeEventListener("resize", place);
+    };
   }, [open]);
 
   useEffect(() => {
@@ -125,8 +159,6 @@ export function Picker({
   function show() {
     if (disabled) return;
     setQuery("");
-    const box = root.current?.getBoundingClientRect();
-    setAlignRight(Boolean(box && box.left + 192 > window.innerWidth - 8));
     setActive(
       Math.max(
         0,
@@ -195,70 +227,80 @@ export function Picker({
         )}
       </button>
 
-      {open ? (
-        <div
-          className={cn(
-            "bg-surface pop-shadow absolute top-[calc(100%+4px)] z-40 w-full min-w-[12rem] overflow-hidden rounded-lg",
-            alignRight ? "right-0" : "left-0",
-            menuClassName,
-          )}
-          onKeyDown={onKey}
-        >
-          {searchable ? (
-            <div className="border-line flex items-center gap-2 border-b px-3">
-              <Search className="text-ink-faint size-4 shrink-0" aria-hidden />
-              <input
-                ref={search}
-                value={query}
-                onChange={(e) => {
-                  setQuery(e.target.value);
-                  setActive(0);
-                }}
-                placeholder={t("picker.search")}
-                aria-label={t("picker.search")}
-                aria-controls={listId}
-                className="h-10 min-w-0 flex-1 bg-transparent text-[14px] outline-none focus-visible:outline-none lg:h-9 lg:text-[13.5px]"
-              />
-            </div>
-          ) : null}
-          <ul
-            ref={list}
-            id={listId}
-            role="listbox"
-            tabIndex={-1}
-            aria-label={aria["aria-label"]}
-            className="max-h-64 overflow-y-auto p-1 outline-none"
-          >
-            {shown.length === 0 ? (
-              <li className="text-ink-soft px-3 py-3 text-center text-[13px]">
-                {t("command.empty")}
-              </li>
-            ) : (
-              shown.map((o, i) => (
-                <li
-                  key={o.value}
-                  role="option"
-                  aria-selected={o.value === current}
-                  aria-disabled={o.disabled || undefined}
-                  onMouseMove={() => setActive(i)}
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => choose(o)}
-                  className={cn(
-                    "flex min-h-9 cursor-pointer items-center gap-2 rounded-md px-2.5 py-1.5 text-[13.5px]",
-                    i === active && "bg-surface-2",
-                    o.disabled && "cursor-not-allowed opacity-50",
-                  )}
-                >
-                  <span className="min-w-0 flex-1">{o.label}</span>
-                  {o.value === current ? (
-                    <Check className="text-accent size-4 shrink-0" aria-hidden />
-                  ) : null}
-                </li>
-              ))
-            )}
-          </ul>
-        </div>
-      ) : null}
+      {open && box
+        ? createPortal(
+            <div
+              ref={menu}
+              style={{
+                position: "fixed",
+                top: box.up ? undefined : box.top,
+                bottom: box.up ? window.innerHeight - box.top : undefined,
+                left: box.left,
+                width: box.width,
+              }}
+              className={cn(
+                "bg-surface pop-shadow z-[70] overflow-hidden rounded-lg",
+                menuClassName,
+              )}
+              onKeyDown={onKey}
+            >
+              {searchable ? (
+                <div className="border-line flex items-center gap-2 border-b px-3">
+                  <Search className="text-ink-faint size-4 shrink-0" aria-hidden />
+                  <input
+                    ref={search}
+                    value={query}
+                    onChange={(e) => {
+                      setQuery(e.target.value);
+                      setActive(0);
+                    }}
+                    placeholder={t("picker.search")}
+                    aria-label={t("picker.search")}
+                    aria-controls={listId}
+                    className="h-10 min-w-0 flex-1 bg-transparent text-[14px] outline-none focus-visible:outline-none lg:h-9 lg:text-[13.5px]"
+                  />
+                </div>
+              ) : null}
+              <ul
+                ref={list}
+                id={listId}
+                role="listbox"
+                tabIndex={-1}
+                aria-label={aria["aria-label"]}
+                className="max-h-64 overflow-y-auto p-1 outline-none"
+              >
+                {shown.length === 0 ? (
+                  <li className="text-ink-soft px-3 py-3 text-center text-[13px]">
+                    {t("command.empty")}
+                  </li>
+                ) : (
+                  shown.map((o, i) => (
+                    <li
+                      key={o.value}
+                      role="option"
+                      aria-selected={o.value === current}
+                      aria-disabled={o.disabled || undefined}
+                      onMouseMove={() => setActive(i)}
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => choose(o)}
+                      className={cn(
+                        "flex min-h-9 cursor-pointer items-center gap-2 rounded-md px-2.5 py-1.5 text-[13.5px]",
+                        i === active && "bg-surface-2",
+                        o.disabled && "cursor-not-allowed opacity-50",
+                      )}
+                    >
+                      <span className="min-w-0 flex-1">{o.label}</span>
+                      {o.value === current ? (
+                        <Check className="text-accent size-4 shrink-0" aria-hidden />
+                      ) : null}
+                    </li>
+                  ))
+                )}
+              </ul>
+            </div>,
+            document.body,
+          )
+        : null}
     </div>
   );
 }

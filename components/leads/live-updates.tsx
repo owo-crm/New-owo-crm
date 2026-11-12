@@ -21,16 +21,19 @@ export function LiveUpdates({ organizationId }: { organizationId: string }) {
       source.close();
     };
   }, [organizationId, router]);
-  // Подключение работает всегда (в том числе на телефоне); на узком экране скрыта только подпись.
-  return (
-    <div className="text-ink-soft flex items-center gap-2 text-xs">
-      <span
-        aria-hidden
-        className={cn("size-1.5 rounded-full", connected ? "bg-ok" : "bg-ink-faint")}
-      />
-      <span className={cn("max-sm:sr-only", connected && "text-ok")}>
-        {t(connected ? "leads.live" : "leads.liveOffline")}
+  // Пока связь есть, показывать нечего: новые лиды приезжают сами. Компонент остаётся
+  // в дереве (иначе оборвётся подписка), но ничего не рисует. Кнопка обновления
+  // появляется только тогда, когда она действительно нужна — когда связь пропала.
+  if (connected)
+    return (
+      <span data-live="on" className="sr-only">
+        {t("leads.live")}
       </span>
+    );
+  return (
+    <div data-live="off" className="text-ink-soft flex items-center gap-2 text-xs">
+      <span aria-hidden className="bg-ink-faint size-1.5 rounded-full" />
+      <span className="sr-only">{t("leads.liveOffline")}</span>
       <Button variant="ghost" size="sm" onClick={() => router.refresh()}>
         {t("leads.refresh")}
       </Button>

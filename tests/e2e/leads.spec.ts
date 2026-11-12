@@ -34,8 +34,9 @@ test("заявка с сайта → вход → лид в списке, пов
 
   await page.goto("/leady");
   await expect(page.getByText(name)).toHaveCount(1);
-  // Подпись видна на компьютере; на телефоне остаётся только точка, но связь работает.
-  await expect(page.getByText("Aktualizacje na żywo")).toBeAttached();
+  // Подписи о связи больше нет (решение 033), но состояние помечено в разметке:
+  // ждём установленного соединения, иначе лид ниже может прийти раньше подписки.
+  await expect(page.locator('[data-live="on"]')).toBeAttached({ timeout: 10_000 });
 
   const live = `Marek ${info.project.name} ${Date.now()}`;
   await request.post(`/api/intake/${KEY}`, {

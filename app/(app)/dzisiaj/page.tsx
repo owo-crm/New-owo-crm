@@ -1,24 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import {
-  ArrowRight,
-  CalendarDays,
-  Check,
-  Hourglass,
-  Inbox,
-  Phone,
-  Timer,
-  Trophy,
-  UserRound,
-} from "lucide-react";
+import { ArrowRight, CalendarDays, Check, Hourglass, Inbox, Trophy } from "lucide-react";
 import { StatCards } from "@/components/app-shell/stat-cards";
 import { Card, PageHeader } from "@/components/app-shell/page";
-import { QueueRow } from "@/components/leads/queue";
 import { LiveUpdates } from "@/components/leads/live-updates";
 import { buttonVariants } from "@/components/ui/button";
+import { RankedBars, StackedBars } from "@/components/charts/bars";
 import { getWorkQueue } from "@/lib/leads/dashboard";
+import { getDashboardCharts } from "@/lib/leads/charts";
 import { requireOrganization } from "@/lib/auth/session";
-import { formatWaiting, plDate, plDateTime } from "@/lib/format";
+import { plDate } from "@/lib/format";
 import { t } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
@@ -26,7 +17,9 @@ export const metadata: Metadata = { title: t("nav.dashboard") };
 
 export default async function TodayPage() {
   const { organization } = await requireOrganization();
-  const q = await getWorkQueue();
+  const [q, charts] = await Promise.all([getWorkQueue(), getDashboardCharts()]);
+  // Месяц в подписи столбика: «11.26» короче любого названия и не ломает вёрстку.
+  const shortMonth = (m: string) => `${m.slice(5)}.${m.slice(2, 4)}`;
 
   const stats = [
     {
@@ -36,13 +29,6 @@ export default async function TodayPage() {
       icon: Hourglass,
       tone: "var(--urgent)",
     },
-    {
-      value: q.response_minutes === null ? "—" : formatWaiting(Math.round(q.response_minutes)),
-      label: t("today.statResponse"),
-      icon: Timer,
-      tone: "var(--info)",
-    },
-    { value: String(q.mine_count), label: t("today.statMine"), icon: UserRound, tone: "#8b6cf0" },
     { value: String(q.month_leads), label: t("today.statMonth"), icon: Inbox, tone: "var(--hold)" },
     { value: String(q.month_won), label: t("today.statWon"), icon: Trophy, tone: "var(--ok)" },
   ];
@@ -57,113 +43,94 @@ export default async function TodayPage() {
 
       <StatCards items={stats} />
 
-      <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+      <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+        <Card title={t("today.chartFlow")}>
+          <StackedBars
+            rows={charts.months.map((m) => ({
+              label: shortMonth(m.month),
+              values: { won: m.won, rest: m.leads - m.won },
+            }))}
+            series={[
+              { key: "won", label: t("today.chartFlowWon"), color: "var(--accent)" },
+              {
+                key: "rest",
+                label: t("today.chartFlowLeads"),
+                color: "color-mix(in oklab, var(--accent) 22%, var(--surface))",
+              },
+            ]}
+            empty={t("today.chartEmpty")}
+          />
+        </Card>
+
         <Card>
-          <div className="mb-1 flex items-baseline justify-between gap-3">
-            <h2 className="text-[13.5px] font-semibold">{t("today.queueTitle")}</h2>
-            <span className="text-ink-faint text-xs">{t("today.queueOlder")}</span>
+          <div className="mb-3 flex items-baseline justify-between gap-3">
+            <h2 className="text-[15px] font-semibold">{t("today.upcomingTitle")}</h2>
+            {organization.modules.includes("calendar") ? (
+              <Link
+                href="/kalendarz"
+                className="text-ink-soft hover:text-ink text-xs font-semibold"
+              >
+                {t("today.upcomingAll")}
+              </Link>
+            ) : null}
           </div>
-          {q.waiting.length === 0 ? (
-            <p className="text-ink-soft py-6 text-center text-sm">{t("today.queueEmpty")}</p>
+          {q.upcoming.length === 0 ? (
+            <p className="text-ink-soft text-sm">{t("today.upcomingEmpty")}</p>
           ) : (
-            <>
-              <ul>
-                {q.waiting.map((lead) => (
-                  <QueueRow key={lead.id} lead={lead} now={q.now} />
-                ))}
-              </ul>
-              {q.waiting_count > q.waiting.length ? (
-                <Link
-                  href="/leady?quick=waiting"
-                  className="text-ink-soft hover:text-ink mt-3 inline-flex items-center gap-1.5 text-sm font-semibold"
-                >
-                  {t("today.seeAll", { count: q.waiting_count })}
-                  <ArrowRight className="size-4" />
-                </Link>
-              ) : null}
-            </>
+            <ul className="divide-line divide-y">
+              {q.upcoming.map((e) => (
+                <li key={e.id} className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">
+                  <CalendarDays
+                    className={cn("size-4 shrink-0", e.confirmed ? "text-ok" : "text-ink-faint")}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <Link
+                      href={`/leady/${e.id}`}
+                      className="truncate font-semibold hover:underline"
+                    >
+                      {e.client_name}
+                    </Link>
+                    <p className="text-ink-soft truncate text-[13px]">
+                      {plDate(e.event_date)}
+                      {[e.event_type, e.event_city].filter(Boolean).length
+                        ? ` · ${[e.event_type, e.event_city].filter(Boolean).join(" · ")}`
+                        : ""}
+                    </p>
+                  </div>
+                  <span className={e.confirmed ? "badge badge-won" : "badge badge-open"}>
+                    {t(e.confirmed ? "today.confirmed" : "today.planned")}
+                  </span>
+                </li>
+              ))}
+            </ul>
           )}
         </Card>
 
-        <div className="grid gap-5">
-          <Card title={t("today.tasksTitle")}>
-            {q.tasks.length === 0 ? (
-              <p className="text-ink-soft text-sm">{t("today.tasksEmpty")}</p>
-            ) : (
-              <ul className="divide-line divide-y">
-                {q.tasks.map((task, i) => (
-                  <li
-                    key={`${task.id}-${i}`}
-                    className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <Link
-                        href={`/leady/${task.id}`}
-                        className="truncate font-semibold hover:underline"
-                      >
-                        {task.client_name}
-                      </Link>
-                      <p className="text-ink-soft truncate text-[13px]">
-                        {plDateTime(task.due_at)} · {task.title || t("today.taskDefault")}
-                      </p>
-                    </div>
-                    {task.phone_e164 ? (
-                      <a
-                        href={`tel:${task.phone_e164}`}
-                        aria-label={`${t("today.call")} ${task.client_name}`}
-                        className="text-ink-soft hover:text-ink flex size-9 items-center justify-center rounded-lg"
-                      >
-                        <Phone className="size-4" />
-                      </a>
-                    ) : null}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </Card>
+        <Card title={t("today.chartAhead")}>
+          <StackedBars
+            rows={charts.ahead.map((m) => ({
+              label: shortMonth(m.month),
+              values: { confirmed: m.confirmed, tentative: m.tentative },
+            }))}
+            series={[
+              { key: "confirmed", label: t("today.chartConfirmed"), color: "var(--ok)" },
+              {
+                key: "tentative",
+                label: t("today.chartTentative"),
+                color: "color-mix(in oklab, var(--ok) 24%, var(--surface))",
+              },
+            ]}
+            empty={t("today.chartEmpty")}
+          />
+        </Card>
 
-          <Card>
-            <div className="mb-1 flex items-baseline justify-between gap-3">
-              <h2 className="text-[13.5px] font-semibold">{t("today.upcomingTitle")}</h2>
-              {organization.modules.includes("calendar") ? (
-                <Link
-                  href="/kalendarz"
-                  className="text-ink-soft hover:text-ink text-xs font-semibold"
-                >
-                  {t("today.upcomingAll")}
-                </Link>
-              ) : null}
-            </div>
-            {q.upcoming.length === 0 ? (
-              <p className="text-ink-soft text-sm">{t("today.upcomingEmpty")}</p>
-            ) : (
-              <ul className="divide-line divide-y">
-                {q.upcoming.map((e) => (
-                  <li key={e.id} className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">
-                    <CalendarDays
-                      className={cn("size-4 shrink-0", e.confirmed ? "text-ok" : "text-ink-faint")}
-                    />
-                    <div className="min-w-0 flex-1">
-                      <Link
-                        href={`/leady/${e.id}`}
-                        className="truncate font-semibold hover:underline"
-                      >
-                        {e.client_name}
-                      </Link>
-                      <p className="text-ink-soft truncate text-[13px]">
-                        {plDate(e.event_date)}
-                        {[e.event_type, e.event_city].filter(Boolean).length
-                          ? ` · ${[e.event_type, e.event_city].filter(Boolean).join(" · ")}`
-                          : ""}
-                      </p>
-                    </div>
-                    <span className={e.confirmed ? "badge badge-won" : "badge badge-open"}>
-                      {t(e.confirmed ? "today.confirmed" : "today.planned")}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            )}
+        <div className="grid gap-5">
+          <Card title={t("today.chartSources")}>
+            <RankedBars
+              rows={charts.sources.map((s) => ({ label: s.source, value: s.leads }))}
+              color="var(--accent)"
+              empty={t("today.chartEmpty")}
+            />
           </Card>
 
           {!q.form_connected ? (

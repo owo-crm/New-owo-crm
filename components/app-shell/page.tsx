@@ -13,27 +13,28 @@ export function PageHeader({
   /** Вложенный экран: ссылка «назад» над заголовком (решение 024). */
   back?: { href: string; label: string };
 }) {
+  // Название раздела уже видно в меню, поэтому вверху его не повторяем: заголовок
+  // остаётся только у вложенных экранов, где он говорит, что именно открыто.
+  if (!back)
+    return aside ? (
+      <header className="mb-4 flex flex-wrap items-center justify-end gap-x-6 gap-y-3">
+        {aside}
+      </header>
+    ) : null;
+
   return (
     <header className="mb-5 flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
       <div className="max-w-full min-w-0">
-        {back ? (
-          <nav
-            aria-label="breadcrumb"
-            className="text-ink-faint mb-1 flex items-center gap-1 text-[13px]"
+        <nav aria-label="breadcrumb" className="text-ink-faint mb-1 text-[13px]">
+          <Link
+            href={back.href}
+            className="hover:text-ink inline-flex items-center gap-1 transition-colors"
           >
-            <Link
-              href={back.href}
-              className="hover:text-ink inline-flex items-center gap-1 transition-colors"
-            >
-              <ChevronLeft className="size-4" aria-hidden />
-              {back.label}
-            </Link>
-            <span aria-hidden>/</span>
-            <span className="text-ink-soft truncate">{title}</span>
-          </nav>
-        ) : null}
+            <ChevronLeft className="size-4" aria-hidden />
+            {back.label}
+          </Link>
+        </nav>
         <h1 className="text-[24px] leading-8 font-bold tracking-[-0.02em] break-words">{title}</h1>
-        {/* Подписи под заголовком убраны (решение 032): экран говорит сам за себя. */}
       </div>
       {aside}
     </header>

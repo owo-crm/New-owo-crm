@@ -115,7 +115,15 @@
     "setupForm": "Podłącz formularz ze strony",
     "setupTeam": "Zaproś zespół",
     "setupImport": "Przenieś leady z arkusza",
-    "setupDone": "Gotowe"
+    "setupDone": "Gotowe",
+    "chartFlow": "Zapytania miesiąc po miesiącu",
+    "chartFlowLeads": "Bez umowy",
+    "chartFlowWon": "Z podpisaną umową",
+    "chartSources": "Skąd przychodzą (90 dni)",
+    "chartAhead": "Obłożenie najbliższych miesięcy",
+    "chartConfirmed": "Potwierdzone",
+    "chartTentative": "Wstępne",
+    "chartEmpty": "Za mało danych, żeby było co pokazać."
   },
   "leads": {
     "emptyTitle": "Jeszcze nie ma leadów",
@@ -267,7 +275,15 @@
       "listopad",
       "grudzień"
     ],
-    "weekdays": ["pon", "wt", "śr", "czw", "pt", "sob", "ndz"]
+    "weekdays": [
+      "pon",
+      "wt",
+      "śr",
+      "czw",
+      "pt",
+      "sob",
+      "ndz"
+    ]
   },
   "documents": {
     "emptyTitle": "Oferty i umowy",

@@ -1,7 +1,8 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
-import { Search, SlidersHorizontal } from "lucide-react";
+import { useEffect, useRef, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { Loader2, Search, SlidersHorizontal } from "lucide-react";
 import { Select } from "@/components/ui/field";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { leadFilterUrl, type LeadFilters } from "@/lib/leads/filters";
@@ -28,6 +29,24 @@ export function LeadFiltersForm({
 }) {
   const active = DETAILED.filter((key) => filters[key]).length;
   const [open, setOpen] = useState(active > 0);
+
+  // Поиск по мере ввода: кнопку жать не надо. Пауза 250 мс, чтобы не дёргать сервер
+  // на каждую букву, и первая отрисовка не перезапрашивает то, что уже показано.
+  const router = useRouter();
+  const [query, setQuery] = useState(filters.q ?? "");
+  const [pending, start] = useTransition();
+  const first = useRef(true);
+  useEffect(() => {
+    if (first.current) {
+      first.current = false;
+      return;
+    }
+    const timer = setTimeout(() => {
+      start(() => router.replace(leadFilterUrl(filters, { q: query || undefined })));
+    }, 250);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query]);
   const quick = [
     ["", "leads.quickAll"],
     ["waiting", "leads.quickWaiting"],
@@ -37,23 +56,19 @@ export function LeadFiltersForm({
   return (
     <div className="mb-4 grid gap-3">
       <div className="flex flex-wrap items-center gap-2">
-        <form className="flex min-w-0 flex-1 gap-2 sm:max-w-sm" role="search">
-          <input type="hidden" name="view" value={filters.view} />
-          {filters.quick ? <input type="hidden" name="quick" value={filters.quick} /> : null}
-          <div className="relative min-w-0 flex-1">
-            <Search className="text-ink-faint pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2" />
-            <input
-              name="q"
-              defaultValue={filters.q}
-              placeholder={t("leads.searchHint")}
-              aria-label={t("leads.search")}
-              className="border-line-strong bg-surface h-10 w-full rounded-lg border pr-3 pl-9 text-sm"
-            />
-          </div>
-          <Button type="submit" variant="secondary" className="shrink-0">
-            {t("leads.searchAction")}
-          </Button>
-        </form>
+        <div className="relative min-w-0 flex-1 sm:max-w-sm" role="search">
+          <Search className="text-ink-faint pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={t("leads.searchHint")}
+            aria-label={t("leads.search")}
+            className="border-line-strong bg-surface h-10 w-full rounded-lg border pr-9 pl-9 text-sm"
+          />
+          {pending ? (
+            <Loader2 className="text-ink-faint absolute top-1/2 right-3 size-4 -translate-y-1/2 animate-spin" />
+          ) : null}
+        </div>
         <Button
           type="button"
           variant={active ? "primary" : "ghost"}

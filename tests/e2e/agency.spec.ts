@@ -35,7 +35,8 @@ test("клиент → заказ с расчётом до сохранения 
     .context()
     .addCookies([{ name: "owo_org", value: await agencyId(), url: "http://localhost:3200" }]);
   await page.goto("/agencja");
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("Agencja");
+  // Заголовка раздела сверху больше нет (решение 033) — проверяем сам экран.
+  await expect(page.getByRole("link", { name: "Nowy klient" }).first()).toBeVisible();
 
   const client = `Studio ${info.project.name} ${Date.now() % 100000}`;
   await page.goto("/agencja/klienci/nowy");
@@ -183,7 +184,8 @@ test("услуги: каталог с ответственными → услу�
   await page.getByRole("button", { name: "Zapisz klienta" }).click();
   const panel = page.getByTestId("client-services");
   await panel.getByLabel("Wybierz usługę").click();
-  await panel.getByRole("option", { name: "Strony internetowe" }).click();
+  // Список рисуется порталом в <body> (решение 033), поэтому ищем его на странице.
+  await page.getByRole("option", { name: "Strony internetowe" }).click();
   await panel.getByRole("button", { name: "Przypisz" }).click();
   await expect(panel).toContainText("Strony internetowe");
 

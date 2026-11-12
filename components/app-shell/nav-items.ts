@@ -101,13 +101,16 @@ export const SETTINGS: NavItem = {
 export const NAV_GROUPS: NavGroup[] = [
   { label: "nav.groupWork", items: [DASHBOARD, LEADS, CALENDAR] },
   { label: "nav.groupMoney", items: [AGENCY, SERVICES, STATS] },
-  {
-    label: "nav.groupCompany",
-    items: [TEAM, CHANNELS, NOTIFICATIONS, SUBSCRIPTION, IMPORT, SETTINGS],
-  },
+  { label: "nav.groupCompany", items: [TEAM, SUBSCRIPTION, SETTINGS] },
 ];
 
-export const NAV_ALL = NAV_GROUPS.flatMap((g) => g.items);
+/**
+ * Экраны, которые открывают редко или один раз при подключении: в боковом меню их нет,
+ * они живут внутри «Ustawienia». В поиске ⌘K остаются, чтобы до них можно было дойти сразу.
+ */
+export const SETTINGS_ONLY: NavItem[] = [CHANNELS, NOTIFICATIONS, IMPORT];
+
+export const NAV_ALL = [...NAV_GROUPS.flatMap((g) => g.items), ...SETTINGS_ONLY];
 
 export type NavContext = { agency: boolean; modules: string[]; admin: boolean };
 
