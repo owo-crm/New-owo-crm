@@ -491,7 +491,8 @@
   "shell": {
     "theme": "Jasny / ciemny",
     "import": "Import",
-    "collapseNav": "Zwiń albo rozwiń menu"
+    "collapseNav": "Zwiń albo rozwiń menu",
+    "expandNav": "Rozwiń menu"
   },
   "time": {
     "minutes": "{count} min",
@@ -1112,8 +1113,6 @@
     "website": "Strona",
     "bank": "Numer konta",
     "bankHint": "Wchodzi do umowy i do przypomnień o płatności.",
-    "brandColor": "Kolor marki",
-    "brandColorHint": "Kolor przycisków i akcentów w panelu.",
     "save": "Zapisz dane",
     "saved": "Zapisane.",
     "invalidNip": "NIP to dziesięć cyfr."
@@ -1137,5 +1136,19 @@
   },
   "files": {
     "tooBig": "Plik jest za duży — maksymalnie 10 MB."
+  },
+  "avatar": {
+    "pick": "Wybierz obrazek (PNG, JPG lub WebP).",
+    "tooBig": "Obrazek jest za duży.",
+    "badType": "Obsługujemy tylko PNG, JPG i WebP.",
+    "forbidden": "Logo gabinetu zmienia właściciel lub administrator.",
+    "failed": "Nie udało się zapisać obrazka. Spróbuj ponownie.",
+    "upload": "Wgraj zdjęcie",
+    "change": "Zmień",
+    "remove": "Usuń",
+    "logoTitle": "Logo gabinetu",
+    "logoHint": "Kwadratowe, widoczne obok nazwy gabinetu w menu. Bez logo pokazujemy pierwszą literę nazwy.",
+    "photoTitle": "Twoje zdjęcie",
+    "photoHint": "Widoczne dla zespołu obok Twojego imienia."
   }
 }

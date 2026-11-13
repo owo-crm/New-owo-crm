@@ -44,6 +44,11 @@ export function getLeads(filters: LeadFilters) {
       filters.quick === "waiting"
         ? "first_response_at is null and stage_key in (select key from public.pipeline_stages where organization_id = $1 and kind = 'open')"
         : null,
+      // Spam i odrzucone (etapy kind='lost') nie zaśmiecają listy: widać je dopiero po wybraniu
+      // ich etapu — chipem obok «Wszystkie» albo w filtrach szczegółowych.
+      filters.stage
+        ? null
+        : "stage_key not in (select key from public.pipeline_stages where organization_id = $1 and kind = 'lost')",
       month
         ? "created_at >= date_trunc('month', now() at time zone 'Europe/Warsaw') at time zone 'Europe/Warsaw'"
         : null,

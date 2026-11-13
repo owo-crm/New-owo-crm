@@ -10,6 +10,8 @@ export type SessionUser = {
   email: string;
   fullName: string;
   isPlatformAdmin: boolean;
+  /** Версия фото (время загрузки, сек.) или null — тогда показываются инициалы. */
+  avatarVersion: number | null;
 };
 
 export type MemberOrganization = {
@@ -25,6 +27,8 @@ export type MemberOrganization = {
   modules: string[];
   email: string | null;
   phone: string | null;
+  /** Версия логотипа кабинета или null — тогда буква на цвете из id (решение 039). */
+  avatarVersion: number | null;
 };
 
 export class EmailTakenError extends Error {}
@@ -79,10 +83,15 @@ export async function getSessionUser(db: Database, token: string): Promise<Sessi
     email: string;
     raw_user_meta_data: { full_name?: unknown };
     is_platform_admin: boolean;
+    avatar_version: number | null;
   }>(
     db,
-    `select u.id, u.email, u.raw_user_meta_data, u.is_platform_admin from auth.sessions s
-     join auth.users u on u.id = s.user_id where s.token_hash = $1 and s.expires_at > now()`,
+    `select u.id, u.email, u.raw_user_meta_data, u.is_platform_admin,
+            extract(epoch from a.updated_at)::int as avatar_version
+       from auth.sessions s
+       join auth.users u on u.id = s.user_id
+       left join public.profile_avatars a on a.user_id = u.id
+      where s.token_hash = $1 and s.expires_at > now()`,
     [sha256(token)],
   );
   if (!row) return null;
@@ -92,6 +101,7 @@ export async function getSessionUser(db: Database, token: string): Promise<Sessi
     email: row.email,
     fullName: typeof fullName === "string" ? fullName : "",
     isPlatformAdmin: row.is_platform_admin,
+    avatarVersion: row.avatar_version ?? null,
   };
 }
 
@@ -108,6 +118,8 @@ export async function listOrganizations(
     const { rows } = await tx.query<MemberOrganization>(
       `select o.id, o.name, o.slug, o.brand_color as "brandColor", o.industry_preset as "industryPreset", m.role,
          o.document_engine as "documentEngine", o.email, o.phone,
+         (select extract(epoch from a.updated_at)::int from public.organization_avatars a
+           where a.organization_id = o.id) as "avatarVersion",
          coalesce((select array_agg(om.module) from public.organization_modules om
                    where om.organization_id = o.id), '{}') as modules
        from public.memberships m join public.organizations o on o.id = m.organization_id

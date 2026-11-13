@@ -203,15 +203,6 @@ export function BusinessForm() {
           ))}
         </Picker>
       </label>
-      <label className="grid gap-2 text-sm font-semibold">
-        Kolor biznesu
-        <input
-          type="color"
-          name="color"
-          defaultValue="#2563eb"
-          className="border-line-strong h-10 w-20 rounded-lg border"
-        />
-      </label>
       <div>
         <SubmitButton>Utwórz biznes</SubmitButton>
       </div>

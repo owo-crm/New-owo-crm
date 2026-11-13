@@ -27,7 +27,12 @@ export function LeadFiltersForm({
     team: { id: string; name: string }[];
   };
 }) {
-  const active = DETAILED.filter((key) => filters[key]).length;
+  // Etapy «przegrane» (Spam, Odrzucony) są ukryte w liście — mają własne chipy.
+  const lost = options.stages.filter((s) => s.kind === "lost");
+  const lostSelected = lost.some((s) => s.key === filters.stage);
+  const active = DETAILED.filter(
+    (key) => filters[key] && !(key === "stage" && lostSelected),
+  ).length;
   const [open, setOpen] = useState(active > 0);
 
   // Поиск по мере ввода: кнопку жать не надо. Пауза 250 мс, чтобы не дёргать сервер
@@ -98,11 +103,14 @@ export function LeadFiltersForm({
 
       <nav aria-label={t("leads.filters")} className="flex flex-wrap gap-1.5">
         {quick.map(([value, label]) => {
-          const on = (filters.quick ?? "") === value;
+          const on = (filters.quick ?? "") === value && !lostSelected;
           return (
             <Link
               key={label}
-              href={leadFilterUrl(filters, { quick: (value || undefined) as LeadFilters["quick"] })}
+              href={leadFilterUrl(filters, {
+                quick: (value || undefined) as LeadFilters["quick"],
+                stage: lostSelected ? undefined : filters.stage,
+              })}
               aria-current={on ? "true" : undefined}
               className={cn(
                 "h-8 rounded-full border px-3 text-[13px] leading-[30px] font-semibold transition-colors",
@@ -112,6 +120,24 @@ export function LeadFiltersForm({
               )}
             >
               {t(label)}
+            </Link>
+          );
+        })}
+        {lost.map((stage) => {
+          const on = filters.stage === stage.key;
+          return (
+            <Link
+              key={stage.key}
+              href={leadFilterUrl(filters, { quick: undefined, stage: on ? undefined : stage.key })}
+              aria-current={on ? "true" : undefined}
+              className={cn(
+                "h-8 rounded-full border border-dashed px-3 text-[13px] leading-[30px] font-semibold transition-colors",
+                on
+                  ? "border-ink bg-ink text-bg border-solid"
+                  : "border-line-strong text-ink-faint hover:text-ink",
+              )}
+            >
+              {stage.label_pl}
             </Link>
           );
         })}

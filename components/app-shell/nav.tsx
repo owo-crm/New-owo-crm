@@ -33,19 +33,20 @@ export function NavLink({
       href={item.href}
       onClick={onNavigate}
       aria-current={active ? "page" : undefined}
+      title={t(item.label)}
       className={cn(
-        "flex h-10 items-center gap-3 rounded-xl px-3 text-[14px] transition-colors duration-150 lg:h-9",
+        "relative flex h-10 items-center gap-3 rounded-xl px-3 text-[14px] transition-colors duration-150 lg:h-9 lg:group-data-[nav=rail]/shell:justify-center lg:group-data-[nav=rail]/shell:px-0",
         active
           ? "bg-accent/10 text-accent font-semibold"
           : "text-ink-soft hover:bg-surface-2 hover:text-ink",
       )}
     >
       <Icon className={cn("size-[18px] shrink-0", active ? "text-accent" : "text-ink-faint")} />
-      <span className="min-w-0 flex-1 truncate lg:opacity-0 lg:transition-opacity lg:duration-150 lg:group-focus-within/nav:opacity-100 lg:group-hover/nav:opacity-100">
+      <span className="min-w-0 flex-1 truncate lg:group-data-[nav=rail]/shell:hidden">
         {t(item.label)}
       </span>
       {badge ? (
-        <span className="bg-urgent min-w-5 rounded-full px-1.5 text-center text-[11px] leading-5 font-semibold text-white">
+        <span className="bg-urgent min-w-5 rounded-full px-1.5 text-center text-[11px] leading-5 font-semibold text-white lg:group-data-[nav=rail]/shell:absolute lg:group-data-[nav=rail]/shell:-top-1 lg:group-data-[nav=rail]/shell:right-0 lg:group-data-[nav=rail]/shell:min-w-4 lg:group-data-[nav=rail]/shell:px-1 lg:group-data-[nav=rail]/shell:text-[10px] lg:group-data-[nav=rail]/shell:leading-4">
           {badge}
         </span>
       ) : null}
@@ -70,7 +71,7 @@ export function GroupedNav({
         if (!items.length) return null;
         return (
           <div key={group.label} className="grid gap-0.5">
-            <p className="text-ink-faint mb-1 px-3 text-[12px] font-medium opacity-0 transition-opacity duration-150 group-focus-within/nav:opacity-100 group-hover/nav:opacity-100">
+            <p className="text-ink-faint mb-1 px-3 text-[12px] font-medium lg:group-data-[nav=rail]/shell:hidden">
               {t(group.label)}
             </p>
             {items.map((item) => (
