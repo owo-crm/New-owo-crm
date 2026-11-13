@@ -7,6 +7,7 @@ import {
   ensurePlatformAdmin,
   linkBusinessesToAgency,
   removeAccounts,
+  ensureVapidKeys,
 } from "@/lib/db/bootstrap";
 import { authenticate } from "@/lib/auth/repository";
 
@@ -126,5 +127,17 @@ describe("админ платформы из переменных", () => {
     );
     expect(owner.rows[0].email).toBe("szef.owo");
     expect(await removeAccounts(db, env, () => {})).toBe(0);
+  });
+
+  it("ключи VAPID для push создаются сами один раз, если их нет в переменных", async () => {
+    expect(await ensureVapidKeys(db, {}, () => {})).toBe(true);
+    expect(await ensureVapidKeys(db, {}, () => {})).toBe(false);
+    const keys = await pg.query<{ key: string }>(
+      "select key from public.platform_secrets order by key",
+    );
+    expect(keys.rows.map((r) => r.key)).toEqual(["vapid_private_key", "vapid_public_key"]);
+    expect(
+      await ensureVapidKeys(db, { VAPID_PUBLIC_KEY: "x", VAPID_PRIVATE_KEY: "y" }, () => {}),
+    ).toBe(false);
   });
 });

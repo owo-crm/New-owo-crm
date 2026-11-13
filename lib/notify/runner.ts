@@ -4,11 +4,18 @@ import { createQueueRepository } from "./queue-repository";
 import { createDeliverySender } from "./delivery-sender";
 import { runNotificationBatch } from "./queue";
 import { deliveryConfig } from "./config";
+import { vapidKeys } from "./vapid";
 
 /** Один проход очереди уведомлений (вместо Supabase Edge Function `notify` + pg_cron). */
 export async function runNotifications(leadId?: string) {
   const db = getDb();
-  const config = deliveryConfig((key) => process.env[key]);
+  const vapid = await vapidKeys();
+  const config = {
+    ...deliveryConfig((key) => process.env[key]),
+    vapidPublicKey: vapid.publicKey,
+    vapidPrivateKey: vapid.privateKey,
+    vapidSubject: vapid.subject,
+  };
   const repository = createQueueRepository(db);
   if (!config.enabled) {
     if (!leadId) await repository.prepare(); // уборка журнала и сессий всё равно нужна

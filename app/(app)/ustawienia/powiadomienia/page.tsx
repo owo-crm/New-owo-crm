@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Card, PageHeader } from "@/components/app-shell/page";
 import { NotificationPreferences } from "@/components/notifications/preferences";
 import { PushManager } from "@/components/notifications/push-manager";
+import { vapidPublicKey } from "@/lib/notify/vapid";
 import { withOrg } from "@/lib/db/user";
 import { t } from "@/lib/i18n";
 export default async function NotificationSettingsPage() {
@@ -26,7 +27,7 @@ export default async function NotificationSettingsPage() {
       />
       <Card title={t("pwa.pushTitle")} className="mb-5">
         <PushManager
-          publicKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? ""}
+          publicKey={await vapidPublicKey()}
           enabled={process.env.OUTBOUND_NOTIFICATIONS_ENABLED === "true"}
         />
       </Card>

@@ -243,3 +243,29 @@ export async function removeAccounts(
   }
   return removed;
 }
+
+/**
+ * Ключи VAPID для push-уведомлений (решение 043). Если их нет в переменных Railway
+ * (VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY), создаём пару один раз и храним в platform_secrets —
+ * так push работает без ручной генерации ключей на компьютере.
+ */
+export async function ensureVapidKeys(
+  db: Database,
+  env: Record<string, string | undefined>,
+  log = console.log,
+) {
+  if (env.VAPID_PUBLIC_KEY && env.VAPID_PRIVATE_KEY) return false;
+  const { rows } = await db.query<{ n: number }>(
+    "select count(*)::int as n from public.platform_secrets where key in ('vapid_public_key','vapid_private_key')",
+  );
+  if (rows[0].n === 2) return false;
+  const webpush = (await import("web-push")).default;
+  const keys = webpush.generateVAPIDKeys();
+  await db.query(
+    `insert into public.platform_secrets (key, value) values ('vapid_public_key', $1), ('vapid_private_key', $2)
+     on conflict (key) do update set value = excluded.value`,
+    [keys.publicKey, keys.privateKey],
+  );
+  log("Push: utworzono klucze VAPID.");
+  return true;
+}

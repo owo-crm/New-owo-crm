@@ -12,7 +12,13 @@ import { saveTemplate, startCampaign } from "./repository";
 
 /** Действия панели рассылок. Ничего не уходит клиентам без явного нажатия. */
 
-export type MailingResult = { ok?: true; error?: string; html?: string; id?: string; total?: number };
+export type MailingResult = {
+  ok?: true;
+  error?: string;
+  html?: string;
+  id?: string;
+  total?: number;
+};
 
 const letterSchema = z.object({
   subject: z.string().trim().min(1).max(200),
@@ -73,7 +79,12 @@ export async function sendTestAction(raw: unknown): Promise<MailingResult> {
     await sendBusinessMail(
       getDb(),
       organization.id,
-      { to: [user.email], subject: `[TEST] ${letter.subject}`, html: letter.html, text: letter.text },
+      {
+        to: [user.email],
+        subject: `[TEST] ${letter.subject}`,
+        html: letter.html,
+        text: letter.text,
+      },
       { kind: "test", sentBy: user.id },
     );
     return { ok: true };

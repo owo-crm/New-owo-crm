@@ -7,9 +7,7 @@ import { withOrg } from "@/lib/db/user";
 const schema = z.object({
   months: z.object({ month: z.string(), leads: z.number(), won: z.number() }).array(),
   sources: z.object({ source: z.string(), leads: z.number() }).array(),
-  ahead: z
-    .object({ month: z.string(), confirmed: z.number(), tentative: z.number() })
-    .array(),
+  ahead: z.object({ month: z.string(), confirmed: z.number(), tentative: z.number() }).array(),
 });
 
 export type DashboardCharts = z.infer<typeof schema>;

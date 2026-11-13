@@ -8,6 +8,7 @@ import {
   ensurePlatformAdmin,
   linkBusinessesToAgency,
   removeAccounts,
+  ensureVapidKeys,
 } from "../lib/db/bootstrap.ts";
 import type { Database } from "../lib/db/core.ts";
 
@@ -45,6 +46,7 @@ try {
   await bootstrapAdmin(db, process.env);
   await ensurePlatformAdmin(db, process.env);
   await removeAccounts(db, process.env);
+  await ensureVapidKeys(db, process.env);
   await ensureAgencyWorkspace(db, process.env);
   await linkBusinessesToAgency(db);
 } finally {

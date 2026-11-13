@@ -1,5 +1,6 @@
 import { Card, PageHeader } from "@/components/app-shell/page";
 import { PushManager } from "@/components/notifications/push-manager";
+import { vapidPublicKey } from "@/lib/notify/vapid";
 import { requireOrganization } from "@/lib/auth/session";
 import { t } from "@/lib/i18n";
 export default async function InstallPage() {
@@ -20,7 +21,7 @@ export default async function InstallPage() {
         </Card>
         <Card title={t("pwa.pushTitle")} className="lg:col-span-2">
           <PushManager
-            publicKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? ""}
+            publicKey={await vapidPublicKey()}
             enabled={process.env.OUTBOUND_NOTIFICATIONS_ENABLED === "true"}
           />
         </Card>

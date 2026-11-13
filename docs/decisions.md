@@ -324,3 +324,5 @@ Barowo одновременно, а Barowo зарегистрировано кл
 **041 · 2026-11-13 · Сайт OWO Ads публикуется на GitHub Pages.** Workflow `.github/workflows/landing-pages.yml` выкладывает папку `landing/` при каждом изменении в `main`. Адрес: https://owo-crm.github.io/New-owo-crm/ ; свой домен — Settings → Pages → Custom domain + файл `landing/CNAME`. CRM на Railway это не затрагивает.
 
 **042 · 2026-11-13 · Telegram — только у Barowo и OWO Ads; всем остальным — push и e-mail.** В «Powiadomienia» кнопка Telegram и его галочка видны только бизнесам с генератором Barowo или пресетом agency. Включение push-уведомлений перенесено прямо в «Powiadomienia» (раньше было только на странице установки). Тексты CRM и сайта говорят о push и e-mail, без Telegram.
+
+**043 · 2026-11-13 · Ключи push создаются сами.** Если в Railway нет `VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY`, при запуске `ensureVapidKeys` создаёт пару и хранит в `platform_secrets` (только сервер). Отправка уведомлений и подписка в браузере берут ключи из переменных или из базы; тема по умолчанию `mailto:kontakt@owoads.pl`. Для отправки по-прежнему нужно `OUTBOUND_NOTIFICATIONS_ENABLED=true`.
