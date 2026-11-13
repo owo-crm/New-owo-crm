@@ -1460,6 +1460,11 @@
       </div>
     </footer>
 
+    <!-- Wspólny skrypt formularza OWO CRM: przy chwilowej awarii CRM zapisuje zgłoszenie i ponawia. -->
+    <script
+      src="https://cdn.jsdelivr.net/gh/owo-crm/new-owo-crm@embed-v1/public/embed/v1.js"
+      defer
+    ></script>
     <script>
       /* ---------------------------------------------------------------
          Do uzupełnienia przed publikacją:
@@ -1574,8 +1579,14 @@
         button.disabled = true;
         say("Wysyłamy…");
         try {
-          const response = await fetch(INTAKE_URL, { method: "POST", body: data });
-          if (!response.ok) throw new Error(String(response.status));
+          // OWO.send — z kolejką na wypadek awarii CRM; bez skryptu (zablokowany CDN) — zwykły fetch.
+          data.set("consent", "1");
+          if (window.OWO && window.OWO.send) {
+            await window.OWO.send(INTAKE_URL, data);
+          } else {
+            const response = await fetch(INTAKE_URL, { method: "POST", body: data });
+            if (!response.ok) throw new Error(String(response.status));
+          }
           form.reset();
           say("Dziękujemy! Mamy Twoje zgłoszenie — odezwiemy się dziś w godzinach pracy.", "ok");
         } catch {
