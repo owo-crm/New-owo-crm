@@ -6,15 +6,17 @@ import { withOrg } from "@/lib/db/user";
 import { t } from "@/lib/i18n";
 export default async function NotificationSettingsPage() {
   // Telegram-бот — только у Barowo и у кабинета OWO Ads; у остальных — push и e-mail.
-  let telegramAllowed = false;
-  const data = await withOrg(async (tx, { user, organization }) => {
-    telegramAllowed =
+  const { rows: data, telegramAllowed } = await withOrg(async (tx, { user, organization }) => {
+    const telegramAllowed =
       organization.documentEngine === "barowo" || organization.industryPreset === "agency";
     const { rows } = await tx.query<{ channel: "telegram" | "push" | "email"; enabled: boolean }>(
       "select channel,enabled from public.notification_settings where organization_id=$1 and user_id=$2",
       [organization.id, user.id],
     );
-    return telegramAllowed ? rows : rows.filter((r) => r.channel !== "telegram");
+    return {
+      rows: telegramAllowed ? rows : rows.filter((r) => r.channel !== "telegram"),
+      telegramAllowed,
+    };
   });
   return (
     <div className="max-w-2xl">
