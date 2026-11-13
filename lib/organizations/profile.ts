@@ -12,13 +12,12 @@ export type OrganizationProfile = {
   email: string | null;
   website: string | null;
   bank_account: string | null;
-  brand_color: string;
 };
 
 export function getOrganizationProfile() {
   return withOrg(async (tx, { organization }) => {
     const { rows } = await tx.query<OrganizationProfile>(
-      `select name, legal_name, nip, address, phone, website, email, bank_account, brand_color
+      `select name, legal_name, nip, address, phone, website, email, bank_account
          from public.organizations where id = $1`,
       [organization.id],
     );
@@ -45,10 +44,6 @@ export const profileSchema = z.object({
   email: empty.pipe(z.string().email().max(160).nullable()),
   website: empty.pipe(z.string().max(200).nullable()),
   bank_account: empty.pipe(z.string().max(60).nullable()),
-  brand_color: z
-    .string()
-    .trim()
-    .regex(/^#[0-9a-fA-F]{6}$/),
 });
 
 export function saveOrganizationProfile(data: z.infer<typeof profileSchema>) {
@@ -56,7 +51,7 @@ export function saveOrganizationProfile(data: z.infer<typeof profileSchema>) {
     tx.query(
       `update public.organizations set
          name = $2, legal_name = $3, nip = $4, address = $5, phone = $6,
-         email = $7, website = $8, bank_account = $9, brand_color = $10, updated_at = now()
+         email = $7, website = $8, bank_account = $9, updated_at = now()
        where id = $1`,
       [
         organization.id,
@@ -68,7 +63,6 @@ export function saveOrganizationProfile(data: z.infer<typeof profileSchema>) {
         data.email,
         data.website,
         data.bank_account,
-        data.brand_color,
       ],
     ),
   );

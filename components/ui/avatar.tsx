@@ -27,16 +27,30 @@ export function initials(name: string) {
   return ((parts[0]?.[0] ?? "?") + (parts[1]?.[0] ?? "")).toUpperCase();
 }
 
-/** Круглая аватарка с инициалами. */
+/** Круглая аватарка: фото, если загружено, иначе инициалы на мягком цвете. */
 export function Avatar({
   name,
+  src,
   size = 28,
   className,
 }: {
   name: string;
+  src?: string | null;
   size?: number;
   className?: string;
 }) {
+  if (src)
+    return (
+      // eslint-disable-next-line @next/next/no-img-element -- маленькая картинка из своей базы
+      <img
+        src={src}
+        alt=""
+        width={size}
+        height={size}
+        className={cn("shrink-0 rounded-full object-cover", className)}
+        style={{ width: size, height: size }}
+      />
+    );
   const c = tone(name);
   return (
     <span
@@ -54,6 +68,57 @@ export function Avatar({
       }}
     >
       {initials(name)}
+    </span>
+  );
+}
+
+/**
+ * Мини-иконка кабинета (решение 039): логотип, если загружен, иначе первая буква названия
+ * на цвете, выбранном по id кабинета, — у разных кабинетов разные цвета, и цвет не меняется.
+ */
+export function OrgMark({
+  id,
+  name,
+  src,
+  size = 22,
+  className,
+}: {
+  id: string;
+  name: string;
+  src?: string | null;
+  size?: number;
+  className?: string;
+}) {
+  const radius = Math.round(size * 0.27);
+  if (src)
+    return (
+      // eslint-disable-next-line @next/next/no-img-element -- маленькая картинка из своей базы
+      <img
+        src={src}
+        alt=""
+        width={size}
+        height={size}
+        className={cn("shrink-0 object-cover", className)}
+        style={{ width: size, height: size, borderRadius: radius }}
+      />
+    );
+  const c = tone(id);
+  return (
+    <span
+      aria-hidden
+      className={cn(
+        "inline-flex shrink-0 items-center justify-center font-bold text-white",
+        className,
+      )}
+      style={{
+        width: size,
+        height: size,
+        borderRadius: radius,
+        fontSize: Math.round(size * 0.5),
+        background: c,
+      }}
+    >
+      {(name.trim()[0] ?? "?").toUpperCase()}
     </span>
   );
 }

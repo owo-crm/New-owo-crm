@@ -1,7 +1,6 @@
 "use server";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { z } from "zod";
 import { asUser, getDb, one } from "@/lib/db";
 import { requireUser, ORG_COOKIE } from "@/lib/auth/session";
 import { slugify } from "@/lib/organizations/slug";
@@ -17,11 +16,6 @@ export async function createBusinessAction(
   const user = await requireUser();
   const name = String(form.get("name") ?? "").trim();
   if (!user.isPlatformAdmin) return { error: "Nowe biznesy tworzy administrator OWO Ads.", name };
-  const color = z
-    .string()
-    .regex(/^#[0-9a-fA-F]{6}$/)
-    .catch("#e8000d")
-    .parse(form.get("color"));
   // Пресет: обычный бизнес клиента или кабинет самого агентства (agency, решение 021).
   const rawPreset = String(form.get("preset") ?? "event-services");
   const preset = isPresetKey(rawPreset) ? rawPreset : "event-services";
@@ -35,10 +29,6 @@ export async function createBusinessAction(
         "select public.create_organization($1,$2,$3) as id",
         [name, slugify(name), preset],
       );
-      await tx.query("update public.organizations set brand_color=$1 where id=$2", [
-        color,
-        row!.id,
-      ]);
       // Участие OWO Ads помечаем обслуживающим: клиент его видит, но убрать не может.
       // Кабинет самого агентства — своя фирма, там участие обычное.
       // Кабинет агентства сразу получает зашитые услуги (абонемент CRM и реклама).

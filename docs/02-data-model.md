@@ -148,3 +148,8 @@ create policy "members update" on leads for update using (is_member(organization
 Миграция `20261013000012_legacy_import.sql`: серверная `import_legacy_lead` сохраняет нормализованные поля, исходную строку, оригинальную дату, этап и legacy_uid (`apps-script:<uid>`). Повтор не меняет существующий лид. Канал импорта создаётся автоматически. Outbox и cron не уведомляют о такой истории. Если исторический этап уже после new, контакт известен, но его время не придумано: лид не показывается ожидающим, неизвестная реакция не участвует в среднем времени.
 
 Миграция `20261013000013_lead_integrity_fixes.sql`: телефонная часть поиска применяется только к строке, похожей на номер. Цифры в имени/e-mail не расширяют выдачу по телефону. При удалении membership поля assigned_to и actor_user_id становятся null только в этой фирме; organization_id и история остаются, доступ участника снимается. Фирма, где тот же человек остаётся участником, не затрагивается.
+
+### Аватарки (миграция 035, решение 039)
+
+- `organization_avatars` — `organization_id` (PK), `content_type` (png/jpeg/webp), `size_bytes` ≤ 256 КБ, `content bytea`, `updated_by`, `updated_at`. Читают члены кабинета, пишут owner/admin.
+- `profile_avatars` — `user_id` (PK), те же поля. Читают сам человек и коллеги (`shares_organization`), пишет только он сам.

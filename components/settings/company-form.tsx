@@ -91,22 +91,6 @@ export function CompanyForm({
         maxLength={200}
         disabled={!canEdit}
       />
-      <div className="grid gap-1.5">
-        <label htmlFor="brand_color" className="text-ink-soft text-[13px] font-medium">
-          {t("company.brandColor")}
-        </label>
-        <div className="flex items-center gap-3">
-          <input
-            id="brand_color"
-            name="brand_color"
-            type="color"
-            defaultValue={initial.brand_color}
-            disabled={!canEdit}
-            className="border-line-strong bg-surface h-10 w-16 cursor-pointer rounded-lg border p-1"
-          />
-          <p className="text-ink-faint text-[13px]">{t("company.brandColorHint")}</p>
-        </div>
-      </div>
       {state.message ? <Notice tone="error">{state.message}</Notice> : null}
       {state.ok ? <Notice tone="success">{t("company.saved")}</Notice> : null}
       {canEdit ? (

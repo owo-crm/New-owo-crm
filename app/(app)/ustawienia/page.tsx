@@ -12,6 +12,9 @@ import {
 } from "lucide-react";
 import { PageHeader } from "@/components/app-shell/page";
 import { Button } from "@/components/ui/button";
+import { AvatarUpload } from "@/components/settings/avatar-upload";
+import { uploadProfileAvatar } from "@/lib/avatars/actions";
+import { avatarUrl } from "@/lib/avatars/image";
 import { requireOrganization } from "@/lib/auth/session";
 import { signOut } from "@/lib/auth/actions";
 import { t, type MessageKey } from "@/lib/i18n";
@@ -97,6 +100,17 @@ export default async function SettingsPage() {
       <section className="mt-10">
         <h2 className="text-xl font-medium">{t("settings.account")}</h2>
         <p className="text-ink-soft mt-1">{t("settings.signedInAs", { email: user.email })}</p>
+        <div className="border-line bg-surface mt-4 max-w-xl rounded-xl border p-5">
+          <AvatarUpload
+            kind="user"
+            id={user.id}
+            name={user.fullName || user.email}
+            src={avatarUrl("u", user.id, user.avatarVersion)}
+            title={t("avatar.photoTitle")}
+            hint={t("avatar.photoHint")}
+            action={uploadProfileAvatar}
+          />
+        </div>
         <form action={signOut} className="mt-4">
           <Button variant="secondary" type="submit">
             <LogOut />
