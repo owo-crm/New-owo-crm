@@ -304,7 +304,7 @@
     "channels": "Źródła leadów",
     "channelsText": "Strona, Meta, Google Ads, e-mail.",
     "notifications": "Powiadomienia",
-    "notificationsText": "Telegram, telefon, e-mail.",
+    "notificationsText": "Powiadomienia push na telefon i e-mail.",
     "team": "Zespół",
     "teamText": "Zaproś wspólnika, pracownika albo klienta.",
     "account": "Konto",
@@ -732,7 +732,7 @@
       "intake_channel": "Kanał zapytań utworzony, domena dodana",
       "form_connected": "Formularz na stronie wysyła zapytania",
       "documents": "Szablony oferty i umowy",
-      "notifications": "Telegram / e-mail podłączone",
+      "notifications": "Powiadomienia push / e-mail podłączone",
       "owner_invited": "Zaproszenie dla właściciela wysłane",
       "owner_joined": "Właściciel zalogował się sam",
       "handover": "Pokazaliśmy, jak korzystać",
@@ -874,7 +874,7 @@
   "billing": {
     "modules": {
       "leads": "Leady",
-      "leadsText": "Formularz ze strony → CRM, lista i lejek, powiadomienia Telegram i e-mail",
+      "leadsText": "Formularz ze strony → CRM, lista i lejek, powiadomienia push i e-mail",
       "channels": "Dodatkowe kanały",
       "channelsText": "Meta Lead Ads, Google, zapytania z e-maila",
       "documents": "Oferty i umowy",

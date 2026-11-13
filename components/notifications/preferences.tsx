@@ -8,9 +8,12 @@ import { createTelegramLink } from "@/lib/notify/link-action";
 export function NotificationPreferences({
   initial,
   telegramReady,
+  telegramAllowed = false,
 }: {
   initial: { channel: "telegram" | "push" | "email"; enabled: boolean }[];
   telegramReady: boolean;
+  /** Telegram-бот есть только у Barowo и OWO Ads. */
+  telegramAllowed?: boolean;
 }) {
   const [values, setValues] = useState(initial);
   const [pending, startTransition] = useTransition();
@@ -49,18 +52,20 @@ export function NotificationPreferences({
           }}
         />
       ))}
-      <Button
-        disabled={pending || !telegramReady}
-        onClick={() =>
-          startTransition(async () => {
-            const result = await createTelegramLink();
-            if (result.url) setLink(result.url);
-            else setMessage(t("notifications.linkFailed"));
-          })
-        }
-      >
-        {t("notifications.connectTelegram")}
-      </Button>
+      {telegramAllowed ? (
+        <Button
+          disabled={pending || !telegramReady}
+          onClick={() =>
+            startTransition(async () => {
+              const result = await createTelegramLink();
+              if (result.url) setLink(result.url);
+              else setMessage(t("notifications.linkFailed"));
+            })
+          }
+        >
+          {t("notifications.connectTelegram")}
+        </Button>
+      ) : null}
       {link ? (
         <a href={link} target="_blank" rel="noreferrer" className="underline">
           {t("notifications.openTelegram")}

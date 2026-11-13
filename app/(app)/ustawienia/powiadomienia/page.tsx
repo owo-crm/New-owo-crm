@@ -1,15 +1,20 @@
 import Link from "next/link";
 import { Card, PageHeader } from "@/components/app-shell/page";
 import { NotificationPreferences } from "@/components/notifications/preferences";
+import { PushManager } from "@/components/notifications/push-manager";
 import { withOrg } from "@/lib/db/user";
 import { t } from "@/lib/i18n";
 export default async function NotificationSettingsPage() {
+  // Telegram-бот — только у Barowo и у кабинета OWO Ads; у остальных — push и e-mail.
+  let telegramAllowed = false;
   const data = await withOrg(async (tx, { user, organization }) => {
+    telegramAllowed =
+      organization.documentEngine === "barowo" || organization.industryPreset === "agency";
     const { rows } = await tx.query<{ channel: "telegram" | "push" | "email"; enabled: boolean }>(
       "select channel,enabled from public.notification_settings where organization_id=$1 and user_id=$2",
       [organization.id, user.id],
     );
-    return rows;
+    return telegramAllowed ? rows : rows.filter((r) => r.channel !== "telegram");
   });
   return (
     <div className="max-w-2xl">
@@ -17,8 +22,15 @@ export default async function NotificationSettingsPage() {
         back={{ href: "/ustawienia", label: t("nav.settings") }}
         title={t("settings.notifications")}
       />
+      <Card title={t("pwa.pushTitle")} className="mb-5">
+        <PushManager
+          publicKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? ""}
+          enabled={process.env.OUTBOUND_NOTIFICATIONS_ENABLED === "true"}
+        />
+      </Card>
       <Card>
         <NotificationPreferences
+          telegramAllowed={telegramAllowed}
           initial={data ?? []}
           telegramReady={
             process.env.OUTBOUND_NOTIFICATIONS_ENABLED === "true" &&

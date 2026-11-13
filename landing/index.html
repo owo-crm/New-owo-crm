@@ -919,11 +919,11 @@
               </div>
             </div>
             <div class="card tg">
-              <span class="tg__icon" aria-hidden="true">✈</span>
+              <span class="tg__icon" aria-hidden="true">🔔</span>
               <div>
                 <b>Nowe zapytanie: Marta K.</b>
                 <p class="muted" style="color: #a3aab8">
-                  Powiadomienie w Telegramie — oddzwaniasz, zanim klient zapyta konkurencję.
+                  Powiadomienie push na telefonie — oddzwaniasz, zanim klient zapyta konkurencję.
                 </p>
               </div>
             </div>
@@ -1043,7 +1043,7 @@
               </p>
               <ul>
                 <li>Leady z reklamy i strony w jednym miejscu</li>
-                <li>Telegram i e-mail od razu</li>
+                <li>Powiadomienia push i e-mail od razu</li>
                 <li>Oferty i umowy jednym kliknięciem</li>
               </ul>
             </article>
@@ -1080,7 +1080,8 @@
                 <div>
                   <b>Powiadomienie od razu</b
                   ><span
-                    >Telegram, e-mail i telefon. Widać, kto czeka na odpowiedź i jak długo.</span
+                    >Push na telefon i komputer oraz e-mail. Widać, kto czeka na odpowiedź i jak
+                    długo.</span
                   >
                 </div>
               </li>
@@ -1373,14 +1374,6 @@
                   ></span
                 >
               </a>
-              <a class="card way" href="#" data-telegram-link>
-                <span class="way__icon" style="background: #e3f3fb; color: #2aa3df">✈</span>
-                <span
-                  ><b>Telegram</b><br /><span class="muted"
-                    >Odpowiadamy zwykle w ciągu godziny</span
-                  ></span
-                >
-              </a>
               <a class="card way" href="#" data-instagram-link>
                 <span class="way__icon" style="background: #fdecf1; color: #d65f9e">◎</span>
                 <span
@@ -1469,14 +1462,12 @@
       /* ---------------------------------------------------------------
          Do uzupełnienia przed publikacją:
          PHONE       — numer agencji (podmienia linki i tekst)
-         TELEGRAM    — link https://t.me/<nazwa>
          INSTAGRAM   — link https://instagram.com/<profil>
          INTAKE_URL  — adres formularza z CRM: biznes „OWO Ads” → Źródła leadów →
                        kanał „Strona” → URL /api/intake/<klucz>; domenę strony dodaj
                        do dozwolonych adresów kanału. Puste = otwiera program pocztowy.
          --------------------------------------------------------------- */
       const PHONE = "+48 000 000 000";
-      const TELEGRAM = "";
       const INSTAGRAM = "";
       const INTAKE_URL = "";
       const EMAIL = "kontakt@owoads.pl";
@@ -1486,10 +1477,7 @@
         el.href = "tel:" + PHONE.replace(/[^+\d]/g, "");
       });
       document.querySelectorAll("[data-phone-text]").forEach((el) => (el.textContent = PHONE));
-      for (const [attr, url] of [
-        ["data-telegram-link", TELEGRAM],
-        ["data-instagram-link", INSTAGRAM],
-      ]) {
+      for (const [attr, url] of [["data-instagram-link", INSTAGRAM]]) {
         document.querySelectorAll("[" + attr + "]").forEach((el) => {
           if (url) {
             el.href = url;
