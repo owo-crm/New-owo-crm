@@ -3,864 +3,1448 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>OWO Ads — marketing i narzędzia dla firm z Trójmiasta</title>
+    <title>OWO Ads — zdjęcia, reklama, strona i CRM w jednym systemie</title>
     <meta
       name="description"
-      content="Lokalna agencja z Trójmiasta. Prowadzimy social media, reklamę w Meta i Google, budujemy strony i narzędzia dla małych firm. Przyjeżdżamy, nagrywamy u Ciebie, uruchamiamy kampanie."
+      content="Agencja z Trójmiasta: nagrywamy treści, prowadzimy reklamę Meta i Google, robimy strony i podłączamy CRM, w którym żadne zapytanie nie ginie."
     />
-    <meta name="theme-color" content="#11201c" />
-    <meta property="og:title" content="OWO Ads — marketing i narzędzia dla firm z Trójmiasta" />
-    <meta
-      property="og:description"
-      content="Przyjeżdżamy, kręcimy, włączamy reklamę. Gdańsk, Gdynia, Sopot."
-    />
-    <meta property="og:locale" content="pl_PL" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
     <style>
+      /*
+        Strona OWO Ads. Spokojna, jasna, z jednym akcentem — tym samym niebieskim co w naszym CRM,
+        żeby strona i produkt wyglądały jak jedna firma. Bez numerowanych nagłówków, neonów
+        i wymyślonych liczb: tam, gdzie nie mamy jeszcze prawdziwych danych, ich nie pokazujemy.
+      */
       :root {
-        --ink: #11201c;
-        --sea: #0f4d43;
-        --mist: #e4e9e4;
-        --amber: #f2b705;
-        --white: #ffffff;
-        --ink-70: rgba(17, 32, 28, 0.68);
-        --white-70: rgba(255, 255, 255, 0.7);
-        --measure: 62ch;
-        --gutter: clamp(1.25rem, 5vw, 5rem);
-        --band: clamp(3.5rem, 7vw, 6.5rem);
+        --bg: #ffffff;
+        --bg-soft: #f4f5f8;
+        --ink: #131722;
+        --ink-soft: #545c6b;
+        --ink-faint: #8a91a0;
+        --line: #e6e8ed;
+        --accent: #3d6cf4;
+        --accent-soft: #eaf0fe;
+        --ok: #13945b;
+        --warm: #c27410;
+        --night: #10131a;
+        --night-2: #181c25;
+        --night-line: #262b36;
+        --radius: 18px;
       }
-
-      *,
-      *::before,
-      *::after {
+      * {
         box-sizing: border-box;
       }
-
+      [hidden] {
+        display: none !important;
+      }
       html {
         scroll-behavior: smooth;
+        overflow-x: clip;
       }
-
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+      }
       body {
         margin: 0;
-        background: var(--mist);
+        background: var(--bg);
         color: var(--ink);
-        font-family: Archivo, system-ui, sans-serif;
-        font-size: clamp(1rem, 0.95rem + 0.3vw, 1.125rem);
-        line-height: 1.6;
+        font:
+          16px/1.6 Inter,
+          ui-sans-serif,
+          system-ui,
+          sans-serif;
         -webkit-font-smoothing: antialiased;
+        overflow-x: clip;
       }
-
+      a {
+        color: inherit;
+      }
+      img {
+        max-width: 100%;
+      }
+      .wrap {
+        width: min(1140px, 100% - 40px);
+        margin-inline: auto;
+      }
       h1,
       h2,
       h3 {
         margin: 0;
-        font-weight: 800;
+        line-height: 1.12;
         letter-spacing: -0.025em;
-        line-height: 1.02;
         text-wrap: balance;
       }
-
+      h2 {
+        font-size: clamp(28px, 4vw, 42px);
+        font-weight: 800;
+      }
       p {
         margin: 0;
-        max-width: var(--measure);
+        text-wrap: pretty;
       }
-
-      a {
-        color: inherit;
+      .lead {
+        color: var(--ink-soft);
+        font-size: 18px;
+        max-width: 620px;
       }
-
-      :focus-visible {
-        outline: 3px solid var(--amber);
-        outline-offset: 3px;
+      section {
+        padding: 96px 0;
       }
-
-      .wrap {
-        width: 100%;
-        max-width: 72rem;
-        margin-inline: auto;
-        padding-inline: var(--gutter);
-      }
-
-      /* ---------- masthead ---------- */
-
-      .masthead {
-        background: var(--ink);
-        color: var(--white);
-        position: sticky;
-        top: 0;
-        z-index: 10;
-      }
-
-      .masthead__inner {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 1.5rem;
-        min-height: 4.25rem;
-      }
-
-      .logo {
-        display: inline-flex;
-        align-items: baseline;
-        gap: 0.4rem;
-        font-weight: 800;
-        font-size: 1.3rem;
-        letter-spacing: -0.03em;
-        text-decoration: none;
-      }
-
-      .logo b {
-        color: var(--amber);
-      }
-
-      .masthead nav {
-        display: flex;
-        align-items: center;
-        gap: clamp(0.9rem, 2vw, 2rem);
-        font-size: 0.95rem;
-      }
-
-      .masthead nav a {
-        text-decoration: none;
-        color: var(--white-70);
-        padding-block: 0.4rem;
-      }
-
-      .masthead nav a:hover {
-        color: var(--white);
-      }
-
-      .masthead nav a.is-call {
-        color: var(--amber);
-        font-weight: 600;
-      }
-
-      @media (max-width: 34rem) {
-        .masthead nav a:not(.is-call) {
-          display: none;
+      @media (max-width: 720px) {
+        section {
+          padding: 64px 0;
         }
       }
-
-      /* ---------- hero ---------- */
-
-      .hero {
-        background: var(--mist);
-        padding-block: clamp(2.5rem, 6vw, 4.5rem) var(--band);
-        border-bottom: 1px solid rgba(17, 32, 28, 0.14);
-      }
-
-      .hero__grid {
+      .head {
         display: grid;
-        gap: clamp(2.5rem, 5vw, 4rem);
-        align-items: end;
+        gap: 14px;
+        margin-bottom: 44px;
+        max-width: 720px;
       }
 
-      @media (min-width: 62rem) {
-        .hero__grid {
-          grid-template-columns: minmax(0, 1.55fr) minmax(16rem, 1fr);
-        }
-      }
-
-      .hero h1 {
-        font-size: clamp(2.6rem, 6.6vw, 4.5rem);
-      }
-
-      .hero h1 span {
-        display: block;
-      }
-
-      .hero__lede {
-        margin-top: 1.75rem;
-        font-size: clamp(1.05rem, 1rem + 0.5vw, 1.3rem);
-        color: var(--ink-70);
-      }
-
-      .actions {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.75rem;
-        margin-top: 2.25rem;
-      }
-
+      /* Przyciski */
       .btn {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        min-height: 3.25rem;
-        padding-inline: 1.6rem;
+        gap: 8px;
+        height: 50px;
+        padding: 0 22px;
+        border-radius: 12px;
+        border: 1px solid transparent;
         font: inherit;
         font-weight: 600;
+        font-size: 15px;
         text-decoration: none;
-        border: 2px solid var(--ink);
-        border-radius: 0;
         cursor: pointer;
         transition:
-          transform 0.12s ease,
-          background-color 0.12s ease;
+          background-color 0.15s ease,
+          border-color 0.15s ease,
+          transform 0.15s ease;
       }
-
-      .btn--primary {
-        background: var(--amber);
-        color: var(--ink);
-      }
-
-      .btn--primary:hover {
-        background: var(--ink);
-        color: var(--amber);
-      }
-
-      .btn--ghost {
-        background: transparent;
-        color: var(--ink);
-      }
-
-      .btn--ghost:hover {
-        background: var(--ink);
-        color: var(--mist);
-      }
-
       .btn:active {
-        transform: translateY(1px);
+        transform: scale(0.97);
+      }
+      .btn--primary {
+        background: var(--accent);
+        color: #fff;
+      }
+      .btn--primary:hover {
+        background: #2f5ce0;
+      }
+      .btn--ghost {
+        border-color: var(--line);
+        background: #fff;
+      }
+      .btn--ghost:hover {
+        background: var(--bg-soft);
+      }
+      .btn:disabled {
+        opacity: 0.6;
+        cursor: default;
+      }
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 3px;
       }
 
-      /* the plate: an enamel street sign, not a feature card */
-      .plate {
-        background: var(--sea);
-        color: var(--white);
-        padding: clamp(1.5rem, 3vw, 2rem);
-        box-shadow: 0.6rem 0.6rem 0 var(--ink);
+      /* Nagłówek */
+      .top {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        background: rgb(255 255 255 / 0.9);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid var(--line);
       }
-
-      .plate__cities {
-        margin: 0;
-        padding: 0;
-        list-style: none;
-        font-size: clamp(1.5rem, 3.4vw, 2rem);
-        font-weight: 800;
-        letter-spacing: -0.03em;
-        line-height: 1.12;
-      }
-
-      .plate__cities li + li {
-        border-top: 1px solid rgba(255, 255, 255, 0.22);
-        margin-top: 0.5rem;
-        padding-top: 0.5rem;
-      }
-
-      .plate p {
-        margin-top: 1.25rem;
-        padding-top: 1.25rem;
-        border-top: 3px solid var(--amber);
-        font-size: 0.98rem;
-        color: var(--white-70);
-      }
-
-      /* ---------- services ---------- */
-
-      .services {
-        background: var(--ink);
-        color: var(--white);
-        padding-block: var(--band);
-      }
-
-      .section-head {
-        display: grid;
-        gap: 1rem;
-        margin-bottom: clamp(2rem, 4vw, 3rem);
-      }
-
-      .section-head h2 {
-        font-size: clamp(1.9rem, 4.5vw, 2.9rem);
-      }
-
-      .section-head p {
-        color: var(--white-70);
-      }
-
-      .services__list {
-        border-top: 1px solid rgba(255, 255, 255, 0.18);
-      }
-
-      .svc {
-        border-bottom: 1px solid rgba(255, 255, 255, 0.18);
-      }
-
-      .svc > summary {
+      .top .wrap {
         display: flex;
-        align-items: baseline;
-        gap: 1rem;
-        padding-block: clamp(1.1rem, 2.4vw, 1.6rem);
-        cursor: pointer;
-        list-style: none;
-        font-size: clamp(1.3rem, 3.4vw, 2rem);
+        align-items: center;
+        gap: 28px;
+        height: 68px;
+      }
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
         font-weight: 800;
-        letter-spacing: -0.03em;
+        font-size: 19px;
+        text-decoration: none;
+        letter-spacing: -0.02em;
       }
-
-      .svc > summary::-webkit-details-marker {
-        display: none;
-      }
-
-      .svc > summary::after {
-        content: "+";
-        margin-left: auto;
-        color: var(--amber);
-        font-weight: 500;
-        font-size: 1.6rem;
-        line-height: 1;
-      }
-
-      .svc[open] > summary::after {
-        content: "–";
-      }
-
-      .svc > summary:hover {
-        color: var(--amber);
-      }
-
-      .svc__body {
-        padding-bottom: clamp(1.2rem, 2.4vw, 1.8rem);
+      .logo b {
         display: grid;
-        gap: 0.9rem;
+        place-items: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 9px;
+        background: var(--accent);
+        color: #fff;
+        font-size: 16px;
+      }
+      .top nav {
+        display: flex;
+        gap: 24px;
+        font-size: 15px;
+        color: var(--ink-soft);
+      }
+      .top nav a {
+        text-decoration: none;
+      }
+      .top nav a:hover {
+        color: var(--ink);
+      }
+      .top .btn {
+        height: 42px;
+        margin-left: auto;
+      }
+      @media (max-width: 860px) {
+        .top nav {
+          display: none;
+        }
       }
 
-      .svc__body p {
-        color: var(--white-70);
+      /* Hero */
+      .hero {
+        padding: 72px 0 88px;
+        background:
+          radial-gradient(900px 420px at 85% -10%, var(--accent-soft), transparent 70%), var(--bg);
       }
-
-      .svc__body ul {
-        margin: 0;
-        padding: 0;
-        list-style: none;
+      .hero .wrap {
+        display: grid;
+        grid-template-columns: 1.05fr 1fr;
+        gap: 56px;
+        align-items: center;
+      }
+      @media (max-width: 960px) {
+        .hero .wrap {
+          grid-template-columns: 1fr;
+          gap: 44px;
+        }
+      }
+      .hero h1 {
+        font-size: clamp(38px, 5.6vw, 62px);
+        font-weight: 800;
+      }
+      .hero .lead {
+        margin-top: 20px;
+      }
+      .hero__cta {
         display: flex;
         flex-wrap: wrap;
-        gap: 0.4rem 0.5rem;
-        font-size: 0.92rem;
+        gap: 12px;
+        margin-top: 32px;
+      }
+      .hero__where {
+        margin-top: 28px;
+        color: var(--ink-faint);
+        font-size: 14px;
       }
 
-      .svc__body li {
-        border: 1px solid rgba(255, 255, 255, 0.28);
-        padding: 0.3rem 0.65rem;
-      }
-
-      /* ---------- process (a real sequence, so it is numbered) ---------- */
-
-      .process {
-        background: var(--mist);
-        padding-block: var(--band);
-      }
-
-      .process .section-head p {
-        color: var(--ink-70);
-      }
-
-      .steps {
+      /* Makieta CRM w hero: jak zapytanie z reklamy trafia do systemu */
+      .flow {
+        position: relative;
         display: grid;
-        gap: clamp(1.75rem, 3vw, 2.5rem);
-        counter-reset: step;
+        gap: 12px;
+      }
+      .card {
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        box-shadow:
+          0 1px 2px rgb(19 23 34 / 0.04),
+          0 12px 32px -12px rgb(19 23 34 / 0.12);
+      }
+      .flow .card {
+        padding: 16px 18px;
+      }
+      .ad {
+        display: flex;
+        gap: 14px;
+        align-items: center;
+      }
+      .ad__thumb {
+        width: 56px;
+        height: 56px;
+        border-radius: 12px;
+        flex: none;
+        background:
+          linear-gradient(135deg, rgb(255 255 255 / 0.15), transparent),
+          linear-gradient(160deg, #f0a742, #e0688a 55%, #5b7cfa);
+      }
+      .muted {
+        color: var(--ink-faint);
+        font-size: 13px;
+      }
+      .lead-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .avatar {
+        display: grid;
+        place-items: center;
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        flex: none;
+        font-weight: 700;
+        font-size: 14px;
+      }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 3px 10px;
+        border-radius: 999px;
+        font-size: 12.5px;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      .pill::before {
+        content: "";
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: currentColor;
+      }
+      .pill--new {
+        color: var(--accent);
+        background: var(--accent-soft);
+      }
+      .pill--ok {
+        color: var(--ok);
+        background: #e6f5ee;
+      }
+      .pill--warm {
+        color: var(--warm);
+        background: #fbf0e1;
+      }
+      .tg {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        background: var(--night);
+        color: #e9ecf2;
+        border-color: var(--night-line);
+      }
+      .tg__icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: #2aa3df;
+        flex: none;
+        display: grid;
+        place-items: center;
+        color: #fff;
+        font-weight: 700;
+      }
+      .flow__arrow {
+        justify-self: center;
+        color: var(--ink-faint);
+        font-size: 13px;
       }
 
-      @media (min-width: 52rem) {
-        .steps {
-          grid-template-columns: repeat(3, minmax(0, 1fr));
+      /* Cztery części systemu */
+      .parts {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+      }
+      @media (max-width: 1000px) {
+        .parts {
+          grid-template-columns: repeat(2, 1fr);
         }
       }
-
-      .step {
-        counter-increment: step;
-        border-top: 3px solid var(--ink);
-        padding-top: 1rem;
+      @media (max-width: 560px) {
+        .parts {
+          grid-template-columns: 1fr;
+        }
+      }
+      .part {
+        padding: 24px;
+        display: grid;
+        gap: 12px;
+        align-content: start;
+      }
+      .part__icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: grid;
+        place-items: center;
+      }
+      .part__icon svg {
+        width: 22px;
+        height: 22px;
+      }
+      .part h3 {
+        font-size: 19px;
+      }
+      .part p {
+        color: var(--ink-soft);
+        font-size: 15px;
+      }
+      .part ul {
+        margin: 4px 0 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        gap: 6px;
+        font-size: 14px;
+        color: var(--ink-soft);
+      }
+      .part li::before {
+        content: "✓";
+        color: var(--ok);
+        font-weight: 700;
+        margin-right: 8px;
+      }
+      .parts__note {
+        margin-top: 24px;
+        color: var(--ink-soft);
+        font-size: 15px;
       }
 
-      .step::before {
-        content: counter(step);
+      /* Ciemna sekcja: CRM */
+      .night {
+        background: var(--night);
+        color: #e9ecf2;
+      }
+      .night .lead,
+      .night .muted {
+        color: #a3aab8;
+      }
+      .crm {
+        display: grid;
+        grid-template-columns: 1fr 1.15fr;
+        gap: 48px;
+        align-items: center;
+      }
+      @media (max-width: 960px) {
+        .crm {
+          grid-template-columns: 1fr;
+        }
+      }
+      .checks {
+        margin: 28px 0 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        gap: 14px;
+      }
+      .checks li {
+        display: grid;
+        grid-template-columns: 28px 1fr;
+        gap: 10px;
+      }
+      .checks b {
         display: block;
-        font-size: clamp(2.6rem, 6vw, 3.6rem);
-        font-weight: 800;
-        line-height: 1;
-        letter-spacing: -0.04em;
-        color: var(--sea);
-      }
-
-      .step h3 {
-        font-size: 1.35rem;
-        margin-top: 0.4rem;
-      }
-
-      .step p {
-        margin-top: 0.5rem;
-        color: var(--ink-70);
-      }
-
-      /* ---------- reasons ---------- */
-
-      .reasons {
-        background: var(--sea);
-        color: var(--white);
-        padding-block: var(--band);
-      }
-
-      .reasons dl {
-        margin: 0;
-        display: grid;
-        gap: clamp(1.75rem, 3vw, 2.5rem);
-      }
-
-      @media (min-width: 52rem) {
-        .reasons dl {
-          grid-template-columns: repeat(3, minmax(0, 1fr));
-        }
-      }
-
-      .reasons dt {
-        font-weight: 800;
-        font-size: clamp(1.2rem, 2.6vw, 1.5rem);
-        letter-spacing: -0.025em;
-        border-bottom: 3px solid var(--amber);
-        padding-bottom: 0.75rem;
-      }
-
-      .reasons dd {
-        margin: 0.9rem 0 0;
-        color: var(--white-70);
-      }
-
-      /* ---------- contact ---------- */
-
-      .contact {
-        background: var(--amber);
-        color: var(--ink);
-        padding-block: var(--band);
-      }
-
-      .contact__grid {
-        display: grid;
-        gap: clamp(2.5rem, 5vw, 4rem);
-      }
-
-      @media (min-width: 62rem) {
-        .contact__grid {
-          grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
-          align-items: start;
-        }
-      }
-
-      .contact h2 {
-        font-size: clamp(2rem, 5.5vw, 3.4rem);
-      }
-
-      .contact__aside p {
-        margin-top: 1.25rem;
-      }
-
-      .contact__phone {
-        display: inline-block;
-        margin-top: 1.75rem;
-        font-size: clamp(1.5rem, 4vw, 2.2rem);
-        font-weight: 800;
-        letter-spacing: -0.03em;
-        text-decoration: none;
-        border-bottom: 4px solid var(--ink);
-      }
-
-      form {
-        display: grid;
-        gap: 1rem;
-      }
-
-      .field {
-        display: grid;
-        gap: 0.4rem;
-      }
-
-      .field > span {
-        font-size: 0.95rem;
+        color: #fff;
         font-weight: 600;
       }
+      .checks span {
+        color: #a3aab8;
+        font-size: 15px;
+      }
+      .checks i {
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        background: rgb(113 147 255 / 0.16);
+        color: #9db3ff;
+        display: grid;
+        place-items: center;
+        font-style: normal;
+        font-weight: 700;
+      }
+      .app {
+        background: var(--night-2);
+        border: 1px solid var(--night-line);
+        border-radius: var(--radius);
+        overflow: hidden;
+      }
+      .app__bar {
+        display: flex;
+        gap: 6px;
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--night-line);
+      }
+      .app__bar span {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #343a47;
+      }
+      .app__stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        padding: 16px;
+      }
+      .stat {
+        background: #1f2430;
+        border: 1px solid var(--night-line);
+        border-radius: 12px;
+        padding: 12px;
+      }
+      .stat b {
+        display: block;
+        font-size: 20px;
+        color: #fff;
+      }
+      .app__rows {
+        padding: 0 16px 16px;
+        display: grid;
+        gap: 8px;
+      }
+      .app__row {
+        display: grid;
+        grid-template-columns: 38px 1fr auto;
+        gap: 12px;
+        align-items: center;
+        padding: 10px 12px;
+        border-radius: 12px;
+        background: #1f2430;
+      }
+      .app__row .pill--new {
+        background: rgb(113 147 255 / 0.16);
+        color: #9db3ff;
+      }
+      .app__row .pill--ok {
+        background: rgb(63 203 133 / 0.14);
+        color: #6fdca5;
+      }
+      .app__row .pill--warm {
+        background: rgb(242 173 78 / 0.14);
+        color: #f2c27e;
+      }
+      .demo-note {
+        margin-top: 12px;
+        font-size: 13px;
+        color: #707888;
+      }
 
+      /* Proces */
+      .steps {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 14px;
+        counter-reset: step;
+      }
+      @media (max-width: 1000px) {
+        .steps {
+          grid-template-columns: 1fr;
+        }
+      }
+      .step {
+        padding: 22px;
+        display: grid;
+        gap: 10px;
+        align-content: start;
+        position: relative;
+      }
+      .step__n {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: var(--accent-soft);
+        color: var(--accent);
+        display: grid;
+        place-items: center;
+        font-weight: 700;
+      }
+      .step h3 {
+        font-size: 17px;
+      }
+      .step p {
+        color: var(--ink-soft);
+        font-size: 14.5px;
+      }
+      .step small {
+        color: var(--ink-faint);
+        font-size: 13px;
+      }
+
+      /* Kalkulator */
+      .soft {
+        background: var(--bg-soft);
+      }
+      .calc {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+      @media (max-width: 900px) {
+        .calc {
+          grid-template-columns: 1fr;
+        }
+      }
+      .calc .card {
+        padding: 26px;
+      }
+      .range {
+        display: grid;
+        gap: 8px;
+        margin-bottom: 22px;
+      }
+      .range label {
+        display: flex;
+        justify-content: space-between;
+        font-weight: 600;
+        font-size: 15px;
+      }
+      .range output {
+        color: var(--accent);
+        font-variant-numeric: tabular-nums;
+      }
+      input[type="range"] {
+        width: 100%;
+        accent-color: var(--accent);
+      }
+      .result {
+        display: grid;
+        gap: 18px;
+        align-content: start;
+      }
+      .result__big {
+        font-size: clamp(34px, 5vw, 48px);
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        font-variant-numeric: tabular-nums;
+      }
+      .result__grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      .result__grid div {
+        background: var(--bg-soft);
+        border-radius: 12px;
+        padding: 12px 14px;
+      }
+      .result__grid b {
+        display: block;
+        font-size: 20px;
+        font-variant-numeric: tabular-nums;
+      }
+      .neg {
+        color: #d23b31;
+      }
+
+      /* Zespół */
+      .team {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+      }
+      @media (max-width: 900px) {
+        .team {
+          grid-template-columns: 1fr;
+        }
+      }
+      .person {
+        padding: 24px;
+        display: grid;
+        gap: 12px;
+        align-content: start;
+      }
+      .person .avatar {
+        width: 52px;
+        height: 52px;
+        font-size: 18px;
+      }
+      .person h3 {
+        font-size: 19px;
+      }
+      .tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .tags span {
+        font-size: 13px;
+        padding: 3px 10px;
+        border-radius: 999px;
+        background: var(--bg-soft);
+        color: var(--ink-soft);
+      }
+
+      /* FAQ */
+      .faq {
+        display: grid;
+        gap: 10px;
+        max-width: 820px;
+      }
+      details {
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 0 20px;
+      }
+      summary {
+        cursor: pointer;
+        list-style: none;
+        padding: 18px 0;
+        font-weight: 600;
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+      }
+      summary::-webkit-details-marker {
+        display: none;
+      }
+      summary::after {
+        content: "+";
+        color: var(--accent);
+        font-size: 22px;
+        line-height: 1;
+      }
+      details[open] summary::after {
+        content: "–";
+      }
+      details p {
+        padding: 0 0 18px;
+        color: var(--ink-soft);
+      }
+
+      /* Kontakt */
+      .contact {
+        display: grid;
+        grid-template-columns: 0.9fr 1.1fr;
+        gap: 40px;
+      }
+      @media (max-width: 900px) {
+        .contact {
+          grid-template-columns: 1fr;
+        }
+      }
+      .ways {
+        display: grid;
+        gap: 10px;
+        margin-top: 28px;
+      }
+      .way {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 14px 16px;
+        text-decoration: none;
+      }
+      .way:hover {
+        border-color: #cfd5e0;
+      }
+      .way__icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        display: grid;
+        place-items: center;
+        font-weight: 700;
+        flex: none;
+      }
+      form {
+        padding: 26px;
+        display: grid;
+        gap: 14px;
+      }
+      .pair {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+      }
+      @media (max-width: 560px) {
+        .pair {
+          grid-template-columns: 1fr;
+        }
+      }
+      .field {
+        display: grid;
+        gap: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--ink-soft);
+      }
       .field input,
       .field select,
       .field textarea {
         font: inherit;
+        font-size: 15px;
         color: var(--ink);
-        background: var(--white);
-        border: 2px solid var(--ink);
-        border-radius: 0;
-        padding: 0.8rem 0.9rem;
-        min-height: 3.1rem;
+        border: 1px solid #d5d9e0;
+        border-radius: 10px;
+        padding: 11px 12px;
+        background: #fff;
+        width: 100%;
       }
-
-      .field textarea {
-        min-height: 6rem;
-        resize: vertical;
+      .field input:focus,
+      .field select:focus,
+      .field textarea:focus {
+        border-color: var(--accent);
+        outline: none;
       }
-
-      .field--pair {
-        display: grid;
-        gap: 1rem;
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
       }
-
-      @media (min-width: 34rem) {
-        .field--pair {
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
+      .chips label {
+        cursor: pointer;
+        position: relative;
       }
-
+      .chips input {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+      }
+      .chips span {
+        display: inline-block;
+        padding: 8px 14px;
+        border-radius: 999px;
+        border: 1px solid #d5d9e0;
+        font-size: 14px;
+        color: var(--ink-soft);
+        transition:
+          background-color 0.15s ease,
+          color 0.15s ease;
+      }
+      .chips input:checked + span {
+        background: var(--accent-soft);
+        border-color: var(--accent);
+        color: var(--accent);
+        font-weight: 600;
+      }
+      .chips input:focus-visible + span {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
       .consent {
         display: flex;
-        gap: 0.65rem;
-        align-items: flex-start;
-        font-size: 0.9rem;
-        line-height: 1.5;
+        gap: 10px;
+        font-size: 13.5px;
+        color: var(--ink-soft);
       }
-
       .consent input {
-        margin-top: 0.2rem;
-        width: 1.15rem;
-        height: 1.15rem;
-        accent-color: var(--ink);
-        flex: none;
+        margin-top: 3px;
+        accent-color: var(--accent);
       }
-
       .hp {
         position: absolute;
         left: -9999px;
-        width: 1px;
-        height: 1px;
-        overflow: hidden;
       }
-
-      form .btn--primary {
-        background: var(--ink);
-        color: var(--amber);
-        justify-self: start;
-      }
-
-      form .btn--primary:hover {
-        background: var(--white);
-        color: var(--ink);
-      }
-
       .form-note {
-        font-size: 0.95rem;
-        font-weight: 600;
-        min-height: 1.5rem;
+        font-size: 14px;
+        min-height: 1.4em;
       }
-
       .form-note[data-state="error"] {
-        color: #7a1c10;
+        color: #d23b31;
       }
-
-      /* ---------- footer ---------- */
+      .form-note[data-state="ok"] {
+        color: var(--ok);
+      }
 
       footer {
-        background: var(--ink);
-        color: var(--white-70);
-        padding-block: 2.5rem;
-        font-size: 0.92rem;
+        border-top: 1px solid var(--line);
+        padding: 28px 0 36px;
+        color: var(--ink-faint);
+        font-size: 14px;
       }
-
       footer .wrap {
         display: flex;
         flex-wrap: wrap;
-        gap: 0.75rem 2rem;
         justify-content: space-between;
-      }
-
-      /* ---------- one orchestrated entrance ---------- */
-
-      @media (prefers-reduced-motion: no-preference) {
-        .reveal {
-          animation: rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
-        }
-        .hero h1 span:nth-child(1) {
-          animation-delay: 0.05s;
-        }
-        .hero h1 span:nth-child(2) {
-          animation-delay: 0.14s;
-        }
-        .hero h1 span:nth-child(3) {
-          animation-delay: 0.23s;
-        }
-        .hero__lede {
-          animation-delay: 0.34s;
-        }
-        .hero .actions {
-          animation-delay: 0.42s;
-        }
-        .hero .plate {
-          animation-delay: 0.5s;
-        }
-      }
-
-      @keyframes rise {
-        from {
-          opacity: 0;
-          transform: translateY(0.9rem);
-        }
-        to {
-          opacity: 1;
-          transform: none;
-        }
+        gap: 12px;
       }
     </style>
   </head>
   <body>
-    <header class="masthead">
-      <div class="wrap masthead__inner">
-        <a class="logo" href="#top">OWO<b>ADS</b></a>
+    <header class="top">
+      <div class="wrap">
+        <a class="logo" href="#"><b>o</b>OWO Ads</a>
         <nav aria-label="Menu">
-          <a href="#uslugi">Usługi</a>
-          <a href="#jak-pracujemy">Jak pracujemy</a>
-          <a class="is-call" href="tel:+48000000000" data-phone-link>Zadzwoń</a>
+          <a href="#system">Co robimy</a>
+          <a href="#crm">CRM</a>
+          <a href="#proces">Jak pracujemy</a>
+          <a href="#kalkulator">Kalkulator</a>
+          <a href="#zespol">Zespół</a>
         </nav>
+        <a class="btn btn--primary" href="#kontakt">Bezpłatna rozmowa</a>
       </div>
     </header>
 
-    <main id="top">
+    <main>
+      <!-- Hero: obietnica + to, co nas odróżnia — droga zapytania od reklamy do CRM -->
       <section class="hero">
-        <div class="wrap hero__grid">
+        <div class="wrap">
           <div>
-            <h1>
-              <span class="reveal">Przyjeżdżamy,</span>
-              <span class="reveal">kręcimy,</span>
-              <span class="reveal">włączamy reklamę.</span>
-            </h1>
-            <p class="hero__lede reveal">
-              Jesteśmy agencją z Trójmiasta. Prowadzimy social media, reklamę w Meta i Google,
-              budujemy strony i wewnętrzne narzędzia dla małych firm — od pierwszej rozmowy do liczb
-              na koniec miesiąca.
+            <h1>Reklama, strona i CRM, które razem przyprowadzają klientów</h1>
+            <p class="lead">
+              Nagrywamy treści, prowadzimy kampanie Meta i Google, robimy stronę, która zamienia
+              wejścia w zapytania, i podłączamy własny CRM. Każde zgłoszenie trafia od razu do
+              systemu i na telefon — nic nie ginie w skrzynce ani w arkuszu.
             </p>
-            <div class="actions reveal">
-              <a class="btn btn--primary" href="tel:+48000000000" data-phone-link>Zadzwoń teraz</a>
-              <a class="btn btn--ghost" href="#kontakt">Umów spotkanie</a>
+            <div class="hero__cta">
+              <a class="btn btn--primary" href="#kontakt">Umów bezpłatną rozmowę</a>
+              <a class="btn btn--ghost" href="#kalkulator">Policz, ile może dać reklama</a>
+            </div>
+            <p class="hero__where">
+              Gdańsk · Gdynia · Sopot — przyjeżdżamy na miejsce na nagrania.
+            </p>
+          </div>
+
+          <div class="flow" aria-label="Przykład: droga zapytania od reklamy do CRM">
+            <div class="card ad">
+              <div class="ad__thumb" aria-hidden="true"></div>
+              <div>
+                <b>Reklama na Instagramie</b>
+                <p class="muted">Klient zostawia numer w formularzu</p>
+              </div>
+            </div>
+            <span class="flow__arrow" aria-hidden="true">↓ w kilka sekund</span>
+            <div class="card">
+              <div class="lead-row">
+                <span class="avatar" style="background: #eaf0fe; color: #3d6cf4">MK</span>
+                <div style="flex: 1; min-width: 0">
+                  <b>Marta K.</b>
+                  <p class="muted">Formularz · Instagram · przed chwilą</p>
+                </div>
+                <span class="pill pill--new">Nowy</span>
+              </div>
+            </div>
+            <div class="card tg">
+              <span class="tg__icon" aria-hidden="true">✈</span>
+              <div>
+                <b>Nowe zapytanie: Marta K.</b>
+                <p class="muted" style="color: #a3aab8">
+                  Powiadomienie w Telegramie — oddzwaniasz, zanim klient zapyta konkurencję.
+                </p>
+              </div>
+            </div>
+            <div class="card">
+              <div class="lead-row">
+                <span class="avatar" style="background: #e6f5ee; color: #13945b">✓</span>
+                <div style="flex: 1">
+                  <b>Oferta wysłana, umowa podpisana</b>
+                  <p class="muted">Dokumenty i zadatki — w tym samym miejscu</p>
+                </div>
+                <span class="pill pill--ok">Klient</span>
+              </div>
             </div>
           </div>
+        </div>
+      </section>
 
-          <aside class="plate reveal">
-            <ul class="plate__cities">
-              <li>Gdańsk</li>
-              <li>Gdynia</li>
-              <li>Sopot</li>
+      <!-- Cztery części systemu -->
+      <section id="system">
+        <div class="wrap">
+          <div class="head">
+            <h2>Jedna drużyna od pierwszego kadru do podpisanej umowy</h2>
+            <p class="lead">
+              Same filmiki nie sprzedają, a sama reklama przepala budżet, jeśli zapytania giną po
+              drodze. Dlatego robimy cztery rzeczy naraz i spinamy je w jeden system.
+            </p>
+          </div>
+          <div class="parts">
+            <article class="card part">
+              <span class="part__icon" style="background: #fdecf1; color: #d65f9e">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  aria-hidden="true"
+                >
+                  <path d="M23 7l-7 5 7 5V7z" />
+                  <rect x="1" y="5" width="15" height="14" rx="2" />
+                </svg>
+              </span>
+              <h3>Zdjęcia i wideo</h3>
+              <p>
+                Przyjeżdżamy do Twojej firmy, piszemy scenariusze i nagrywamy materiał pod reklamę i
+                social media.
+              </p>
+              <ul>
+                <li>Rolki i krótkie wideo</li>
+                <li>Zdjęcia produktów i miejsca</li>
+                <li>Montaż, napisy, formaty pod Meta</li>
+              </ul>
+            </article>
+            <article class="card part">
+              <span class="part__icon" style="background: #fbf0e1; color: #c27410">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  aria-hidden="true"
+                >
+                  <path d="M3 11l18-8-8 18-2-8-8-2z" />
+                </svg>
+              </span>
+              <h3>Reklama Meta i Google</h3>
+              <p>
+                Strategia, oferty, kampanie i codzienna optymalizacja — żeby koszt klienta spadał, a
+                nie tylko zasięgi rosły.
+              </p>
+              <ul>
+                <li>Facebook i Instagram</li>
+                <li>Google Ads i wizytówka</li>
+                <li>Miesięczny raport po ludzku</li>
+              </ul>
+            </article>
+            <article class="card part">
+              <span class="part__icon" style="background: #eaf0fe; color: #3d6cf4">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  aria-hidden="true"
+                >
+                  <rect x="2" y="3" width="20" height="14" rx="2" />
+                  <path d="M8 21h8M12 17v4" />
+                </svg>
+              </span>
+              <h3>Strona, która zbiera zapytania</h3>
+              <p>
+                Szybka strona lub landing pod konkretną usługę — z formularzem, który od razu
+                zapisuje klienta w CRM.
+              </p>
+              <ul>
+                <li>Projekt i teksty</li>
+                <li>Formularz połączony z CRM</li>
+                <li>Utrzymanie i poprawki</li>
+              </ul>
+            </article>
+            <article class="card part">
+              <span class="part__icon" style="background: #e6f5ee; color: #13945b">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  aria-hidden="true"
+                >
+                  <path d="M4 4h16v16H4z" />
+                  <path d="M4 9h16M9 9v11" />
+                </svg>
+              </span>
+              <h3>CRM i automatyzacja</h3>
+              <p>
+                Nasz własny system: zapytania, powiadomienia, oferty, umowy i płatności — dopasowany
+                do Twojej branży.
+              </p>
+              <ul>
+                <li>Leady z reklamy i strony w jednym miejscu</li>
+                <li>Telegram i e-mail od razu</li>
+                <li>Oferty i umowy jednym kliknięciem</li>
+              </ul>
+            </article>
+          </div>
+          <p class="parts__note">
+            Możesz zacząć od jednej części — np. samego CRM albo samej reklamy — i dołożyć resztę,
+            kiedy zobaczysz efekty.
+          </p>
+        </div>
+      </section>
+
+      <!-- CRM — nasza przewaga: pokazujemy prawdziwe funkcje produktu -->
+      <section class="night" id="crm">
+        <div class="wrap crm">
+          <div>
+            <h2>Własny CRM zamiast arkusza i notatek w telefonie</h2>
+            <p class="lead" style="margin-top: 16px">
+              Większość agencji kończy na „leady wpadają do tabelki”. My budujemy dla klienta
+              system, w którym zapytanie od razu staje się zadaniem z terminem, ofertą i umową.
+            </p>
+            <ul class="checks">
+              <li>
+                <i>1</i>
+                <div>
+                  <b>Zapytanie w kilka sekund</b
+                  ><span
+                    >Z formularza na stronie i z reklamy prosto do CRM, z informacją, skąd
+                    przyszło.</span
+                  >
+                </div>
+              </li>
+              <li>
+                <i>2</i>
+                <div>
+                  <b>Powiadomienie od razu</b
+                  ><span
+                    >Telegram, e-mail i telefon. Widać, kto czeka na odpowiedź i jak długo.</span
+                  >
+                </div>
+              </li>
+              <li>
+                <i>3</i>
+                <div>
+                  <b>Oferta i umowa jednym kliknięciem</b
+                  ><span>PDF i Word z Twoim logo i danymi klienta, z numeracją dokumentów.</span>
+                </div>
+              </li>
+              <li>
+                <i>4</i>
+                <div>
+                  <b>Zadatki i płatności pod kontrolą</b
+                  ><span>Przypomnienia o terminach i podgląd, ile wpłynęło w tym miesiącu.</span>
+                </div>
+              </li>
             </ul>
-            <p>
-              Pracujemy na miejscu. Spotykamy się u Ciebie, a zdjęcia i filmy nagrywamy w Twoim
-              lokalu — nie w studiu i nie ze zdjęć z internetu.
-            </p>
-          </aside>
-        </div>
-      </section>
-
-      <section class="services" id="uslugi">
-        <div class="wrap">
-          <div class="section-head">
-            <h2>Co bierzemy na siebie</h2>
-            <p>
-              Każdą usługę można zamówić osobno. Zwykle zaczynamy od jednej rzeczy, która przynosi
-              klientów najszybciej, i dopiero potem dokładamy kolejne.
+            <p class="lead" style="margin-top: 26px; font-size: 16px">
+              CRM działa jako abonament — od <b style="color: #fff">39 zł netto miesięcznie</b> za
+              podstawę, dodatkowe moduły według potrzeb.
             </p>
           </div>
-
-          <div class="services__list">
-            <details class="svc" open>
-              <summary>Social media i treści</summary>
-              <div class="svc__body">
-                <p>
-                  Prowadzimy profile, planujemy publikacje i nagrywamy materiał u Ciebie. Montaż,
-                  grafiki i teksty są po naszej stronie — Ty zatwierdzasz gotowe posty.
-                </p>
-                <ul>
-                  <li>Instagram, Facebook, TikTok</li>
-                  <li>zdjęcia i filmy na miejscu</li>
-                  <li>Reels i Shorts</li>
-                  <li>plan publikacji</li>
-                  <li>odpowiedzi na wiadomości</li>
-                </ul>
+          <div>
+            <div class="app" aria-label="Podgląd CRM">
+              <div class="app__bar" aria-hidden="true"><span></span><span></span><span></span></div>
+              <div class="app__stats">
+                <div class="stat">
+                  <span class="muted">Bez odpowiedzi</span><b style="color: #ff8a80">2</b>
+                </div>
+                <div class="stat"><span class="muted">Zapytania w miesiącu</span><b>38</b></div>
+                <div class="stat">
+                  <span class="muted">Nowi klienci</span><b style="color: #6fdca5">9</b>
+                </div>
               </div>
-            </details>
-
-            <details class="svc">
-              <summary>Reklama w Meta i Google</summary>
-              <div class="svc__body">
-                <p>
-                  Zakładamy konta reklamowe, podłączamy pomiar konwersji, przygotowujemy kreacje i
-                  prowadzimy kampanie. Raz w miesiącu pokazujemy, ile kosztuje jedno zapytanie i
-                  jedna sprzedaż. Budżet reklamowy płacisz bezpośrednio platformie — nasza praca
-                  jest wyceniona osobno.
-                </p>
-                <ul>
-                  <li>Meta Ads</li>
-                  <li>Google Search</li>
-                  <li>Performance Max</li>
-                  <li>remarketing</li>
-                  <li>pomiar konwersji</li>
-                  <li>testy A/B</li>
-                </ul>
+              <div class="app__rows">
+                <div class="app__row">
+                  <span class="avatar" style="background: rgb(113 147 255 / 0.18); color: #9db3ff"
+                    >MK</span
+                  >
+                  <div>
+                    <b style="color: #fff">Marta K.</b>
+                    <p class="muted">Instagram · 3 min temu</p>
+                  </div>
+                  <span class="pill pill--new">Nowy</span>
+                </div>
+                <div class="app__row">
+                  <span class="avatar" style="background: rgb(242 173 78 / 0.18); color: #f2c27e"
+                    >PW</span
+                  >
+                  <div>
+                    <b style="color: #fff">Piotr W.</b>
+                    <p class="muted">Strona · oferta wysłana</p>
+                  </div>
+                  <span class="pill pill--warm">Oferta</span>
+                </div>
+                <div class="app__row">
+                  <span class="avatar" style="background: rgb(63 203 133 / 0.16); color: #6fdca5"
+                    >AN</span
+                  >
+                  <div>
+                    <b style="color: #fff">Anna N.</b>
+                    <p class="muted">Google · zadatek wpłacony</p>
+                  </div>
+                  <span class="pill pill--ok">Klient</span>
+                </div>
               </div>
-            </details>
-
-            <details class="svc">
-              <summary>Strony, sklepy i rezerwacje</summary>
-              <div class="svc__body">
-                <p>
-                  Strony wizytówki, strony usługowe, sklepy i rezerwacje online. Szybkie, czytelne
-                  na telefonie, widoczne w Google — z formularzem, którego zgłoszenia trafiają tam,
-                  gdzie naprawdę pracujesz.
-                </p>
-                <ul>
-                  <li>landing page</li>
-                  <li>strona firmowa</li>
-                  <li>sklep</li>
-                  <li>rezerwacje online</li>
-                  <li>Google Business Profile</li>
-                  <li>lokalne SEO</li>
-                </ul>
-              </div>
-            </details>
-
-            <details class="svc">
-              <summary>Narzędzia, których nie ma w gotowych programach</summary>
-              <div class="svc__body">
-                <p>
-                  Budujemy własne oprogramowanie dla firmy: obsługę zgłoszeń, kartotekę klientów,
-                  grafiki pracy, automatyczne powiadomienia, dokumenty generowane jednym
-                  kliknięciem. Zaczynamy od sprawdzenia, czy problemu nie rozwiąże szybciej i taniej
-                  gotowe narzędzie.
-                </p>
-                <ul>
-                  <li>CRM</li>
-                  <li>obsługa zapytań</li>
-                  <li>umowy i oferty</li>
-                  <li>grafik pracy</li>
-                  <li>powiadomienia</li>
-                  <li>integracje</li>
-                </ul>
-              </div>
-            </details>
+            </div>
+            <p class="demo-note">Przykładowy widok z danymi demonstracyjnymi.</p>
           </div>
         </div>
       </section>
 
-      <section class="process" id="jak-pracujemy">
+      <!-- Proces -->
+      <section id="proces">
         <div class="wrap">
-          <div class="section-head">
-            <h2>Jak to wygląda</h2>
-            <p>Trzy kroki. Pierwsze dwa nic nie kosztują.</p>
+          <div class="head">
+            <h2>Jak pracujemy</h2>
+            <p class="lead">
+              Od rozmowy do pierwszych zapytań — bez długich wdrożeń i niejasnych etapów.
+            </p>
           </div>
           <div class="steps">
-            <article class="step">
-              <h3>Rozmowa</h3>
+            <article class="card step">
+              <span class="step__n">1</span>
+              <h3>Rozmowa i analiza</h3>
               <p>
-                Pół godziny przez telefon albo u Ciebie. Pytamy, skąd dziś przychodzą klienci, co
-                się zacina i czego próbowałeś wcześniej.
+                Poznajemy firmę, klientów i konkurencję. Mówimy wprost, czy reklama ma sens w Twoim
+                przypadku.
+              </p>
+              <small>30 minut, bezpłatnie</small>
+            </article>
+            <article class="card step">
+              <span class="step__n">2</span>
+              <h3>Strategia i nagrania</h3>
+              <p>
+                Ustalamy ofertę i scenariusze, przyjeżdżamy na nagrania i przygotowujemy materiały.
               </p>
             </article>
-            <article class="step">
-              <h3>Plan i wycena</h3>
+            <article class="card step">
+              <span class="step__n">3</span>
+              <h3>Strona i CRM</h3>
               <p>
-                Dostajesz na piśmie zakres pracy, termin i cenę. Widzisz, co dokładnie robimy w
-                danym miesiącu i z czego możesz zrezygnować.
+                Stawiamy stronę lub landing, podłączamy formularz i powiadomienia, ustawiamy etapy
+                pod Twoją branżę.
               </p>
             </article>
-            <article class="step">
-              <h3>Robota</h3>
+            <article class="card step">
+              <span class="step__n">4</span>
+              <h3>Start reklamy</h3>
               <p>
-                Nagrywamy, publikujemy, uruchamiamy kampanie i poprawiamy to, co nie działa. Na
-                koniec miesiąca dostajesz liczby i wnioski, nie zrzuty ekranu.
+                Uruchamiamy kampanie Meta i Google, testujemy kreacje i codziennie poprawiamy
+                wyniki.
+              </p>
+            </article>
+            <article class="card step">
+              <span class="step__n">5</span>
+              <h3>Obsługa i skalowanie</h3>
+              <p>
+                Pilnujemy, żeby zapytania były szybko obsłużone, liczymy koszt klienta i zwiększamy
+                to, co działa.
               </p>
             </article>
           </div>
         </div>
       </section>
 
-      <section class="reasons">
+      <!-- Kalkulator: wszystkie liczby wpisuje klient, my tylko liczymy -->
+      <section class="soft" id="kalkulator">
         <div class="wrap">
-          <div class="section-head">
-            <h2>Dlaczego warto z nami pogadać</h2>
+          <div class="head">
+            <h2>Policz, czy reklama może się zwrócić</h2>
+            <p class="lead">
+              Wpisz własne liczby — kalkulator pokaże, ilu klientów i ile zysku może dać budżet. To
+              orientacyjny rachunek, nie obietnica. Na rozmowie sprawdzimy go razem dla Twojej
+              branży.
+            </p>
           </div>
-          <dl>
-            <div>
-              <dt>Jesteśmy stąd</dt>
-              <dd>
-                Przyjeżdżamy, siadamy i oglądamy lokal. Dzięki temu materiał wygląda jak Twoja
-                firma, a nie jak zdjęcia ze stocku.
-              </dd>
+          <div class="calc">
+            <div class="card">
+              <div class="range">
+                <label for="budget"
+                  >Budżet reklamowy / miesiąc <output id="o-budget"></output
+                ></label>
+                <input id="budget" type="range" min="500" max="20000" step="250" value="3000" />
+              </div>
+              <div class="range">
+                <label for="cpl">Koszt jednego zapytania <output id="o-cpl"></output></label>
+                <input id="cpl" type="range" min="5" max="200" step="1" value="30" />
+              </div>
+              <div class="range">
+                <label for="cr"
+                  >Ile zapytań zamieniasz w klientów <output id="o-cr"></output
+                ></label>
+                <input id="cr" type="range" min="1" max="60" step="1" value="15" />
+              </div>
+              <div class="range" style="margin-bottom: 0">
+                <label for="check">Średnia wartość klienta <output id="o-check"></output></label>
+                <input id="check" type="range" min="50" max="10000" step="50" value="600" />
+              </div>
             </div>
-            <div>
-              <dt>Marketing i technologia razem</dt>
-              <dd>
-                Reklama, strona i wewnętrzne narzędzia robi ten sam zespół, więc nic nie ginie
-                między dwiema firmami, które się nie dogadują.
-              </dd>
+            <div class="card result" aria-live="polite">
+              <span class="muted">Zysk po odjęciu budżetu reklamowego</span>
+              <span class="result__big" id="r-profit"></span>
+              <div class="result__grid">
+                <div><span class="muted">Zapytania</span><b id="r-leads"></b></div>
+                <div><span class="muted">Nowi klienci</span><b id="r-sales"></b></div>
+                <div><span class="muted">Koszt klienta</span><b id="r-cpa"></b></div>
+                <div><span class="muted">Zwrot z reklamy</span><b id="r-roas"></b></div>
+              </div>
+              <p class="muted">
+                Nie uwzględnia sezonowości, kosztu usługi agencji ani tego, jak szybko odpowiadasz
+                na zapytania — a to ostatnie często decyduje o wyniku. Właśnie dlatego dokładamy
+                CRM.
+              </p>
+              <a class="btn btn--primary" href="#kontakt">Omówmy mój budżet</a>
             </div>
-            <div>
-              <dt>Liczby, nie wrażenia</dt>
-              <dd>
-                Mówimy, ile kosztuje jedno zapytanie i co z tego zostaje po kosztach. Jeśli coś się
-                nie opłaca, powiemy wprost.
-              </dd>
-            </div>
-          </dl>
+          </div>
         </div>
       </section>
 
-      <section class="contact" id="kontakt">
-        <div class="wrap contact__grid">
-          <div class="contact__aside">
-            <h2>Umówmy rozmowę</h2>
-            <p>
-              Napisz w dwóch zdaniach, czym się zajmujesz i co chcesz poprawić. Odpowiadamy tego
-              samego dnia roboczego i proponujemy termin — telefonicznie albo u Ciebie na miejscu.
+      <!-- Zespół: prawdziwe role, bez wymyślonych osiągnięć -->
+      <section id="zespol">
+        <div class="wrap">
+          <div class="head">
+            <h2>Trzy osoby, każda odpowiada za swoją część</h2>
+            <p class="lead">
+              Nie przekazujemy pracy podwykonawcom w ciemno — rozmawiasz z ludźmi, którzy ją robią.
             </p>
-            <a class="contact__phone" href="tel:+48000000000" data-phone-link>+48 000 000 000</a>
-            <p>Gdańsk, Gdynia, Sopot i okolice.</p>
+          </div>
+          <div class="team">
+            <article class="card person">
+              <span class="avatar" style="background: #eaf0fe; color: #3d6cf4">N</span>
+              <h3>Nikon</h3>
+              <p class="muted">Technologia i produkty</p>
+              <p>Strony, CRM, automatyzacje i narzędzia skrojone pod firmę klienta.</p>
+              <div class="tags"><span>strony</span><span>CRM</span><span>automatyzacja</span></div>
+            </article>
+            <article class="card person">
+              <span class="avatar" style="background: #fdecf1; color: #d65f9e">I</span>
+              <h3>Iwan</h3>
+              <p class="muted">Marketing, nagrania i reklama</p>
+              <p>Scenariusze, zdjęcia i wideo, kampanie Meta i Google, kontakt z klientami.</p>
+              <div class="tags">
+                <span>nagrania</span><span>Meta Ads</span><span>Google Ads</span>
+              </div>
+            </article>
+            <article class="card person">
+              <span class="avatar" style="background: #fbf0e1; color: #c27410">A</span>
+              <h3>Artem</h3>
+              <p class="muted">Sprzedaż i organizacja</p>
+              <p>Pierwsza rozmowa, wycena, organizacja nagrań i opieka nad współpracą.</p>
+              <div class="tags">
+                <span>wycena</span><span>organizacja</span><span>kontakt</span>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- FAQ -->
+      <section class="soft" id="faq">
+        <div class="wrap">
+          <div class="head">
+            <h2>Częste pytania</h2>
+          </div>
+          <div class="faq">
+            <details>
+              <summary>Ile to kosztuje?</summary>
+              <p>
+                Wyceniamy indywidualnie, bo zakres różni się między firmami. CRM ma stałą cenę
+                abonamentu — od 39 zł netto miesięcznie. Pełną wycenę dostajesz po bezpłatnej
+                rozmowie, na piśmie i bez ukrytych kosztów.
+              </p>
+            </details>
+            <details>
+              <summary>Czy budżet reklamowy jest w cenie?</summary>
+              <p>
+                Nie. Budżet na Meta i Google płacisz bezpośrednio platformom, a nasze wynagrodzenie
+                jest osobne. Zawsze widzisz, ile poszło na reklamę, a ile na naszą pracę.
+              </p>
+            </details>
+            <details>
+              <summary>Czy mogę zamówić tylko jedną usługę?</summary>
+              <p>
+                Tak. Możesz zacząć od samej reklamy, samej strony albo samego CRM. Pakiet ma sens,
+                gdy chcesz, żeby wszystko działało razem i żeby jedna osoba odpowiadała za całość.
+              </p>
+            </details>
+            <details>
+              <summary>Czy gwarantujecie wyniki?</summary>
+              <p>
+                Nie obiecujemy konkretnej liczby klientów — nikt uczciwy tego nie zrobi. Obiecujemy
+                przejrzyste raporty, szybkie reakcje i to, że żadne zapytanie nie zginie po drodze.
+              </p>
+            </details>
+            <details>
+              <summary>Do kogo należą dane klientów w CRM?</summary>
+              <p>
+                Do Ciebie. Dane są oddzielone od innych firm, możesz je wyeksportować, a dostęp
+                nadajesz swoim pracownikom sam.
+              </p>
+            </details>
+            <details>
+              <summary>Gdzie działacie?</summary>
+              <p>
+                Na miejscu w Trójmieście — Gdańsk, Gdynia, Sopot i okolice. Reklamę, strony i CRM
+                prowadzimy też zdalnie dla firm z całej Polski.
+              </p>
+            </details>
+          </div>
+        </div>
+      </section>
+
+      <!-- Kontakt: formularz trafia do naszego CRM -->
+      <section id="kontakt">
+        <div class="wrap contact">
+          <div>
+            <h2>Porozmawiajmy o Twojej firmie</h2>
+            <p class="lead" style="margin-top: 16px">
+              Napisz, czym się zajmujesz i co chcesz poprawić. Odezwiemy się tego samego dnia
+              roboczego i powiemy wprost, co ma sens w Twoim przypadku.
+            </p>
+            <div class="ways">
+              <a class="card way" href="tel:+48000000000" data-phone-link>
+                <span class="way__icon" style="background: #e6f5ee; color: #13945b">☎</span>
+                <span
+                  ><b data-phone-text>+48 000 000 000</b><br /><span class="muted"
+                    >Zadzwoń lub napisz na WhatsApp</span
+                  ></span
+                >
+              </a>
+              <a class="card way" href="#" data-telegram-link>
+                <span class="way__icon" style="background: #e3f3fb; color: #2aa3df">✈</span>
+                <span
+                  ><b>Telegram</b><br /><span class="muted"
+                    >Odpowiadamy zwykle w ciągu godziny</span
+                  ></span
+                >
+              </a>
+              <a class="card way" href="#" data-instagram-link>
+                <span class="way__icon" style="background: #fdecf1; color: #d65f9e">◎</span>
+                <span
+                  ><b>Instagram</b><br /><span class="muted">Nagrania i kulisy pracy</span></span
+                >
+              </a>
+            </div>
           </div>
 
-          <form id="lead-form" novalidate>
-            <div class="field--pair">
-              <label class="field">
-                <span>Imię</span>
-                <input name="name" type="text" autocomplete="name" required />
-              </label>
-              <label class="field">
-                <span>Telefon</span>
-                <input name="phone" type="tel" autocomplete="tel" required />
-              </label>
+          <form class="card" id="lead-form" novalidate>
+            <div class="pair">
+              <label class="field"
+                >Imię<input name="name" type="text" autocomplete="name" required
+              /></label>
+              <label class="field"
+                >Telefon<input name="phone" type="tel" autocomplete="tel" required
+              /></label>
             </div>
-            <div class="field--pair">
-              <label class="field">
-                <span>Firma</span>
-                <input name="company" type="text" autocomplete="organization" />
-              </label>
-              <label class="field">
-                <span>Co Cię interesuje</span>
-                <select name="service">
-                  <option>Social media i treści</option>
-                  <option>Reklama Meta i Google</option>
-                  <option>Strona lub sklep</option>
-                  <option>Narzędzia dla firmy</option>
-                  <option>Jeszcze nie wiem</option>
-                </select>
-              </label>
+            <label class="field"
+              >Firma i branża<input name="company" type="text" autocomplete="organization"
+            /></label>
+            <div class="field">
+              Co Cię interesuje
+              <div class="chips">
+                <label
+                  ><input type="checkbox" name="service" value="Zdjęcia i wideo" /><span
+                    >Zdjęcia i wideo</span
+                  ></label
+                >
+                <label
+                  ><input type="checkbox" name="service" value="Reklama Meta i Google" /><span
+                    >Reklama</span
+                  ></label
+                >
+                <label
+                  ><input type="checkbox" name="service" value="Strona" /><span>Strona</span></label
+                >
+                <label
+                  ><input type="checkbox" name="service" value="CRM i automatyzacja" /><span
+                    >CRM</span
+                  ></label
+                >
+                <label
+                  ><input type="checkbox" name="service" value="Jeszcze nie wiem" /><span
+                    >Jeszcze nie wiem</span
+                  ></label
+                >
+              </div>
             </div>
-            <label class="field">
-              <span>Krótko o firmie i o tym, co chcesz poprawić</span>
-              <textarea name="message" rows="4"></textarea>
+            <label class="field"
+              >Krótko o tym, co chcesz poprawić<textarea name="message" rows="4"></textarea>
             </label>
             <label class="consent">
               <input name="privacy_consent" type="checkbox" value="1" required />
-              <span>
-                Zgadzam się na kontakt w sprawie mojego zapytania i na przetwarzanie podanych danych
-                w tym celu.
-              </span>
+              <span
+                >Zgadzam się na kontakt w sprawie mojego zapytania i przetwarzanie podanych danych w
+                tym celu.</span
+              >
             </label>
             <div class="hp" aria-hidden="true">
-              <label>Nie wypełniaj <input name="website_url" type="text" tabindex="-1" /></label>
+              <label
+                >Nie wypełniaj
+                <input name="website_url" type="text" tabindex="-1" autocomplete="off"
+              /></label>
             </div>
             <button class="btn btn--primary" type="submit">Wyślij zgłoszenie</button>
             <p class="form-note" id="form-note" role="status" aria-live="polite"></p>
@@ -871,44 +1455,90 @@
 
     <footer>
       <div class="wrap">
-        <span>OWO Ads — Gdańsk, Gdynia, Sopot</span>
-        <span><a href="#kontakt">Kontakt</a></span>
+        <span>© OWO Ads · Gdańsk, Gdynia, Sopot</span>
+        <span><a href="#kontakt">Kontakt</a> · <a href="#faq">Pytania</a></span>
       </div>
     </footer>
 
     <script>
       /* ---------------------------------------------------------------
-         Dwa miejsca do uzupełnienia:
-         PHONE       — numer telefonu agencji (podmienia wszystkie linki)
-         INTAKE_URL  — adres formularza z CRM (biznes „OWO Ads”, rodzaj
-                       „Agencja marketingowa”): Ustawienia → Źródła leadów →
-                       nowy kanał „Strona” → skopiuj URL /api/intake/<klucz>
-                       i dodaj domenę lendingu do dozwolonych adresów.
-                       Puste = formularz otwiera program pocztowy.
+         Do uzupełnienia przed publikacją:
+         PHONE       — numer agencji (podmienia linki i tekst)
+         TELEGRAM    — link https://t.me/<nazwa>
+         INSTAGRAM   — link https://instagram.com/<profil>
+         INTAKE_URL  — adres formularza z CRM: biznes „OWO Ads” → Źródła leadów →
+                       kanał „Strona” → URL /api/intake/<klucz>; domenę strony dodaj
+                       do dozwolonych adresów kanału. Puste = otwiera program pocztowy.
          --------------------------------------------------------------- */
       const PHONE = "+48 000 000 000";
+      const TELEGRAM = "";
+      const INSTAGRAM = "";
       const INTAKE_URL = "";
       const EMAIL = "kontakt@owoads.pl";
 
-      const telHref = "tel:" + PHONE.replace(/[^+\d]/g, "");
+      // Kontakty: puste linki chowamy, żeby nie prowadziły donikąd.
       document.querySelectorAll("[data-phone-link]").forEach((el) => {
-        el.href = telHref;
-        if (el.classList.contains("contact__phone")) el.textContent = PHONE;
+        el.href = "tel:" + PHONE.replace(/[^+\d]/g, "");
       });
+      document.querySelectorAll("[data-phone-text]").forEach((el) => (el.textContent = PHONE));
+      for (const [attr, url] of [
+        ["data-telegram-link", TELEGRAM],
+        ["data-instagram-link", INSTAGRAM],
+      ]) {
+        document.querySelectorAll("[" + attr + "]").forEach((el) => {
+          if (url) {
+            el.href = url;
+            el.target = "_blank";
+            el.rel = "noopener";
+          } else el.hidden = true;
+        });
+      }
 
-      const form = document.getElementById("lead-form");
-      const note = document.getElementById("form-note");
+      // Kalkulator: wszystkie wartości podaje użytkownik, liczymy tylko arytmetykę.
+      const zl = new Intl.NumberFormat("pl-PL", {
+        style: "currency",
+        currency: "PLN",
+        maximumFractionDigits: 0,
+      });
+      const num = new Intl.NumberFormat("pl-PL", { maximumFractionDigits: 1 });
+      const $ = (id) => document.getElementById(id);
+      function calc() {
+        const budget = +$("budget").value;
+        const cpl = +$("cpl").value;
+        const cr = +$("cr").value / 100;
+        const check = +$("check").value;
+        $("o-budget").textContent = zl.format(budget);
+        $("o-cpl").textContent = zl.format(cpl);
+        $("o-cr").textContent = $("cr").value + " %";
+        $("o-check").textContent = zl.format(check);
+        const leads = Math.floor(budget / cpl);
+        const sales = Math.floor(leads * cr);
+        const revenue = sales * check;
+        const profit = revenue - budget;
+        $("r-profit").textContent = zl.format(profit);
+        $("r-profit").classList.toggle("neg", profit < 0);
+        $("r-leads").textContent = num.format(leads);
+        $("r-sales").textContent = num.format(sales);
+        $("r-cpa").textContent = sales ? zl.format(budget / sales) : "—";
+        $("r-roas").textContent = budget ? num.format(revenue / budget) + "×" : "—";
+      }
+      ["budget", "cpl", "cr", "check"].forEach((id) => $(id).addEventListener("input", calc));
+      calc();
 
+      // Formularz → CRM (kanał „Strona”) albo poczta, jeśli adres CRM nie jest jeszcze wpisany.
+      const form = $("lead-form");
+      const note = $("form-note");
       function say(text, state) {
         note.textContent = text;
         if (state) note.dataset.state = state;
         else delete note.dataset.state;
       }
-
       form.addEventListener("submit", async (event) => {
         event.preventDefault();
         const data = new FormData(form);
-
+        const services = data.getAll("service").join(", ") || "—";
+        data.delete("service");
+        data.set("service", services);
         if (!String(data.get("name") || "").trim() || !String(data.get("phone") || "").trim()) {
           say("Podaj imię i numer telefonu.", "error");
           return;
@@ -917,36 +1547,37 @@
           say("Potrzebujemy zgody na kontakt.", "error");
           return;
         }
-
-        const button = form.querySelector("button[type=submit]");
+        // Treść dla CRM: firma i wybrane usługi trafiają do wiadomości leada.
+        const message = [
+          data.get("company") ? "Firma: " + data.get("company") : "",
+          "Interesuje: " + services,
+          String(data.get("message") || ""),
+        ]
+          .filter(Boolean)
+          .join("\n");
+        data.set("message", message);
 
         if (!INTAKE_URL) {
-          const lines = [
-            "Imię: " + data.get("name"),
-            "Telefon: " + data.get("phone"),
-            "Firma: " + (data.get("company") || "—"),
-            "Usługa: " + data.get("service"),
-            "",
-            data.get("message") || "",
-          ];
           window.location.href =
             "mailto:" +
             EMAIL +
             "?subject=" +
             encodeURIComponent("Zapytanie ze strony — " + data.get("name")) +
             "&body=" +
-            encodeURIComponent(lines.join("\n"));
+            encodeURIComponent(
+              "Imię: " + data.get("name") + "\nTelefon: " + data.get("phone") + "\n\n" + message,
+            );
           say("Otwieramy Twój program pocztowy.");
           return;
         }
-
+        const button = form.querySelector("button[type=submit]");
         button.disabled = true;
         say("Wysyłamy…");
         try {
           const response = await fetch(INTAKE_URL, { method: "POST", body: data });
           if (!response.ok) throw new Error(String(response.status));
           form.reset();
-          say("Dzięki, mamy zgłoszenie. Oddzwonimy w godzinach pracy.");
+          say("Dziękujemy! Mamy Twoje zgłoszenie — odezwiemy się dziś w godzinach pracy.", "ok");
         } catch {
           say("Nie udało się wysłać. Zadzwoń: " + PHONE, "error");
         } finally {
