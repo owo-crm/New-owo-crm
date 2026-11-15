@@ -1225,6 +1225,8 @@
     },
     "syncNow": "Pobierz teraz",
     "syncing": "Pobieram…",
+    "syncDone": "Pobrano wierszy (kampania × dzień) z ostatnich 13 miesięcy: {count}. 0 oznacza, że Meta nie pokazuje wydatków dla tego konta.",
+    "syncTooSoon": "Pobierano przed chwilą — spróbuj za 5 minut.",
     "addAccount": "Dodaj konto",
     "accountId": "ID konta",
     "accountIdHint": "Meta: act_123… · Google: 123-456-7890",

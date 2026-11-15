@@ -20,13 +20,15 @@ const input =
 function useRun() {
   const [pending, start] = useTransition();
   const [error, setError] = useState<string>();
-  const run = (fn: () => Promise<{ error?: string }>, ok?: () => void) =>
+  const [info, setInfo] = useState<string>();
+  const run = (fn: () => Promise<{ error?: string; info?: string }>, ok?: () => void) =>
     start(async () => {
       const r = await fn();
       setError(r.error);
+      setInfo(r.info);
       if (!r.error) ok?.();
     });
-  return { pending, error, run };
+  return { pending, error, info, run };
 }
 
 export function AddAccountForm() {
@@ -82,17 +84,24 @@ export function AddAccountForm() {
 }
 
 export function SyncNowButton() {
-  const { pending, run } = useRun();
+  const { pending, error, info, run } = useRun();
   return (
-    <Button
-      variant="secondary"
-      size="sm"
-      disabled={pending}
-      onClick={() => run(() => syncNowAction())}
-    >
-      <RefreshCw className={pending ? "animate-spin" : undefined} />
-      {t(pending ? "ads.syncing" : "ads.syncNow")}
-    </Button>
+    <div className="grid gap-1.5">
+      <Button
+        variant="secondary"
+        size="sm"
+        disabled={pending}
+        onClick={() => run(() => syncNowAction())}
+      >
+        <RefreshCw className={pending ? "animate-spin" : undefined} />
+        {t(pending ? "ads.syncing" : "ads.syncNow")}
+      </Button>
+      {error || info ? (
+        <p className={error ? "text-urgent text-[12.5px]" : "text-ink-soft text-[12.5px]"}>
+          {error ?? info}
+        </p>
+      ) : null}
+    </div>
   );
 }
 

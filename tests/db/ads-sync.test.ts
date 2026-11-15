@@ -84,6 +84,7 @@ describe("синхронизация расходов", () => {
       synced: 2,
       failed: 0,
       skipped: false,
+      rows: 2,
     });
     await pg.query("update public.ad_accounts set last_synced_at = null");
     await syncAdAccounts(db, env, new Date("2026-11-11"), fakeFetch);

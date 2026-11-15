@@ -24,7 +24,7 @@ export async function syncAdAccounts(
     metaConfigured(env) ? "meta" : null,
     googleConfigured(env) ? "google" : null,
   ].filter(Boolean);
-  if (!platforms.length) return { synced: 0, failed: 0, skipped: true };
+  if (!platforms.length) return { synced: 0, failed: 0, skipped: true, rows: 0 };
   const { rows: accounts } = await db.query<{
     id: string;
     organization_id: string;
@@ -40,7 +40,9 @@ export async function syncAdAccounts(
   );
   const day = (d: Date) => d.toISOString().slice(0, 10);
   const to = day(now);
-  const from = day(new Date(now.getTime() - 30 * 86_400_000));
+  // Ручной запуск берёт 13 месяцев истории (видно прошлые кампании), ежедневный — 30 дней.
+  const from = day(new Date(now.getTime() - (only ? 400 : 30) * 86_400_000));
+  let rowsSaved = 0;
   let synced = 0;
   let failed = 0;
   for (const a of accounts) {
@@ -49,6 +51,7 @@ export async function syncAdAccounts(
         a.platform === "meta"
           ? await fetchMetaSpend(a.external_id, from, to, env, fetchImpl)
           : await fetchGoogleSpend(a.external_id, from, to, env, fetchImpl);
+      rowsSaved += rows.length;
       await db.transaction(async (tx) => {
         for (const r of rows)
           await tx.query(
@@ -83,5 +86,5 @@ export async function syncAdAccounts(
       );
     }
   }
-  return { synced, failed, skipped: false };
+  return { synced, failed, skipped: false, rows: rowsSaved };
 }

@@ -5,7 +5,7 @@ import { withOrg } from "@/lib/db/user";
 import { t } from "@/lib/i18n";
 
 /** Действия вкладки «Reklama» (решение 046). Пишут только owner/admin (и RLS в базе). */
-export type AdsResult = { ok?: true; error?: string };
+export type AdsResult = { ok?: true; error?: string; info?: string };
 
 const admin = (role: string) => ["owner", "admin"].includes(role);
 
@@ -131,7 +131,8 @@ export async function syncNowAction(): Promise<AdsResult> {
   }
   const { getDb } = await import("@/lib/db");
   const { syncAdAccounts } = await import("./sync");
-  await syncAdAccounts(getDb(), process.env, new Date(), fetch, { organizationId });
+  const r = await syncAdAccounts(getDb(), process.env, new Date(), fetch, { organizationId });
   revalidatePath("/reklama");
-  return { ok: true };
+  if (r.synced + r.failed === 0) return { ok: true, info: t("ads.syncTooSoon") };
+  return { ok: true, info: t("ads.syncDone", { count: r.rows }) };
 }
