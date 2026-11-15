@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Pause, Play, Plus, Trash2 } from "lucide-react";
+import { Pause, Play, Plus, RefreshCw, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Picker } from "@/components/ui/picker";
 import {
   addAdAccountAction,
   addManualSpendAction,
   deleteAdAccountAction,
+  syncNowAction,
   toggleAdAccountAction,
 } from "@/lib/ads/actions";
 import { parseMoneyField } from "@/lib/agency/schemas";
@@ -77,6 +78,21 @@ export function AddAccountForm() {
       </Button>
       {error ? <p className="text-urgent text-[13px]">{error}</p> : null}
     </form>
+  );
+}
+
+export function SyncNowButton() {
+  const { pending, run } = useRun();
+  return (
+    <Button
+      variant="secondary"
+      size="sm"
+      disabled={pending}
+      onClick={() => run(() => syncNowAction())}
+    >
+      <RefreshCw className={pending ? "animate-spin" : undefined} />
+      {t(pending ? "ads.syncing" : "ads.syncNow")}
+    </Button>
   );
 }
 

@@ -17,6 +17,8 @@ export async function syncAdAccounts(
   env: Record<string, string | undefined>,
   now = new Date(),
   fetchImpl: typeof fetch = fetch,
+  /** Кнопка «Pobierz teraz»: только аккаунты одного бизнеса и пауза 5 минут вместо 20 часов. */
+  only?: { organizationId: string },
 ) {
   const platforms = [
     metaConfigured(env) ? "meta" : null,
@@ -31,9 +33,10 @@ export async function syncAdAccounts(
   }>(
     `select id, organization_id, platform, external_id from public.ad_accounts
      where status = 'active' and external_id is not null and platform = any($1::text[])
-       and (last_synced_at is null or last_synced_at < now() - interval '20 hours')
+       and (last_synced_at is null or last_synced_at < now() - $2::interval)
+       and ($3::uuid is null or organization_id = $3)
      order by last_synced_at nulls first limit 50`,
-    [platforms],
+    [platforms, only ? "5 minutes" : "20 hours", only?.organizationId ?? null],
   );
   const day = (d: Date) => d.toISOString().slice(0, 10);
   const to = day(now);

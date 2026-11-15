@@ -11,7 +11,12 @@ import {
 } from "lucide-react";
 import { Card, PageHeader } from "@/components/app-shell/page";
 import { StatCards } from "@/components/app-shell/stat-cards";
-import { AccountButtons, AddAccountForm, ManualSpendForm } from "@/components/ads/forms";
+import {
+  AccountButtons,
+  AddAccountForm,
+  ManualSpendForm,
+  SyncNowButton,
+} from "@/components/ads/forms";
 import { buttonVariants } from "@/components/ui/button";
 import { googleConfigured, metaConfigured } from "@/lib/ads/platforms";
 import { withOrg } from "@/lib/db/user";
@@ -247,6 +252,11 @@ export default async function AdsPage({ searchParams }: PageProps<"/reklama">) {
                 </li>
               ))}
             </ul>
+            {canEdit && accounts.some((a) => a.platform !== "manual" && configured[a.platform]) ? (
+              <div className="mb-3">
+                <SyncNowButton />
+              </div>
+            ) : null}
             {canEdit ? <AddAccountForm /> : null}
           </Card>
           {canEdit ? (

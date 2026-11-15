@@ -1223,6 +1223,8 @@
       "error": "Błąd: {error}",
       "paused": "Wstrzymane"
     },
+    "syncNow": "Pobierz teraz",
+    "syncing": "Pobieram…",
     "addAccount": "Dodaj konto",
     "accountId": "ID konta",
     "accountIdHint": "Meta: act_123… · Google: 123-456-7890",

@@ -117,3 +117,21 @@ export async function addManualSpendAction(raw: unknown): Promise<AdsResult> {
   revalidatePath("/reklama");
   return { ok: true };
 }
+
+/** «Pobierz teraz»: не ждать ежедневного запуска — подтянуть расходы аккаунтов этого бизнеса. */
+export async function syncNowAction(): Promise<AdsResult> {
+  let organizationId: string;
+  try {
+    organizationId = await withOrg(async (_tx, { organization }) => {
+      if (!admin(organization.role)) throw new Error("forbidden");
+      return organization.id;
+    });
+  } catch {
+    return { error: t("ads.errors.admin") };
+  }
+  const { getDb } = await import("@/lib/db");
+  const { syncAdAccounts } = await import("./sync");
+  await syncAdAccounts(getDb(), process.env, new Date(), fetch, { organizationId });
+  revalidatePath("/reklama");
+  return { ok: true };
+}
