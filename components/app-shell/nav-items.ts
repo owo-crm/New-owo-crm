@@ -7,6 +7,7 @@ import {
   FileSignature,
   Inbox,
   LayoutDashboard,
+  Megaphone,
   Layers,
   Mail,
   PlugZap,
@@ -71,6 +72,7 @@ export const SERVICES: NavItem = {
   icon: Layers,
   agency: true,
 };
+export const ADS: NavItem = { href: "/reklama", label: "nav.ads", icon: Megaphone };
 export const STATS: NavItem = {
   href: "/statystyka",
   label: "nav.stats",
@@ -115,7 +117,7 @@ export const SETTINGS: NavItem = {
 
 export const NAV_GROUPS: NavGroup[] = [
   { label: "nav.groupWork", items: [DASHBOARD, LEADS, CLIENTS, CONTRACTS, CALENDAR, MAIL] },
-  { label: "nav.groupMoney", items: [AGENCY, SERVICES] },
+  { label: "nav.groupMoney", items: [ADS, AGENCY, SERVICES] },
   { label: "nav.groupCompany", items: [TEAM, SETTINGS] },
 ];
 

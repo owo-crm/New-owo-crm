@@ -17,6 +17,13 @@ export async function runNotifications(leadId?: string) {
     vapidSubject: vapid.subject,
   };
   const repository = createQueueRepository(db);
+  // Расходы рекламы: раз в сутки на аккаунт (внутри стоит проверка «20+ часов»), без ключей — ничего.
+  if (!leadId) {
+    const { syncAdAccounts } = await import("@/lib/ads/sync");
+    await syncAdAccounts(db, process.env).catch((error) =>
+      console.error("[ads]", (error as Error).message),
+    );
+  }
   if (!config.enabled) {
     if (!leadId) await repository.prepare(); // уборка журнала и сессий всё равно нужна
     return { processed: 0, disabled: true };

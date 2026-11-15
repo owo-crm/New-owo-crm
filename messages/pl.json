@@ -90,7 +90,8 @@
     "menu": "Menu",
     "clients": "Klienci",
     "contracts": "Umowy",
-    "mail": "Poczta"
+    "mail": "Poczta",
+    "ads": "Reklama"
   },
   "today": {
     "title": "Dzisiaj",
@@ -284,15 +285,7 @@
       "listopad",
       "grudzień"
     ],
-    "weekdays": [
-      "pon",
-      "wt",
-      "śr",
-      "czw",
-      "pt",
-      "sob",
-      "ndz"
-    ],
+    "weekdays": ["pon", "wt", "śr", "czw", "pt", "sob", "ndz"],
     "showPast": "Pokaż minione",
     "onlyAhead": "Tylko nadchodzące",
     "monthCount": "{days} dni · {events} wydarzeń",
@@ -1196,5 +1189,59 @@
     "logoHint": "Kwadratowe, widoczne obok nazwy gabinetu w menu. Bez logo pokazujemy pierwszą literę nazwy.",
     "photoTitle": "Twoje zdjęcie",
     "photoHint": "Widoczne dla zespołu obok Twojego imienia."
+  },
+  "ads": {
+    "title": "Reklama",
+    "spend": "Wydano",
+    "leads": "Zapytania z reklamy",
+    "cpl": "Koszt zapytania",
+    "cpa": "Koszt klienta",
+    "clicks": "Kliknięcia",
+    "campaigns": "Kampanie",
+    "colCampaign": "Kampania",
+    "colSpend": "Wydano",
+    "colClicks": "Kliknięcia",
+    "colLeads": "Zapytania",
+    "colLeadsHint": "platforma / CRM",
+    "colWon": "Klienci",
+    "colCpl": "Koszt zapytania",
+    "colCpa": "Koszt klienta",
+    "empty": "Brak wydatków w tym miesiącu. Dodaj konto reklamowe albo wpisz wydatki ręcznie.",
+    "unmatched": "Zapytania z kampanii bez wydatków: {count}. Wpisz wydatki dla tych kampanii albo sprawdź nazwę utm_campaign.",
+    "utmHint": "Zapytania łączymy z kampanią po parametrze utm_campaign w linku reklamy — wpisz w nim dokładnie nazwę kampanii.",
+    "accounts": "Konta reklamowe",
+    "accountsHint": "Jedno konto na firmę. Wydatki pobieramy raz dziennie.",
+    "platform": {
+      "meta": "Meta",
+      "google": "Google",
+      "manual": "Ręcznie"
+    },
+    "status": {
+      "ok": "Zsynchronizowane {date}",
+      "waitingKeys": "Czeka na podłączenie API",
+      "never": "Jeszcze nie pobrano",
+      "error": "Błąd: {error}",
+      "paused": "Wstrzymane"
+    },
+    "addAccount": "Dodaj konto",
+    "accountId": "ID konta",
+    "accountIdHint": "Meta: act_123… · Google: 123-456-7890",
+    "accountName": "Nazwa",
+    "manualTitle": "Wydatki ręcznie",
+    "manualHint": "Dla kampanii bez połączenia API — miesięczna suma.",
+    "campaignName": "Nazwa kampanii (utm_campaign)",
+    "month": "Miesiąc",
+    "amount": "Kwota (zł)",
+    "addSpend": "Dodaj wydatek",
+    "pause": "Wstrzymaj",
+    "resume": "Włącz",
+    "remove": "Usuń",
+    "manualAccount": "Wydatki ręczne",
+    "errors": {
+      "account": "Sprawdź ID konta (tylko cyfry, myślniki lub act_).",
+      "duplicate": "To konto jest już dodane.",
+      "admin": "Zmieniać może tylko właściciel lub administrator.",
+      "spend": "Sprawdź nazwę kampanii i kwotę."
+    }
   }
 }

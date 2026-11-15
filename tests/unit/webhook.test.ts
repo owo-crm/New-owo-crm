@@ -116,6 +116,19 @@ describe("обработчик вебхука", () => {
     expect(logs).toEqual([{ ok: true, error: null, keys: ["name", "phone", "extra"] }]);
   });
 
+  it("utm_campaign из вебхука попадает в utm лида (для вкладки «Reklama»)", async () => {
+    const { handler, saved } = setup();
+    await handler(
+      post({
+        name: "Ewa",
+        phone: "500100200",
+        utm_campaign: "Wesela jesień",
+        utm_source: "facebook",
+      }),
+    );
+    expect(saved[0]).toMatchObject({ utm: { campaign: "Wesela jesień", source: "facebook" } });
+  });
+
   it("форма urlencoded тоже принимается", async () => {
     const { handler } = setup();
     const res = await handler(

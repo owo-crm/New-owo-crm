@@ -228,7 +228,15 @@ export function createWebhookHandler(deps: WebhookDependencies) {
       await deps.log(channel, false, "invalid_body", []);
       return reply(400, { error: "invalid_body" });
     }
-    const { lead, custom, keys } = mapWebhookPayload(body, channel.config.fieldMap);
+    const { lead, custom: allCustom, keys } = mapWebhookPayload(body, channel.config.fieldMap);
+    // utm_* — метки рекламы: в отдельное поле utm, по нему вкладка «Reklama» связывает заявку с кампанией.
+    const utm: Record<string, string> = {};
+    const custom: Record<string, string> = {};
+    for (const [k, v] of Object.entries(allCustom)) {
+      const m = k.toLowerCase().match(/(?:^|\.)utm_([a-z]+)$/);
+      if (m) utm[m[1]] = v.slice(0, 500);
+      else custom[k] = v;
+    }
     const rawSubmission =
       request.headers.get("idempotency-key") ??
       (typeof body.submission_id === "string" ? body.submission_id : null) ??
@@ -242,7 +250,7 @@ export function createWebhookHandler(deps: WebhookDependencies) {
     let result: IngestResult;
     try {
       result = await ingestLead(
-        { ...lead, custom_fields: custom },
+        { ...lead, custom_fields: custom, utm },
         {
           organizationId: channel.organization_id,
           channelId: channel.id,
