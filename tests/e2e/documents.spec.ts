@@ -25,8 +25,7 @@ test("oferta → menu → umowa: PDF + Word, dane wracają do karty, etap rośni
   await page.getByText(name).click();
   await expect(page).toHaveURL(/\/leady\/[0-9a-f-]{36}/);
 
-  // Документы живут на своей вкладке карточки лида (решение 035).
-  await page.getByRole("tab", { name: "Dokumenty" }).click();
+  // Всё на одном экране лида, без вкладок (решение 047).
   await page.getByRole("link", { name: "Premium" }).click();
   await page.getByLabel("Goście").fill("70");
   await page.getByLabel("Miejsce").fill("Hotel Łazienki");
@@ -55,7 +54,6 @@ test("oferta → menu → umowa: PDF + Word, dane wracają do karty, etap rośni
     "aria-current",
     "step",
   );
-  await page.getByRole("tab", { name: "Dane" }).click();
   await expect(page.getByText("Hotel Łazienki")).toBeVisible();
   await page.screenshot({
     path: `tests/screenshots/${info.project.name}-dokumenty.png`,

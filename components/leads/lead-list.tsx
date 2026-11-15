@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { Mail, MessageCircle, Phone } from "lucide-react";
+import { buttonVariants } from "@/components/ui/button";
 import { hasKnownResponse } from "@/lib/leads/response";
 import { formatWaiting } from "@/lib/format";
 import { t } from "@/lib/i18n";
@@ -48,9 +50,17 @@ export function waitingMinutes(lead: Lead, now: number) {
   return Math.max(0, Math.round((now - Date.parse(lead.created_at)) / 60000));
 }
 
+const money = (grosze: number) =>
+  new Intl.NumberFormat("pl-PL", {
+    style: "currency",
+    currency: "PLN",
+    maximumFractionDigits: 0,
+  }).format(grosze / 100);
+
 /**
- * Список лидов — плотная таблица: за один взгляд видно, кто ждёт дольше всех,
- * что за событие, на каком этапе и кто ведёт. Строка целиком — ссылка на карточку.
+ * Список лидов — карточки (просьба Вани): на каждой сразу всё главное — кто, что за
+ * мероприятие, когда и где, сколько гостей, бюджет, этап, кто ведёт, сколько ждёт ответа,
+ * начало сообщения и быстрые «Zadzwoń»/WhatsApp. Вся карточка — ссылка на лид.
  */
 export function LeadList({
   leads,
@@ -65,68 +75,100 @@ export function LeadList({
 }) {
   const time = Date.parse(now);
   return (
-    <div className="border-line bg-surface overflow-hidden rounded-2xl border shadow-[var(--shadow)]">
-      <div className="text-ink-faint border-line bg-surface-2/60 hidden border-b px-4 py-2.5 text-[12px] font-medium md:grid md:grid-cols-[minmax(0,2.2fr)_minmax(0,1.6fr)_11rem_7rem] md:gap-4">
-        <span>{t("leads.colLead")}</span>
-        <span>{t("leads.colEvent")}</span>
-        <span>{t("leads.colStage")}</span>
-        <span className="text-right">{t("leads.colOwner")}</span>
-      </div>
-      <ul>
-        {leads.map((lead) => {
-          const stage = stages.find((s) => s.key === lead.stage_key);
-          const waiting = waitingMinutes(lead, time);
-          const owner = team.find((m) => m.id === lead.assigned_to)?.name;
-          return (
-            <li key={lead.id} className="border-line border-b last:border-0">
-              <Link
-                href={`/leady/${lead.id}`}
-                className="hover:bg-surface-2 grid gap-x-4 gap-y-2 px-4 py-3 md:grid-cols-[minmax(0,2.2fr)_minmax(0,1.6fr)_11rem_7rem] md:items-center"
+    <ul className="grid gap-3 sm:grid-cols-2 2xl:grid-cols-3" data-testid="lead-cards">
+      {leads.map((lead) => {
+        const stage = stages.find((s) => s.key === lead.stage_key);
+        const waiting = waitingMinutes(lead, time);
+        const owner = team.find((m) => m.id === lead.assigned_to)?.name;
+        const facts = [
+          lead.event_type,
+          lead.event_city,
+          lead.guests ? t("leads.guestsShort", { count: lead.guests }) : null,
+          lead.package_name,
+          lead.budget_grosze !== null ? money(lead.budget_grosze) : null,
+        ].filter(Boolean);
+        return (
+          <li
+            key={lead.id}
+            className="border-line bg-surface hover:border-line-strong relative flex flex-col gap-3 rounded-2xl border p-4 shadow-[var(--shadow)] transition-colors"
+          >
+            <div className="flex items-start gap-3">
+              <Avatar name={lead.client_name} size={38} />
+              <div className="min-w-0 flex-1">
+                <Link
+                  href={`/leady/${lead.id}`}
+                  className="block truncate font-semibold after:absolute after:inset-0 after:rounded-2xl"
+                >
+                  {lead.client_name}
+                </Link>
+                <p className="text-ink-faint truncate text-[12.5px]">
+                  #{lead.number} · {lead.source_label}
+                </p>
+              </div>
+              <StageBadge stage={stage} label={stage?.label_pl ?? lead.stage_key} />
+            </div>
+            <div className="bg-surface-2/70 rounded-xl px-3 py-2 text-[13px]">
+              <p className={cn("font-semibold", !lead.event_date && "text-ink-faint")}>
+                {eventDateLabel(lead.event_date)}
+              </p>
+              <p className="text-ink-soft truncate">
+                {facts.length ? facts.join(" · ") : t("leads.noDetails")}
+              </p>
+            </div>
+            {lead.message ? (
+              <p className="text-ink-soft line-clamp-2 text-[13px] break-words">{lead.message}</p>
+            ) : null}
+            <div className="mt-auto flex items-center gap-2 text-[13px]">
+              <span
+                className={cn(
+                  "flex min-w-0 flex-1 items-center gap-1.5",
+                  owner ? "text-ink-soft" : "text-ink-faint",
+                )}
               >
-                <div className="flex min-w-0 items-center gap-3">
-                  <Avatar name={lead.client_name} size={34} />
-                  <div className="min-w-0">
-                    <p className="truncate font-semibold">{lead.client_name}</p>
-                    <p className="text-ink-soft truncate text-[13px]">
-                      {lead.phone_e164 || lead.email || t("leads.noContact")} · #{lead.number} ·{" "}
-                      {lead.source_label}
-                    </p>
-                  </div>
-                </div>
-                <div className="min-w-0 text-[13px]">
-                  <p
-                    className={cn("truncate", lead.event_date ? "font-semibold" : "text-ink-faint")}
+                {owner ? <Avatar name={owner} size={20} /> : null}
+                <span className="truncate">{owner ?? t("leads.unassigned")}</span>
+                {waiting !== null && stage?.kind === "open" ? (
+                  <span className="text-urgent ml-1 shrink-0 font-semibold tabular-nums">
+                    {formatWaiting(waiting)}
+                  </span>
+                ) : null}
+              </span>
+              {/* Кнопки поверх ссылки карточки (relative z-10). */}
+              {lead.phone_e164 ? (
+                <span className="relative z-10 flex shrink-0 gap-1.5">
+                  <a
+                    href={`tel:${lead.phone_e164}`}
+                    aria-label={t("leads.call")}
+                    className={buttonVariants({ variant: "soft", size: "icon" })}
                   >
-                    {eventDateLabel(lead.event_date)}
-                  </p>
-                  <p className="text-ink-soft truncate">
-                    {[lead.event_type, lead.event_city].filter(Boolean).join(" · ") ||
-                      t("leads.noDetails")}
-                  </p>
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <StageBadge stage={stage} label={stage?.label_pl ?? lead.stage_key} />
-                  {waiting !== null && stage?.kind === "open" ? (
-                    <span className="text-urgent text-[13px] font-semibold tabular-nums">
-                      {formatWaiting(waiting)}
-                    </span>
-                  ) : null}
-                </div>
-                {/* На телефоне «ничей» лид не занимает строку — показываем только опекуна. */}
-                <p
+                    <Phone />
+                  </a>
+                  <a
+                    href={`https://wa.me/${lead.phone_e164.slice(1)}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label={t("leads.whatsapp")}
+                    className={buttonVariants({ variant: "success", size: "icon" })}
+                  >
+                    <MessageCircle />
+                  </a>
+                </span>
+              ) : lead.email ? (
+                <a
+                  href={`mailto:${lead.email}`}
+                  aria-label={t("leads.email")}
                   className={cn(
-                    "flex min-w-0 items-center gap-2 text-[13px] md:justify-end",
-                    owner ? "text-ink-soft" : "text-ink-faint max-md:hidden",
+                    buttonVariants({ variant: "secondary", size: "icon" }),
+                    "relative z-10",
                   )}
                 >
-                  {owner ? <Avatar name={owner} size={22} /> : null}
-                  <span className="truncate">{owner ?? t("leads.unassigned")}</span>
-                </p>
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
-    </div>
+                  <Mail />
+                </a>
+              ) : null}
+            </div>
+          </li>
+        );
+      })}
+    </ul>
   );
 }

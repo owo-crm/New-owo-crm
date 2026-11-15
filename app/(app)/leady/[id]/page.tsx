@@ -41,9 +41,6 @@ export default async function LeadPage({ params, searchParams }: PageProps<"/lea
         stages={options.stages}
         team={options.team}
         history={history}
-        // Пришли с готовым документом — сразу открываем вкладку документов.
-        initialTab={typeof dokument === "string" ? "docs" : undefined}
-        documentsCount={docs.list.length + files.length}
         agencyCard={showAgency ? <LeadClientCard leadId={id} clientId={agencyClient} /> : null}
         paymentsCard={docs.paymentsModule ? <PaymentsCard payments={docs.payments} /> : null}
         attachmentsCard={<AttachmentsCard leadId={id} files={files} />}

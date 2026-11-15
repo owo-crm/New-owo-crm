@@ -256,6 +256,7 @@
     "groupEvent": "Wydarzenie",
     "groupContract": "Dane do umowy",
     "tabData": "Dane",
+    "guestsShort": "{count} os.",
     "tabDocs": "Dokumenty",
     "tabMoney": "Płatności",
     "tabHistory": "Historia"
