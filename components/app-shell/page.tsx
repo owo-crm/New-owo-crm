@@ -64,7 +64,8 @@ export function Card({
   tone,
   children,
   className,
-}: {
+  ...rest
+}: Omit<React.ComponentProps<"section">, "title"> & {
   title?: string;
   /** Цвет метки у заголовка: чтобы карточки на одном экране не сливались в стену. */
   tone?: string;
@@ -77,6 +78,7 @@ export function Card({
         "border-line bg-surface rounded-2xl border px-4 py-4 shadow-[var(--shadow)] sm:px-5",
         className,
       )}
+      {...rest}
     >
       {title ? (
         <h2 className="mb-3 flex items-center gap-2 text-[15px] font-semibold">
