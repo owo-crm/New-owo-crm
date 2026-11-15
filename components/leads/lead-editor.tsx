@@ -1,10 +1,10 @@
 "use client";
-import { MessageCircle, Phone } from "lucide-react";
+import { Mail, MessageCircle, Pencil, Phone } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { hasKnownResponse } from "@/lib/leads/response";
 import { useEffect, useOptimistic, useState, useTransition } from "react";
 import Link from "next/link";
 import { Card, PageHeader } from "@/components/app-shell/page";
-import { StageBar } from "./stage-bar";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Field, Select } from "@/components/ui/field";
 import { t, type MessageKey } from "@/lib/i18n";
@@ -84,6 +84,7 @@ export function LeadEditor({
   }));
   const [pending, startTransition] = useTransition();
   const [editing, setEditing] = useState<EditableField | null>(null);
+  const [tab, setTab] = useState<"lead" | "history">("lead");
   const [error, setError] = useState<string>();
   const [undoEvent, setUndoEvent] = useState<string>();
   useEffect(() => {
@@ -128,65 +129,52 @@ export function LeadEditor({
   return (
     <>
       <PageHeader title={current.client_name} back={{ href: "/leady", label: t("nav.leads") }} />
-      <p className="text-ink-soft -mt-3 mb-4 text-[13px]">
-        #{current.number} · {current.source_label}
-      </p>
-      <div className="border-line bg-surface mb-5 rounded-2xl border px-3 py-2.5 shadow-[var(--shadow)]">
-        <StageBar
-          stages={stages}
-          current={current.stage_key}
-          disabled={pending}
-          onChange={(key) => change("stage_key", key)}
-        />
+      <div className="-mt-3 mb-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px]">
+        <span className="text-ink-soft">
+          #{current.number} · {current.source_label}
+        </span>
+        {/* Последнее событие истории — сразу видно, что с лидом происходило в последний раз. */}
+        {history[0] ? (
+          <button
+            type="button"
+            onClick={() => setTab("history")}
+            className="text-ink-soft hover:text-ink inline-flex min-w-0 items-center gap-1.5"
+          >
+            <span className="bg-info size-1.5 shrink-0 rounded-full" aria-hidden />
+            <span className="truncate">
+              {t("leads.lastEvent")}: {t(eventLabels[history[0].type] ?? "leads.history.other")} ·{" "}
+              {new Intl.DateTimeFormat("pl-PL", {
+                dateStyle: "short",
+                timeStyle: "short",
+                timeZone: "Europe/Warsaw",
+              }).format(new Date(history[0].created_at))}
+            </span>
+          </button>
+        ) : null}
       </div>
-      <div className="mb-6 flex flex-wrap gap-2">
-        {current.phone_e164 ? (
-          <>
-            <a href={`tel:${current.phone_e164}`} className={buttonVariants({ variant: "soft" })}>
-              <Phone />
-              {t("leads.call")}
-            </a>
-            <a
-              href={`https://wa.me/${current.phone_e164.slice(1)}`}
-              target="_blank"
-              rel="noreferrer"
-              className={buttonVariants({ variant: "success" })}
-            >
-              <MessageCircle />
-              {t("leads.whatsapp")}
-            </a>
-          </>
-        ) : null}
-        {current.email ? (
-          <a href={`mailto:${current.email}`} className={buttonVariants({ variant: "secondary" })}>
-            {t("leads.email")}
-          </a>
-        ) : null}
-        {team.length > 1 && team.length <= 6 ? (
-          <span className="flex flex-wrap items-center gap-1.5 sm:ml-auto">
-            <span className="text-ink-faint text-[12.5px]">{t("leads.fields.assigned_to")}:</span>
-            {team.map((member) => (
-              <Button
-                key={member.id}
-                size="sm"
-                variant={current.assigned_to === member.id ? "dark" : "secondary"}
-                disabled={pending}
-                aria-pressed={current.assigned_to === member.id}
-                onClick={() =>
-                  change("assigned_to", current.assigned_to === member.id ? "" : member.id)
-                }
-              >
-                {member.name}
-              </Button>
-            ))}
-          </span>
-        ) : null}
-        {/* Кнопка нужна только на первом этапе: дальше этап меняют дорожкой выше. */}
-        {!hasKnownResponse(current) && current.stage_key === "new" ? (
-          <Button disabled={pending} onClick={() => change("stage_key", "contacted")}>
-            {t("leads.contacted")}
-          </Button>
-        ) : null}
+      <div className="border-line mb-4 flex gap-1 border-b" role="tablist">
+        {(["lead", "history"] as const).map((key) => (
+          <button
+            key={key}
+            type="button"
+            role="tab"
+            aria-selected={tab === key}
+            onClick={() => setTab(key)}
+            className={cn(
+              "-mb-px flex items-center gap-2 border-b-2 px-3 pt-1 pb-2 text-[13.5px] font-medium",
+              tab === key
+                ? "border-accent text-accent"
+                : "text-ink-soft hover:text-ink border-transparent",
+            )}
+          >
+            {t(key === "lead" ? "leads.tabLead" : "leads.tabHistory")}
+            {key === "history" && history.length ? (
+              <span className="bg-surface-2 text-ink-faint rounded-full px-1.5 text-[11px] leading-5 font-semibold">
+                {history.length}
+              </span>
+            ) : null}
+          </button>
+        ))}
       </div>
       {error ? (
         <p role="alert" className="text-urgent mb-4">
@@ -214,225 +202,301 @@ export function LeadEditor({
           </Button>
         </div>
       ) : null}
-      {/* Один экран без вкладок (просьба Вани): слева всё о лиде и действия с ним, справа заметка и история. */}
-      <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_22rem]">
-        <div className="grid gap-5">
-          <Card title={t("leads.tabData")}>
-            <div className="grid gap-5">
-              {GROUPS.map((group) => (
-                <section key={group.title}>
-                  <h3
-                    className="mb-1 flex items-center gap-2 text-[12px] font-semibold tracking-wide uppercase"
-                    style={{ color: group.tone }}
+      {tab === "history" ? (
+        <Card title={t("leads.historyTitle")}>
+          <ol className="grid gap-4">
+            {history.map((event) => (
+              <li key={event.id} className="border-line border-b pb-4 last:border-0">
+                <p className="text-ink-soft text-xs">
+                  {new Intl.DateTimeFormat("pl-PL", {
+                    dateStyle: "short",
+                    timeStyle: "short",
+                    timeZone: "Europe/Warsaw",
+                  }).format(new Date(event.created_at))}
+                </p>
+                <p className="mt-1 font-semibold">
+                  {t(eventLabels[event.type] ?? "leads.history.other")}
+                </p>
+                {event.type === "document_generated" && typeof event.payload.number === "string" ? (
+                  <p className="text-ink-soft mt-1 text-sm">
+                    {t(`docs.kind_${String(event.payload.kind)}` as MessageKey)}{" "}
+                    {event.payload.number}
+                  </p>
+                ) : null}
+                {typeof event.payload.text === "string" ? (
+                  <p className="text-ink-soft mt-1 text-sm break-words whitespace-pre-wrap">
+                    {event.payload.text}
+                  </p>
+                ) : null}
+                {event.type === "possible_duplicate" &&
+                typeof event.payload.lead_id === "string" ? (
+                  <Link
+                    href={`/leady/${event.payload.lead_id}`}
+                    className="inline-flex min-h-11 items-center text-sm underline"
                   >
-                    <span className="size-1.5 rounded-full bg-current" aria-hidden />
-                    {t(group.title)}
-                  </h3>
-                  <dl className="grid gap-x-6 sm:grid-cols-2 xl:grid-cols-3">
-                    {group.fields.map((field) => (
-                      <div key={field} className="border-line border-b py-2">
-                        <dt className="text-ink-faint text-xs font-semibold">{labelFor(field)}</dt>
-                        <dd>
-                          {editing === field ? (
-                            <form
-                              className="mt-2 grid gap-2"
-                              onSubmit={(e) => {
-                                e.preventDefault();
-                                change(
-                                  field,
-                                  String(new FormData(e.currentTarget).get("value") ?? ""),
-                                );
-                              }}
-                            >
-                              {field === "assigned_to" ? (
-                                <Select
-                                  name="value"
-                                  label={labelFor(field)}
-                                  defaultValue={valueFor(field)}
-                                >
-                                  <option value="">{t("leads.unassigned")}</option>
-                                  {team.map((member) => (
-                                    <option key={member.id} value={member.id}>
-                                      {member.name}
-                                    </option>
-                                  ))}
-                                </Select>
-                              ) : (
-                                <Field
-                                  name="value"
-                                  label={labelFor(field)}
-                                  defaultValue={valueFor(field)}
-                                  type={inputTypes[field] ?? "text"}
-                                  autoFocus
+                    {t("leads.openDuplicate")}
+                  </Link>
+                ) : null}
+              </li>
+            ))}
+          </ol>
+          <p className="text-ink-soft mt-3 text-xs">{t("leads.historyLimit")}</p>
+        </Card>
+      ) : (
+        <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
+          {/* Слева — всё о лиде. */}
+          <div className="grid gap-4">
+            <Card>
+              <div className="grid gap-4">
+                {GROUPS.map((group) => (
+                  <section key={group.title}>
+                    <h3
+                      className="mb-0.5 flex items-center gap-2 text-[11.5px] font-semibold tracking-wide uppercase"
+                      style={{ color: group.tone }}
+                    >
+                      <span className="size-1.5 rounded-full bg-current" aria-hidden />
+                      {t(group.title)}
+                    </h3>
+                    <dl className="grid grid-cols-2 gap-x-5 xl:grid-cols-3">
+                      {group.fields.map((field) => (
+                        <div key={field} className="border-line min-w-0 border-b py-1.5">
+                          <dt className="text-ink-faint text-[11.5px] font-semibold">
+                            {labelFor(field)}
+                          </dt>
+                          <dd>
+                            {editing === field ? (
+                              <form
+                                className="mt-2 grid gap-2"
+                                onSubmit={(e) => {
+                                  e.preventDefault();
+                                  change(
+                                    field,
+                                    String(new FormData(e.currentTarget).get("value") ?? ""),
+                                  );
+                                }}
+                              >
+                                {field === "assigned_to" ? (
+                                  <Select
+                                    name="value"
+                                    label={labelFor(field)}
+                                    defaultValue={valueFor(field)}
+                                  >
+                                    <option value="">{t("leads.unassigned")}</option>
+                                    {team.map((member) => (
+                                      <option key={member.id} value={member.id}>
+                                        {member.name}
+                                      </option>
+                                    ))}
+                                  </Select>
+                                ) : (
+                                  <Field
+                                    name="value"
+                                    label={labelFor(field)}
+                                    defaultValue={valueFor(field)}
+                                    type={inputTypes[field] ?? "text"}
+                                    autoFocus
+                                  />
+                                )}
+                                <div className="flex gap-2">
+                                  <Button type="submit" size="sm" disabled={pending}>
+                                    {t("leads.save")}
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    type="button"
+                                    onClick={() => setEditing(null)}
+                                  >
+                                    {t("leads.cancel")}
+                                  </Button>
+                                </div>
+                              </form>
+                            ) : (
+                              <button
+                                type="button"
+                                disabled={pending}
+                                onClick={() => setEditing(field)}
+                                aria-label={t("leads.editField", { field: labelFor(field) })}
+                                className="group hover:bg-surface-2 -mx-1.5 flex min-h-7 w-[calc(100%+0.75rem)] items-center justify-between gap-2 rounded-md px-1.5 py-0.5 text-left text-[14px]"
+                              >
+                                <span className="min-w-0 truncate">{displayFor(field)}</span>
+                                <Pencil
+                                  aria-hidden
+                                  className="text-ink-faint size-3.5 shrink-0 opacity-0 group-hover:opacity-100"
                                 />
-                              )}
-                              <div className="flex gap-2">
-                                <Button type="submit" size="sm" disabled={pending}>
-                                  {t("leads.save")}
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  type="button"
-                                  onClick={() => setEditing(null)}
-                                >
-                                  {t("leads.cancel")}
-                                </Button>
-                              </div>
-                            </form>
-                          ) : (
-                            <button
-                              type="button"
-                              disabled={pending}
-                              onClick={() => setEditing(field)}
-                              aria-label={t("leads.editField", { field: labelFor(field) })}
-                              className="hover:bg-surface-2 -mx-2 mt-0.5 flex min-h-8 w-full items-center justify-between gap-3 rounded-lg px-2 py-1 text-left"
-                            >
-                              <span className="min-w-0 break-words">{displayFor(field)}</span>
-                              <span className="text-ink-faint shrink-0 text-xs">
-                                {t("leads.edit")}
-                              </span>
-                            </button>
-                          )}
-                        </dd>
+                              </button>
+                            )}
+                          </dd>
+                        </div>
+                      ))}
+                    </dl>
+                  </section>
+                ))}
+                <section>
+                  <h3 className="text-hold mb-0.5 flex items-center gap-2 text-[11.5px] font-semibold tracking-wide uppercase">
+                    <span className="size-1.5 rounded-full bg-current" aria-hidden />
+                    {t("leads.fields.message")}
+                  </h3>
+                  {editing === "message" ? (
+                    <form
+                      className="grid gap-2"
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        change("message", String(new FormData(e.currentTarget).get("value") ?? ""));
+                      }}
+                    >
+                      <textarea
+                        name="value"
+                        defaultValue={valueFor("message")}
+                        rows={6}
+                        maxLength={10000}
+                        className="border-line-strong bg-surface rounded-lg border p-3 text-sm"
+                      />
+                      <div className="flex gap-2">
+                        <Button type="submit" size="sm" disabled={pending}>
+                          {t("leads.save")}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          type="button"
+                          onClick={() => setEditing(null)}
+                        >
+                          {t("leads.cancel")}
+                        </Button>
                       </div>
-                    ))}
-                  </dl>
+                    </form>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setEditing("message")}
+                      className="hover:bg-surface-2 -mx-2 block w-full rounded-lg px-2 py-1 text-left break-words whitespace-pre-wrap"
+                    >
+                      {current.message || (
+                        <span className="text-ink-faint">{t("leads.notProvided")}</span>
+                      )}
+                    </button>
+                  )}
                 </section>
-              ))}
-              <section>
-                <h3 className="text-hold mb-1 flex items-center gap-2 text-[12px] font-semibold tracking-wide uppercase">
-                  <span className="size-1.5 rounded-full bg-current" aria-hidden />
-                  {t("leads.fields.message")}
-                </h3>
-                {editing === "message" ? (
-                  <form
-                    className="grid gap-2"
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      change("message", String(new FormData(e.currentTarget).get("value") ?? ""));
-                    }}
-                  >
-                    <textarea
-                      name="value"
-                      defaultValue={valueFor("message")}
-                      rows={6}
-                      maxLength={10000}
-                      className="border-line-strong bg-surface rounded-lg border p-3 text-sm"
-                    />
-                    <div className="flex gap-2">
-                      <Button type="submit" size="sm" disabled={pending}>
-                        {t("leads.save")}
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        type="button"
-                        onClick={() => setEditing(null)}
-                      >
-                        {t("leads.cancel")}
-                      </Button>
-                    </div>
-                  </form>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => setEditing("message")}
-                    className="hover:bg-surface-2 -mx-2 block w-full rounded-lg px-2 py-1 text-left break-words whitespace-pre-wrap"
-                  >
-                    {current.message || (
-                      <span className="text-ink-faint">{t("leads.notProvided")}</span>
-                    )}
-                  </button>
-                )}
-              </section>
-            </div>
-          </Card>
-          {documentsCard || agencyCard ? (
-            <div className="grid items-start gap-5 xl:grid-cols-2">
-              {documentsCard}
-              {agencyCard}
-            </div>
-          ) : null}
-          <div className="grid items-start gap-5 xl:grid-cols-2">
+              </div>
+            </Card>
             {paymentsCard}
             {attachmentsCard}
+            {agencyCard}
           </div>
-        </div>
-        <aside className="grid gap-5 lg:sticky lg:top-4">
-          <Card title={t("leads.note")} tone="var(--info)">
-            <form
-              className="grid gap-3"
-              onSubmit={(e) => {
-                e.preventDefault();
-                const form = e.currentTarget;
-                const text = String(new FormData(form).get("note") ?? "");
-                startTransition(async () => {
-                  const result = await addLeadNote(lead.id, text);
-                  if (result.error) setError(result.error);
-                  else form.reset();
-                });
-              }}
-            >
-              <label className="grid gap-2 text-sm">
-                {t("leads.noteText")}
-                <textarea
-                  name="note"
-                  required
-                  maxLength={5000}
-                  rows={3}
-                  className="border-line-strong bg-surface rounded-lg border p-3 text-sm"
-                />
-              </label>
-              <Button type="submit" disabled={pending}>
-                {t("leads.addNote")}
-              </Button>
-            </form>
-          </Card>
-          <Card title={t("leads.historyTitle")}>
-            <div className="max-h-[60vh] overflow-y-auto pr-1">
-              <ol className="grid gap-4">
-                {history.map((event) => (
-                  <li key={event.id} className="border-line border-b pb-4 last:border-0">
-                    <p className="text-ink-soft text-xs">
-                      {new Intl.DateTimeFormat("pl-PL", {
-                        dateStyle: "short",
-                        timeStyle: "short",
-                        timeZone: "Europe/Warsaw",
-                      }).format(new Date(event.created_at))}
-                    </p>
-                    <p className="mt-1 font-semibold">
-                      {t(eventLabels[event.type] ?? "leads.history.other")}
-                    </p>
-                    {event.type === "document_generated" &&
-                    typeof event.payload.number === "string" ? (
-                      <p className="text-ink-soft mt-1 text-sm">
-                        {t(`docs.kind_${String(event.payload.kind)}` as MessageKey)}{" "}
-                        {event.payload.number}
-                      </p>
-                    ) : null}
-                    {typeof event.payload.text === "string" ? (
-                      <p className="text-ink-soft mt-1 text-sm break-words whitespace-pre-wrap">
-                        {event.payload.text}
-                      </p>
-                    ) : null}
-                    {event.type === "possible_duplicate" &&
-                    typeof event.payload.lead_id === "string" ? (
-                      <Link
-                        href={`/leady/${event.payload.lead_id}`}
-                        className="inline-flex min-h-11 items-center text-sm underline"
+          {/* Справа — все действия. На телефоне блок действий идёт первым (звонок под пальцем). */}
+          <aside className="contents lg:sticky lg:top-4 lg:grid lg:gap-4">
+            <Card title={t("leads.actions")} className="order-first lg:order-none">
+              <div className="grid gap-3">
+                <Select
+                  label={t("leads.fields.stage_key")}
+                  value={current.stage_key}
+                  disabled={pending}
+                  onChange={(e) => change("stage_key", e.target.value)}
+                >
+                  {stages.map((stage) => (
+                    <option key={stage.key} value={stage.key}>
+                      {stage.label_pl}
+                    </option>
+                  ))}
+                </Select>
+                {!hasKnownResponse(current) && current.stage_key === "new" ? (
+                  <Button disabled={pending} onClick={() => change("stage_key", "contacted")}>
+                    {t("leads.contacted")}
+                  </Button>
+                ) : null}
+                <div className="grid grid-cols-3 gap-1.5 [&>a]:px-1 [&>a]:text-[12.5px]">
+                  {current.phone_e164 ? (
+                    <>
+                      <a
+                        href={`tel:${current.phone_e164}`}
+                        className={buttonVariants({ variant: "soft", size: "sm" })}
                       >
-                        {t("leads.openDuplicate")}
-                      </Link>
-                    ) : null}
-                  </li>
-                ))}
-              </ol>
-              <p className="text-ink-soft mt-3 text-xs">{t("leads.historyLimit")}</p>
-            </div>
-          </Card>
-        </aside>
-      </div>
+                        <Phone />
+                        {t("leads.callShort")}
+                      </a>
+                      <a
+                        href={`https://wa.me/${current.phone_e164.slice(1)}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className={buttonVariants({ variant: "success", size: "sm" })}
+                      >
+                        <MessageCircle />
+                        WhatsApp
+                      </a>
+                    </>
+                  ) : null}
+                  {current.email ? (
+                    <a
+                      href={`mailto:${current.email}`}
+                      className={buttonVariants({ variant: "secondary", size: "sm" })}
+                    >
+                      <Mail />
+                      E-mail
+                    </a>
+                  ) : null}
+                </div>
+                {team.length > 1 ? (
+                  <div>
+                    <p className="text-ink-soft mb-1.5 text-[13px] font-medium">
+                      {t("leads.fields.assigned_to")}
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {team.map((member) => (
+                        <Button
+                          key={member.id}
+                          size="sm"
+                          variant={current.assigned_to === member.id ? "dark" : "secondary"}
+                          disabled={pending}
+                          aria-pressed={current.assigned_to === member.id}
+                          onClick={() =>
+                            change(
+                              "assigned_to",
+                              current.assigned_to === member.id ? "" : member.id,
+                            )
+                          }
+                        >
+                          {member.name}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            </Card>
+            {documentsCard}
+            <Card title={t("leads.note")}>
+              <form
+                className="grid gap-3"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const form = e.currentTarget;
+                  const text = String(new FormData(form).get("note") ?? "");
+                  startTransition(async () => {
+                    const result = await addLeadNote(lead.id, text);
+                    if (result.error) setError(result.error);
+                    else form.reset();
+                  });
+                }}
+              >
+                <label className="grid gap-2 text-sm">
+                  {t("leads.noteText")}
+                  <textarea
+                    name="note"
+                    required
+                    maxLength={5000}
+                    rows={3}
+                    className="border-line-strong bg-surface rounded-lg border p-3 text-sm"
+                  />
+                </label>
+                <Button type="submit" disabled={pending}>
+                  {t("leads.addNote")}
+                </Button>
+              </form>
+            </Card>
+          </aside>
+        </div>
+      )}
     </>
   );
 }

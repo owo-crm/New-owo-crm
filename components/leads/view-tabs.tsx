@@ -2,7 +2,7 @@ import Link from "next/link";
 import { t, type MessageKey } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
-/** Вкладки раздела «Leady»: Lista · Etapy · Kalendarz (решение 024). Календарь — если модуль включён. */
+/** Вкладки раздела «Leady»: Lista · Kalendarz (решение 024; «Etapy» убраны — решение 047). Календарь — если модуль включён. */
 export function LeadViewTabs({
   current,
   listHref,
@@ -16,11 +16,13 @@ export function LeadViewTabs({
 }) {
   const tabs: { key: typeof current; href: string; label: MessageKey }[] = [
     { key: "list", href: listHref, label: "leads.listView" },
-    { key: "board", href: boardHref, label: "leads.boardView" },
     ...(calendar
       ? [{ key: "calendar" as const, href: "/kalendarz", label: "nav.calendar" as MessageKey }]
       : []),
   ];
+  // Вкладку «Etapy» (канбан) убрали по просьбе команды; без календаря вкладки не нужны вовсе.
+  void boardHref;
+  if (tabs.length < 2) return null;
   return (
     <nav aria-label={t("leads.view")} className="border-line flex gap-1 border-b">
       {tabs.map((tab) => (

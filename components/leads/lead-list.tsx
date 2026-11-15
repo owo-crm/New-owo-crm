@@ -90,10 +90,10 @@ export function LeadList({
         return (
           <li
             key={lead.id}
-            className="border-line bg-surface hover:border-line-strong relative flex flex-col gap-3 rounded-2xl border p-4 shadow-[var(--shadow)] transition-colors"
+            className="border-line bg-surface hover:border-line-strong relative flex flex-col gap-2.5 rounded-2xl border p-3 shadow-[var(--shadow)] transition-colors sm:p-4"
           >
             <div className="flex items-start gap-3">
-              <Avatar name={lead.client_name} size={38} />
+              <Avatar name={lead.client_name} size={34} />
               <div className="min-w-0 flex-1">
                 <Link
                   href={`/leady/${lead.id}`}
@@ -116,7 +116,9 @@ export function LeadList({
               </p>
             </div>
             {lead.message ? (
-              <p className="text-ink-soft line-clamp-2 text-[13px] break-words">{lead.message}</p>
+              <p className="text-ink-soft line-clamp-1 text-[13px] break-words sm:line-clamp-2">
+                {lead.message}
+              </p>
             ) : null}
             <div className="mt-auto flex items-center gap-2 text-[13px]">
               <span
