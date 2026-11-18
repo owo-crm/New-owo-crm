@@ -95,13 +95,23 @@ flowchart TB
 | Компания | **`companies`** | B2B (агентство, недвижимость) |
 | Заявка | `leads` (сохраняется, без отраслевых колонок) | каналы, первый ответ, SLA, реклама (utm) |
 | Активности | **`activities`** (заметка, звонок, e-mail, событие системы) ← обобщение `lead_events` | лента записи |
-| Задачи | `lead_tasks` → **`tasks`** (ссылка на любую запись) | напоминания, «на сегодня» |
-| Документы | `documents`, `document_files` (+ `record_ref`) | генерация, номера |
-| Платежи | `lead_payments` → **`payments`** (+ `record_ref`) | графики, просрочки, статистика |
+| Задачи | `lead_tasks` → **`tasks`** (`entity_type_id`, `record_id`) | напоминания, «на сегодня» |
+| Документы | `documents`, `document_files` (+ `entity_type_id`, `record_id`) | генерация, номера |
+| Платежи | `lead_payments` → **`payments`** (+ `entity_type_id`, `record_id`) | графики, просрочки, статистика |
 | Файлы | `files` | |
 
-**Через движок записей (`records`)** — отраслевые и единичные: Мероприятие, Автомобиль,
-Ремонтный заказ, Объект недвижимости, Просмотр, Запчасть и т.д.
+**Через движок записей (`records`)** — отраслевые и единичные: Автомобиль, Ремонтный заказ,
+Объект недвижимости, Просмотр, Текущий кредит, Заявка в банк и т.д.
+
+**Мероприятие Barowo на первом этапе — часть лида (D-18).** Колонки `leads.event_date`,
+`event_type`, `event_city`, `venue`, `guests`, `service_hours`, `package_name`, `client_full_name`,
+`client_address`, `deposit_paid_at` остаются физически на месте; модуль `event_mgmt` лишь
+регистрирует их как `entity_fields` стандартной сущности `leads` (`column_name` = колонка).
+Все SQL-функции (`calendar_events`, `dashboard_charts`, `work_queue`, `change_lead`, документы)
+работают без изменений. Выделение «Wydarzenie» в отдельную сущность — **возможное будущее
+решение** (несколько мероприятий у одной заявки, мероприятие без заявки) с отдельным планом:
+новая сущность `event` (records) + связь `event.lead` (many_to_one) + копирование значений +
+переписывание функций по одной под golden-тестами; колонки удаляются только после этого.
 
 **Специализированные таблицы модулей** — где нужна сложная логика/деньги: агентство
 (`agency_*`), реклама (`ad_*`), договоры с финансовыми правилами.
@@ -125,7 +135,9 @@ flowchart TB
 - Все изменения записей пишут `domain_events` (outbox в той же транзакции).
 - Воркер читает события, сопоставляет `automation_rules`, исполняет действия из реестра
   (`automation_runs`, повторы, идемпотентность, лимиты, защита от циклов).
-- **Воркер — отдельный процесс** (тот же образ, команда `worker`), D-08.
+- **Воркер — рекомендуется отдельный процесс** (D-08, *рекомендация, ждёт утверждения владельца*):
+  отдельный сервис Railway, тот же Docker-образ, команда `npm run worker`, `pg_try_advisory_lock`,
+  одна реплика на первом этапе. До утверждения воркер остаётся в веб-процессе.
 
 ## 7. Specialized Modules
 Модуль = каталог `modules/<key>/` с манифестом (TypeScript, проверяется при сборке):
@@ -158,16 +170,26 @@ export default defineModule({
 Модуль `agency_finance`, включается только организации-агентству (флаг в `platform_modules`
 `restricted_to_platform: true`). Таблицы `agency_*` остаются как есть. Связь с клиентскими
 организациями — только через явную таблицу **`platform_managed_orgs`** (агентство ↔ организация,
-тип связи `service` / `client` — D-02), а не через неявный `linkBusinessesToAgency`.
-Деньги клиентских CRM в агентство не попадают; абонементы платформы попадают в агентство только
-через `billing_events` → заказ услуги `crm`.
+тип связи `service` / `client` — D-02), а не через неявный `linkBusinessesToAgency` и не через
+`agency_clients.client_org_id` (её заполняла автосвязь, она недостоверна).
+- `service` — команда OWO обслуживает организацию (сервисный доступ), денег в агентстве нет.
+  **Barowo — `service`** (фирма Ивана, утверждено владельцем).
+- `client` — подтверждённый клиент OWO Ads: оплаты его абонемента (`invoice.paid`) становятся
+  заказами услуги «CRM (abonament)».
+- Нет строки — организация не связана с агентством.
+Деньги клиентских CRM в агентство не попадают никогда.
 
 ## 9. Безопасность (сводка)
 - Каждая таблица и каждая динамическая запись — `organization_id NOT NULL` + RLS.
 - Связи между записями — составные FK `(organization_id, id)`: связь в чужую организацию
   невозможна на уровне ограничения БД.
 - Права: роль → `role_permissions` (`entity:<key>:read|write|delete`, `field:<entity>.<field>:read|write`,
-  `action:<key>`). Проверка в Server Action + RLS по чтению.
+  `action:<key>`). Граница безопасности динамических данных — **функции БД** `record_read`,
+  `records_query`, `record_write`, `record_link_add`: у `authenticated` нет прямого доступа к
+  `record_values/record_links/record_files` (CONFIG_ENGINE_SPEC §4). Server Action проверяет те же
+  права только ради понятных ошибок.
+- Чувствительные поля (`entity_fields.sensitive`) закрыты по умолчанию, их чтение пишется в
+  `sensitive_access_log`.
 - Конфигурация пишется только функциями `config_*` `security definer` с проверкой
   `is_platform_staff('architect')`; клиент не имеет grant на таблицы конфигурации.
 - Сервисный доступ OWO: `platform_staff` + `organization_service_grants` (срок, причина),
@@ -177,15 +199,16 @@ export default defineModule({
 
 ## 10. Проверка на сценариях
 
-| | Barowo (event) | Автосервис | OWO Ads |
-|---|---|---|---|
-| Общие | contacts, leads, activities, tasks, files, documents, payments, pipelines, automations, mailing | contacts, activities, tasks, payments, pipelines, automations, notifications | contacts, companies, leads, activities, tasks |
-| Специфичные | модуль `event_mgmt`: запись «Wydarzenie» (records), договор/оферта Barowo, календарь по дате события, план предоплат | модуль `automotive`: записи Vehicle, RepairOrder, ServiceHistory (records), Part; pipeline RepairOrder | модуль `agency_finance` (таблицы agency_*), `ads_analytics` |
-| Несколько заявок у человека | `leads.contact_id` → один contact, у каждой заявки своя стадия | — | лиды агентства → company |
-| Несколько объектов у контакта | Event N:1 Contact | Vehicle N:1 Contact; RepairOrder N:1 Vehicle | — |
-| Деньги | `payments` (record_ref на лид/событие) — контур 1 | `payments` (record_ref на ремонт) — контур 1 | `agency_orders` — контур 2; подписки — контур 3 |
-| Исключения | нет: всё через шаблон + модуль | нет: модуль `automotive` (или только шаблон без кода) | нет |
+| | Barowo (event, рабочая) | Автосервис (**технический тест**) | OWO Ads | mortgage_refi (**потенциальный пилот**) |
+|---|---|---|---|---|
+| Общие | contacts, leads, activities, tasks, files, documents, payments, pipelines, automations, mailing | contacts, activities, tasks, payments, pipelines, automations, notifications | contacts, companies, leads, activities, tasks | contacts, leads (utm), tasks, payments, pipelines, automations, ads_analytics |
+| Специфичные | модуль `event_mgmt`: поля мероприятия как часть лида (D-18), договор/оферта Barowo, календарь по `leads.event_date`, план предоплат | шаблон `automotive`: records Vehicle, RepairOrder; pipeline repair_flow | модуль `agency_finance` (таблицы agency_*), `ads_analytics` | шаблон `mortgage_refi`: records «Obecny kredyt» (sensitive), «Wniosek», «Bank partnerski» |
+| Несколько заявок у человека | `leads.contact_id` → один contact, у каждой заявки свой этап | — | лиды агентства → company | contact → несколько leads/wniosków |
+| Несколько объектов у контакта | — (мероприятие = заявка на этапе 1) | Vehicle N:1 Contact; RepairOrder N:1 Vehicle | — | Kredyt N:1 Contact; Wniosek N:1 Kredyt, N:1 Bank |
+| Деньги | `payments` (лид) — контур 1 | `payments` (ремонт) — контур 1 | `agency_orders` — контур 2; подписки — контур 3 | `payments` (комиссия банка по Wniosek) — контур 1 |
+| Готовность | работает сегодня, переносится | фикстура для тестов M4/M8, без реального клиента | работает, переносится | **не готов**: нужны бизнес-процесс, права на чувствительные поля, RODO/KNF |
+| Исключения | нет | нет | нет | нет (если подтвердится процесс) |
 
-Автосервис **можно запустить без кода**, только шаблоном (records + pipeline + автоматизации
-напоминаний). Код модуля нужен лишь для специфики (например, расчёт запчастей). Это
-подтверждает, что архитектура не требует исключений на каждый бизнес.
+**Автосервис** — технический тест: доказывает, что новая отрасль собирается шаблоном без кода
+(записи, связи, процесс, напоминания). **mortgage_refi** — реальный, но ещё не описанный клиент;
+шаблон делается только после интервью (вопросы — в DECISIONS, раздел «Пилот №2»).

@@ -19,10 +19,10 @@
 | Небольшая команда | опасно (DDL из админки) | просто, но долги типизации | умеренно |
 
 **Решение (D-04):** вариант **C** для динамических сущностей + **настоящие таблицы** для
-стандартных и денежных сущностей. JSONB-снимок `records.data` служит для быстрой отрисовки
-карточки, источник правды для фильтров/уникальности/ссылок — `record_values` и `record_links`.
-Если сущность модуля перерастает движок (миллионы строк, сложные отчёты), модуль переводит её
-в свою таблицу — интерфейс полей тот же.
+стандартных и денежных сущностей. Источник правды значений — `record_values`, связей —
+`record_links`, файлов — `record_files`. **JSONB-снимка значений в `records` нет** (иначе скрытые
+поля были бы читаемы в обход прав, см. §4). Если сущность модуля перерастает движок
+(миллионы строк, сложные отчёты), модуль переводит её в свою таблицу — интерфейс полей тот же.
 
 ## 2. Метаданные
 
@@ -32,12 +32,13 @@ create table public.entity_types (
   organization_id uuid not null references public.organizations(id) on delete cascade,
   key text not null check (key ~ '^[a-z][a-z0-9_]{1,40}$'),     -- 'vehicle'
   storage text not null check (storage in ('records','table')), -- table = стандартная/модульная
-  table_name text,                                               -- 'leads' для storage=table
+  table_name text check ((storage = 'table') = (table_name is not null)), -- 'leads'
   module_key text,                                               -- кто объявил ('automotive', null = OWO custom)
-  label_singular jsonb not null, label_plural jsonb not null,    -- {"pl":"Pojazd"}
-  icon text check (icon in (/* реестр иконок */ 'car','user','calendar','home','file','wrench','tag')),
-  title_template text not null default '{{name}}',               -- как называется запись
-  config_version_id uuid not null,                               -- в какой версии появилась
+  label text not null,                                           -- «Pojazd» (только польский, D-17)
+  label_plural text not null,                                    -- «Pojazdy»
+  icon text check (icon in ('car','user','calendar','home','file','wrench','tag','bank')),
+  title_template text not null default '{{name}}',
+  config_version_id uuid,                                        -- null = зарегистрирована миграцией (M4.1, до Config Engine)
   archived_at timestamptz,
   unique (organization_id, id), unique (organization_id, key)
 );
@@ -49,23 +50,48 @@ create table public.entity_fields (
   key text not null check (key ~ '^[a-z][a-z0-9_]{1,40}$'),
   type text not null check (type in ('text','long_text','number','money','date','datetime',
         'boolean','select','multiselect','email','phone','url','file','relation','json')),
-  label jsonb not null,
+  label text not null,
   required boolean not null default false,
-  is_unique boolean not null default false,
+  is_unique boolean not null default false
+    check (not is_unique or type in ('text','email','phone','url','number')),
   searchable boolean not null default false,
   filterable boolean not null default true,
+  sensitive boolean not null default false,   -- чувствительные данные: чтение журналируется (§4.4)
   default_value jsonb,
-  validation jsonb not null default '{}',   -- {"min":0,"max":100,"maxLength":120,"pattern":null}
-  options jsonb,                              -- select: [{"key":"diesel","label":{"pl":"Diesel"}}]
+  validation jsonb not null default '{}',     -- {"min":0,"max":100,"maxLength":120,"pattern":null}
+  options jsonb,                              -- select: [{"key":"diesel","label":"Diesel"}]
   relation jsonb,                             -- {"target":"contact","cardinality":"many_to_one","onDelete":"restrict"}
+  json_schema_key text,                       -- только type='json': ключ схемы из реестра модуля
   position int not null default 0,
   column_name text,                           -- для storage=table: реальная колонка (read-only в конструкторе)
   archived_at timestamptz,
   unique (organization_id, id), unique (organization_id, entity_type_id, key),
-  foreign key (organization_id, entity_type_id) references public.entity_types(organization_id, id)
+  foreign key (organization_id, entity_type_id) references public.entity_types(organization_id, id),
+  check ((type = 'relation') = (relation is not null)),
+  check ((type = 'json') = (json_schema_key is not null))
 );
 ```
-`json` разрешён только для модулей (не в конструкторе для клиента), D-04.
+
+### 2.1 Тип поля → место хранения (окончательно)
+
+| `entity_fields.type` | Хранение | Индекс / проверка |
+|---|---|---|
+| `text`, `long_text` | `record_values.value_text` | `lower(value_text)`; long_text — без индекса, `searchable` → trigram |
+| `email` | `value_text` (нижний регистр) | валидация формата в сервисе и `check` в функции записи |
+| `phone` | `value_text` (E.164 `+48…`) | нормализация как `phone_e164` у лидов |
+| `url` | `value_text` | только `https://` |
+| `number` | `value_number numeric` | btree |
+| `money` | `value_money bigint` (гроши) | btree |
+| `date` | `value_date` | btree |
+| `datetime` | `value_ts timestamptz` | btree |
+| `boolean` | `value_bool` | — |
+| `select`, `multiselect` | `value_options text[]` (ключи опций; select — ровно 1) | GIN |
+| `relation` | **`record_links`** (в `record_values` нет строки) | см. §3.2 |
+| `file` | **`record_files`** → `files` | см. §3.3 |
+| `json` | `value_json jsonb` | **только поля модулей** с зарегистрированной zod-схемой (`json_schema_key`); в конструкторе OWO недоступен; не фильтруется, не уникален |
+
+Для `storage = 'table'` поля с `column_name` хранятся в колонке своей таблицы (например, `leads.event_date`);
+поля, добавленные конфигурацией к стандартной сущности, — в `record_values` с `record_id = <id строки таблицы>`.
 
 ## 3. Данные записей
 
@@ -75,9 +101,8 @@ create table public.records (
   organization_id uuid not null,
   entity_type_id uuid not null,
   number bigint not null,                 -- человекочитаемый номер per entity_type
-  title text not null default '',         -- вычислен из title_template
-  data jsonb not null default '{}',       -- снимок для отображения
-  pipeline_id uuid, stage_id uuid,        -- если у сущности процесс
+  title text not null default '',         -- из title_template; поля sensitive в шаблон заголовка не допускаются (валидатор)
+  pipeline_id uuid, stage_key text,       -- если у сущности процесс
   owner_id uuid references auth.users(id),
   created_by uuid, created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
@@ -89,68 +114,160 @@ create table public.records (
 create index records_type_idx on public.records (organization_id, entity_type_id, created_at desc) where deleted_at is null;
 create index records_title_trgm on public.records using gin (title gin_trgm_ops);
 
--- Типизированные значения: одна строка на (запись, поле). Ровно одна value_* заполнена.
+-- Значения. record_id — id записи records ИЛИ строки стандартной таблицы (storage=table),
+-- поэтому FK на records нет; целостность — через record_ref_check (§3.2) и FK на поле.
 create table public.record_values (
   organization_id uuid not null,
+  entity_type_id uuid not null,
   record_id uuid not null,
   field_id uuid not null,
-  value_text text, value_number numeric, value_money bigint,  -- гроши
+  value_text text, value_number numeric, value_money bigint,
   value_date date, value_ts timestamptz, value_bool boolean,
-  value_options text[],                                        -- select/multiselect: ключи опций
-  primary key (record_id, field_id),
-  foreign key (organization_id, record_id) references public.records(organization_id, id) on delete cascade,
+  value_options text[], value_json jsonb,
+  primary key (organization_id, record_id, field_id),
   foreign key (organization_id, field_id) references public.entity_fields(organization_id, id),
-  check (num_nonnulls(value_text,value_number,value_money,value_date,value_ts,value_bool,value_options) <= 1)
+  foreign key (organization_id, entity_type_id) references public.entity_types(organization_id, id),
+  check (num_nonnulls(value_text,value_number,value_money,value_date,value_ts,value_bool,value_options,value_json) <= 1)
 );
 create index rv_text_idx   on public.record_values (organization_id, field_id, lower(value_text));
 create index rv_number_idx on public.record_values (organization_id, field_id, value_number);
 create index rv_money_idx  on public.record_values (organization_id, field_id, value_money);
 create index rv_date_idx   on public.record_values (organization_id, field_id, value_date);
+create index rv_ts_idx     on public.record_values (organization_id, field_id, value_ts);
 create index rv_opts_idx   on public.record_values using gin (value_options);
+-- Соответствие колонки типу поля проверяет триггер rv_type_check (тип читается из entity_fields):
+-- email/phone/url/text → только value_text; money → только value_money; и т.д.
 
--- Уникальность полей с is_unique=true
+-- Уникальность полей с is_unique=true (нормализованное значение).
 create table public.record_unique_keys (
   organization_id uuid not null, field_id uuid not null, normalized text not null, record_id uuid not null,
   primary key (organization_id, field_id, normalized),
-  foreign key (organization_id, record_id) references public.records(organization_id, id) on delete cascade
+  foreign key (organization_id, field_id) references public.entity_fields(organization_id, id)
 );
+-- Удаление записи (deleted_at) удаляет её ключи — освобождает значение для новой записи.
+```
 
--- Связи: и между records, и между records ↔ стандартными таблицами.
+### 3.1 Номер и удаление
+`next_record_number(org, entity_type)` — счётчик в `record_counters (organization_id, entity_type_id, last)`
+с `update … returning` (как `document_counters`). Удаление мягкое (`deleted_at`); физическое — только
+задачей очистки RODO, по одной записи, с аудитом.
+
+### 3.2 Связи
+
+```sql
 create table public.record_links (
   id uuid primary key default gen_random_uuid(),
   organization_id uuid not null,
   field_id uuid not null,                  -- поле-relation, определяет смысл и кардинальность
-  from_entity text not null, from_id uuid not null,
-  to_entity text not null,   to_id uuid not null,
+  from_entity_id uuid not null, from_id uuid not null,
+  to_entity_id uuid not null,   to_id uuid not null,
   created_at timestamptz not null default now(),
   unique (organization_id, field_id, from_id, to_id),
-  foreign key (organization_id, field_id) references public.entity_fields(organization_id, id)
+  foreign key (organization_id, field_id)        references public.entity_fields(organization_id, id),
+  foreign key (organization_id, from_entity_id)  references public.entity_types(organization_id, id),
+  foreign key (organization_id, to_entity_id)    references public.entity_types(organization_id, id)
 );
-create index record_links_to_idx on public.record_links (organization_id, to_entity, to_id);
+create index record_links_to_idx on public.record_links (organization_id, to_entity_id, to_id);
+-- Для many_to_one / one_to_one публикация создаёт частичный индекс на конкретное поле, например:
+-- create unique index record_links_one_<field> on public.record_links (organization_id, from_id)
+--   where field_id = '<field uuid>';
 ```
+Межорганизационную ссылку исключают **три уровня**:
+1. Составные FK: поле и обе сущности принадлежат той же `organization_id`, что и связь.
+2. `record_ref_check(org, entity_type_id, id)` (security definer, вызывается из `record_link_add`
+   и триггера `before insert` на `record_links`): строка существует в таблице сущности
+   (`records` или `entity_types.table_name`) **с тем же `organization_id`** и `deleted_at is null`.
+   Имя таблицы берётся только из `entity_types.table_name` и проверяется по белому списку
+   (`leads`, `contacts`, `companies`, `payments`, `tasks`, `memberships`-представление участников).
+3. Прямого `insert/update/delete` на `record_links` у роли `authenticated` нет — только функции.
 
-**Проверка ссылок между организациями.** Полиморфная ссылка не может иметь обычный FK, поэтому
-вставка в `record_links` идёт **только** через функцию `record_link_add` (security invoker):
-она проверяет `exists(select 1 from <target> where organization_id = :org and id = :to_id and deleted_at is null)`
-через реестр `entity_types.table_name`, кардинальность (`many_to_one` → не больше одной связи
-from), и что `from_entity` совпадает с сущностью поля. Прямой grant `insert` на таблицу не выдаётся.
-Триггер на удаление записи (`deleted_at`) применяет `onDelete`: `restrict` / `cascade_soft` / `unlink`.
+Кардинальность: `many_to_one`/`one_to_one` → частичный уникальный индекс по `(field_id, from_id)`,
+`one_to_one` дополнительно по `(field_id, to_id)` (создаются функцией публикации для конкретного
+`field_id`); `many_to_many` — без них. `onDelete`: `restrict` (удаление записи-цели запрещено, если есть
+связи), `unlink` (связи удаляются), `cascade_soft` (связанные записи получают `deleted_at`).
 
-**Связь 1:1** = `cardinality: "one_to_one"` + уникальный индекс по `(field_id, from_id)` и
-`(field_id, to_id)`; **1:N** = `many_to_one` на стороне «многих»; **N:M** = `many_to_many`.
-
-## 4. RLS для динамических данных
+### 3.3 Файлы
 ```sql
+create table public.record_files (
+  organization_id uuid not null, field_id uuid not null, record_id uuid not null, file_id uuid not null,
+  primary key (organization_id, field_id, record_id, file_id),
+  foreign key (organization_id, field_id) references public.entity_fields(organization_id, id),
+  foreign key (organization_id, file_id)  references public.files(organization_id, id) on delete cascade
+);
+```
+`files` — общая таблица Platform Core (M3), сегодня это `lead_attachments` (`bytea`).
+
+## 4. Безопасность динамических данных (окончательный вариант)
+
+**Принцип:** у роли `authenticated` **нет прямого доступа к сырым значениям**. Чтение и запись
+только через функции, которые применяют права на сущность **и** на каждое поле. Это не зависит от
+TypeScript-сервиса: даже если UI или Server Action содержит ошибку, функция не вернёт скрытое поле.
+
+### 4.1 Права на таблицы
+```sql
+revoke all on public.records, public.record_values, public.record_links, public.record_files,
+              public.record_unique_keys from anon, authenticated;
+-- records: только метаданные строки (без значений) — допускаем select через RLS для списков и связей.
+grant select (id, organization_id, entity_type_id, number, title, pipeline_id, stage_key,
+              owner_id, created_at, updated_at, deleted_at) on public.records to authenticated;
 alter table public.records enable row level security;
 create policy rec_read on public.records for select to authenticated
-  using (public.is_member(organization_id) and public.can('entity:'||public.entity_key(entity_type_id)||':read', organization_id));
-create policy rec_write on public.records for insert to authenticated
-  with check (public.is_member(organization_id) and public.can('entity:'||public.entity_key(entity_type_id)||':write', organization_id));
--- record_values, record_links: то же через exists(record) — значение без видимой записи не читается.
+  using (public.can(organization_id, 'entity:' || public.entity_key(entity_type_id) || ':read'));
+-- record_values / record_links / record_files: RLS включён, политик для authenticated нет → 0 строк.
+alter table public.record_values enable row level security;
+alter table public.record_links  enable row level security;
+alter table public.record_files  enable row level security;
 ```
-`can(permission, org)` — `security definer`, читает `memberships.role_id → role_permissions`
-(кэшируется в `set_config` на транзакцию). Права на поля применяются в слое сервиса
-(`lib/platform/records/service.ts`): скрытые поля не попадают в `data` ответа и не принимаются при записи.
+
+### 4.2 Функции чтения (security definer, `search_path = ''`)
+- `record_read(p_org uuid, p_entity text, p_id uuid) returns jsonb` — значения только полей, для
+  которых `can(p_org, 'field:<entity>.<key>:read')` (по умолчанию поле читаемо, если читаема сущность;
+  `sensitive = true` → по умолчанию **закрыто**, нужно явное право).
+- `records_query(p_org uuid, p_entity text, p_filter jsonb, p_sort jsonb, p_limit int, p_offset int)
+  returns setof jsonb` — фильтр разрешён **только** по полям, которые пользователь может читать
+  (иначе фильтр по скрытому полю раскрывал бы значение перебором); `p_filter` разбирается в
+  параметризованный SQL по белому списку операторов, без конкатенации значений.
+- `record_links_read(p_org, p_entity, p_id, p_field)` — связи только при праве на поле-relation и
+  праве `read` на целевую сущность.
+Каждая функция в начале проверяет `public.is_member(p_org)` и что `p_org` = организация из
+`withOrg` (`current_setting('app.org_id')`) — пользователь не может подставить чужой `p_org`.
+
+### 4.3 Функции записи
+`record_write(p_org, p_entity, p_id, p_patch jsonb, p_version timestamptz)`: проверка
+`entity:…:write`, затем для каждого ключа `field:…:write`; неизвестный или запрещённый ключ →
+ошибка (не тихий пропуск); валидация типа и `validation`; уникальность; запись `activities` и
+`domain_events` в той же транзакции. Связи — `record_link_add/remove`, файлы — `record_file_add/remove`
+с теми же проверками.
+
+### 4.4 Аудит чувствительных данных
+```sql
+create table public.sensitive_access_log (
+  id bigint generated always as identity primary key,
+  organization_id uuid not null, user_id uuid not null,
+  entity_type_id uuid not null, record_id uuid not null,
+  field_keys text[] not null,          -- какие поля были возвращены; значений не храним
+  action text not null check (action in ('read','write','export')),
+  created_at timestamptz not null default now()
+);
+```
+`record_read`/`records_query` пишут строку, если в ответ попало хотя бы одно `sensitive`-поле.
+Доступ к журналу — owner организации и `platform_staff`. Хранение 24 месяца (уточнить с клиентом).
+
+### 4.5 Сценарий `mortgage_refi`
+Поля текущего кредита (остаток, ставка, платёж, банк, PESEL/доходы — если появятся) помечаются
+`sensitive`; роль «asystent» видит контакт и статус заявки, но не суммы кредита; экспорт CSV
+таких полей — отдельное право `action:export_sensitive`. Сотрудник OWO с сервисным доступом
+видит данные только при активном `organization_service_grants` (срок, причина), каждое чтение
+журналируется. Требования RODO/KNF клиента — открытый вопрос (DECISIONS).
+
+### 4.6 Тесты на обход интерфейса
+- прямой `select * from record_values` / `record_links` под `authenticated` → 0 строк;
+- `select data …` из `records` → ошибка (колонки нет), `select` скрытых колонок → permission denied;
+- `records_query` с фильтром по `sensitive`-полю без права → ошибка, не пустой результат;
+- `record_read` с `p_org` чужой организации → ошибка;
+- `record_write` с ключом запрещённого поля → ошибка, значение не изменилось;
+- чтение `sensitive`-поля создаёт строку `sensitive_access_log`; без права — не создаёт и не возвращает;
+- `record_link_add` с `to_id` из другой организации → ошибка, даже при совпадающем `entity_key`.
 
 ## 5. Полный пример: автосервис
 
@@ -158,11 +275,11 @@ create policy rec_write on public.records for insert to authenticated
 ```json
 {
   "entities": [
-    { "key": "vehicle", "storage": "records", "label": {"pl": ["Pojazd","Pojazdy"]}, "icon": "car",
+    { "key": "vehicle", "storage": "records", "label": "Pojazd", "labelPlural": "Pojazdy", "icon": "car",
       "titleTemplate": "{{brand}} {{model}} · {{plate}}",
       "fields": [
         {"key": "plate", "type": "text", "required": true, "unique": true, "searchable": true,
-         "validation": {"pattern": "^[A-Z0-9 ]{4,10}$"}, "label": {"pl": "Nr rejestracyjny"}},
+         "validation": {"pattern": "^[A-Z0-9 ]{4,10}$"}, "label": "Nr rejestracyjny"},
         {"key": "vin", "type": "text", "unique": true, "validation": {"maxLength": 17}},
         {"key": "brand", "type": "text", "required": true},
         {"key": "model", "type": "text"},
@@ -171,7 +288,7 @@ create policy rec_write on public.records for insert to authenticated
         {"key": "owner", "type": "relation",
          "relation": {"target": "contact", "cardinality": "many_to_one", "onDelete": "restrict"}}
       ]},
-    { "key": "repair_order", "storage": "records", "label": {"pl": ["Zlecenie naprawy","Zlecenia"]},
+    { "key": "repair_order", "storage": "records", "label": "Zlecenie naprawy", "labelPlural": "Zlecenia",
       "pipeline": "repair_flow",
       "fields": [
         {"key": "vehicle", "type": "relation", "required": true,
@@ -186,7 +303,7 @@ create policy rec_write on public.records for insert to authenticated
 }
 ```
 
-**2) Публикация** материализует строки `entity_types`/`entity_fields` (см. §7).
+**2) Публикация** материализует строки `entity_types`/`entity_fields` (см. §6.2).
 
 **3) Создание записи** (Server Action → `records.create`):
 ```ts
@@ -195,20 +312,23 @@ await records.create(ctx, "vehicle", {
   owner: contactId,
 });
 ```
-Внутри одной транзакции: валидация по `entity_fields` (zod-схема, собранная из метаданных) →
-`insert records` (number = `next_record_number`) → `insert record_values` → `record_unique_keys`
-(plate, vin) → `record_link_add(owner)` → `activities('created')` → `domain_events('record.created')`.
+Сервис вызывает `record_write(org, 'vehicle', null, patch, null)`; внутри одной транзакции:
+права → валидация по `entity_fields` → `insert records` (number = `next_record_number`) →
+`insert record_values` → `record_unique_keys` (plate, vin) → `record_link_add(owner)` →
+`activities('created')` → `domain_events('record.created')`. Сервис на TypeScript дублирует
+валидацию только ради понятных сообщений об ошибках; граница безопасности — функция.
 
 **4) Связь ремонт → автомобиль** — та же функция для поля `vehicle` у `repair_order`.
 
 **5) Фильтр «ремонты автомобилей клиента X»:**
 ```sql
-select r.* from records r
-join record_links lv on lv.from_id = r.id and lv.field_id = :repair_vehicle_field
-join record_links lo on lo.from_id = lv.to_id and lo.field_id = :vehicle_owner_field
-where r.organization_id = :org and lo.to_id = :contact_id and r.deleted_at is null;
+-- SQL, который строит records_query внутри security definer функции:
+select r.id from public.records r
+join public.record_links lv on lv.organization_id = r.organization_id and lv.from_id = r.id and lv.field_id = $2
+join public.record_links lo on lo.organization_id = r.organization_id and lo.from_id = lv.to_id and lo.field_id = $3
+where r.organization_id = $1 and lo.to_id = $4 and r.deleted_at is null;
 ```
-Генерируется query-engine из фильтра `{"field":"vehicle.owner","op":"eq","value":":contact"}`
+Вызов из сервиса: `records_query(org, 'repair_order', '{"vehicle.owner":{"eq":"<contact>"}}', …)` — фильтр `{"field":"vehicle.owner","op":"eq","value":":contact"}`
 (глубина пути ≤ 2, D-10).
 
 ## 6. Конфигурация организации
@@ -216,7 +336,7 @@ where r.organization_id = :org and lo.to_id = :contact_id and r.deleted_at is nu
 ```sql
 create table public.templates (
   key text primary key,                     -- 'event_services', 'automotive', 'agency'
-  label jsonb not null, description jsonb
+  label text not null, description text
 );
 create table public.template_versions (
   id uuid primary key default gen_random_uuid(),
@@ -261,12 +381,12 @@ create table public.config_versions (        -- опубликованные с�
   "pipelines": [ "...см. WORKFLOW spec..." ],
   "roles": [
     {"key":"owner","system":true},
-    {"key":"mechanic","label":{"pl":"Mechanik"},
+    {"key":"mechanic","label":"Mechanik",
      "permissions":["entity:repair_order:read","entity:repair_order:write","entity:vehicle:read",
                     "field:repair_order.estimate:read"]}
   ],
   "navigation": [
-    {"group": {"pl":"Praca"}, "items": [
+    {"group": "Praca", "items": [
       {"type":"view","view":"repair_board","icon":"wrench"},
       {"type":"view","view":"vehicles_table","icon":"car"},
       {"type":"module_page","module":"event_mgmt","page":"calendar"}
@@ -281,8 +401,8 @@ create table public.config_versions (        -- опубликованные с�
   ],
   "forms": [
     {"key":"vehicle_form","entity":"vehicle","sections":[
-      {"title":{"pl":"Pojazd"},"fields":["plate","vin","brand","model","year","fuel"]},
-      {"title":{"pl":"Właściciel"},"fields":["owner"]}]}
+      {"title":"Pojazd","fields":["plate","vin","brand","model","year","fuel"]},
+      {"title":"Właściciel","fields":["owner"]}]}
   ],
   "recordPages": [
     {"entity":"vehicle","layout":"two_column","main":[{"widget":"fields","form":"vehicle_form"},
