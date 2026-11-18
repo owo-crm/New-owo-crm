@@ -4,7 +4,12 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { docxToPdf, fillDocxTemplate } from "./docx-template";
 import { contractSnapshot, contractTemplateValues, type ContractValues } from "./barowo/contract";
-import { barowoSchedule, listPayments, savePaymentPlan } from "@/lib/finance/payments";
+import {
+  barowoSchedule,
+  listPayments,
+  loadPaymentPlan,
+  savePaymentPlan,
+} from "@/lib/finance/payments";
 import {
   barowoEngine,
   legacyLeadRow,
@@ -356,9 +361,16 @@ export async function generateContract(
     throw new DocumentInputError("Przywróć leada przed generowaniem dokumentu.");
   const packageName = e.BAROWO_OFFER_CATALOG[pkg]?.name;
   if (!packageName) throw new DocumentInputError("Wybierz pakiet: Simple, Standard lub Premium.");
+  const plan = await loadPaymentPlan(tx, actor.orgId);
   let snapshot: ReturnType<typeof contractSnapshot>;
   try {
-    snapshot = contractSnapshot(e, packageName, values);
+    snapshot = contractSnapshot(
+      e,
+      packageName,
+      values,
+      new Date(),
+      plan.reduce((a, b) => a + b, 0) / 100,
+    );
   } catch (error) {
     userError(error);
   }
@@ -384,7 +396,7 @@ export async function generateContract(
     client_full_name: snapshot.clientName,
     client_address: snapshot.address,
   });
-  // План платежей из договора: 500 при подписании, 1000 за 7 дней, остаток в день события.
+  // План платежей из договора: предоплаты из настроек бизнеса (решение 049), остаток в день события.
   const iso = (pl: string) => pl.split(".").reverse().join("-");
   await savePaymentPlan(
     tx,
@@ -392,7 +404,7 @@ export async function generateContract(
     leadId,
     barowoSchedule({
       priceGrosze: Math.round(snapshot.price * 100),
-      depositGrosze: Math.round(snapshot.deposit * 100),
+      plan,
       depositDate: iso(snapshot.depositDate),
       eventDate: iso(snapshot.eventDate),
       today: iso(snapshot.today),

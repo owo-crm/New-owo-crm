@@ -35,40 +35,54 @@ export async function listPayments(tx: Queryable, orgId: string, leadId: string)
   return rows;
 }
 
+/** План предоплат бизнеса (решение 049): суммы в грошах по порядку. Barowo — 500 + 1000. */
+export const DEFAULT_PAYMENT_PLAN = [50000, 100000];
+
+export async function loadPaymentPlan(tx: Queryable, orgId: string): Promise<number[]> {
+  const row = await one<{ plan: unknown }>(
+    tx,
+    "select payment_plan as plan from public.organizations where id=$1",
+    [orgId],
+  );
+  const plan = Array.isArray(row?.plan) ? row.plan : DEFAULT_PAYMENT_PLAN;
+  return plan.map(Number).filter((n) => Number.isInteger(n) && n > 0);
+}
+
+export function installmentLabel(index: number, count: number) {
+  if (count === 1) return "Zaliczka";
+  return index === 0 ? "Zaliczka rezerwacyjna" : `Zaliczka ${index + 1}`;
+}
+
 /**
- * План платежей по договору Barowo: 500 zł при подписании, 1000 zł за 7 дней
- * до мероприятия, остаток в день мероприятия (пункты 2, 3 и 6 договора).
+ * План платежей по договору: первая предоплата — при подписании, остальные — к дате
+ * предоплаты (7 дней до события), остаток — в день события.
  */
 export function barowoSchedule(input: {
   priceGrosze: number;
-  depositGrosze: number;
+  plan?: number[];
   depositDate: string;
   eventDate: string;
   today: string;
 }) {
-  const reservation = Math.min(50000, input.depositGrosze);
-  const second = input.depositGrosze - reservation;
-  const balance = input.priceGrosze - input.depositGrosze;
-  const rows: { kind: string; label: string; amount_grosze: number; due_date: string }[] = [
-    {
-      kind: "deposit",
-      label: "Zaliczka rezerwacyjna",
-      amount_grosze: reservation,
-      due_date: input.today,
-    },
-  ];
-  if (second > 0)
+  const plan = input.plan ?? DEFAULT_PAYMENT_PLAN;
+  const rows: { kind: string; label: string; amount_grosze: number; due_date: string }[] = [];
+  let left = input.priceGrosze;
+  plan.forEach((amount, i) => {
+    const take = Math.min(amount, left);
+    if (take <= 0) return;
+    left -= take;
     rows.push({
       kind: "deposit",
-      label: "Druga zaliczka",
-      amount_grosze: second,
-      due_date: input.depositDate,
+      label: installmentLabel(i, plan.length),
+      amount_grosze: take,
+      due_date: i === 0 ? input.today : input.depositDate,
     });
-  if (balance > 0)
+  });
+  if (left > 0)
     rows.push({
       kind: "balance",
       label: "Wynagrodzenie końcowe",
-      amount_grosze: balance,
+      amount_grosze: left,
       due_date: input.eventDate,
     });
   return rows;

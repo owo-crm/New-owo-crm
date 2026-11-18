@@ -7,12 +7,16 @@ import { avatarUrl } from "@/lib/avatars/image";
 import { requireOrganization } from "@/lib/auth/session";
 import { getOrganizationProfile } from "@/lib/organizations/profile";
 import { t } from "@/lib/i18n";
+import { PaymentPlanForm } from "@/components/settings/payment-plan-form";
+import { withOrg } from "@/lib/db/user";
+import { loadPaymentPlan } from "@/lib/finance/payments";
 
 export const metadata: Metadata = { title: t("company.title") };
 
 export default async function CompanySettingsPage() {
   const { organization } = await requireOrganization();
   const profile = await getOrganizationProfile();
+  const plan = await withOrg((tx, { organization: o }) => loadPaymentPlan(tx, o.id));
   return (
     <div className="max-w-2xl">
       <PageHeader
@@ -34,6 +38,10 @@ export default async function CompanySettingsPage() {
       <Card>
         <p className="text-ink-soft mb-5 text-sm">{t("company.intro")}</p>
         <CompanyForm initial={profile} canEdit={["owner", "admin"].includes(organization.role)} />
+      </Card>
+      <Card title={t("paymentPlan.title")} className="mt-5">
+        <p className="text-ink-soft mb-4 text-sm">{t("paymentPlan.intro")}</p>
+        <PaymentPlanForm plan={plan} canEdit={["owner", "admin"].includes(organization.role)} />
       </Card>
     </div>
   );

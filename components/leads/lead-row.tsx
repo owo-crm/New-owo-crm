@@ -1,15 +1,5 @@
 import Link from "next/link";
-import {
-  Briefcase,
-  Cake,
-  CalendarDays,
-  ChevronRight,
-  Church,
-  Clock,
-  Heart,
-  PartyPopper,
-  type LucideIcon,
-} from "lucide-react";
+import { CalendarDays, ChevronRight, Clock } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { listTime, timeAgo } from "@/lib/format";
 import { hasKnownResponse } from "@/lib/leads/response";
@@ -19,40 +9,9 @@ import { cn } from "@/lib/utils";
 
 /**
  * Строки списка лидов (решение 048, по макетам Вани).
- * Телефон и страница «Leady» — крупная карточка с плиткой события, этапом, датой и «2 godz. temu».
+ * Телефон и страница «Leady» — карточка с этапом, датой и «2 godz. temu» (без картинок).
  * Компьютер, рядом с открытым лидом, — компактная строка в колонке слева.
  */
-
-const EVENT_TILES: [RegExp, LucideIcon, string][] = [
-  [/wesel|ślub|slub/i, Heart, "#e0567a"],
-  [/urodzin|18|40|50/i, Cake, "#e08a2f"],
-  [/komuni|chrzest|chrzcin/i, Church, "#5b7cfa"],
-  [/firm|event|korpo|integrac/i, Briefcase, "#2f9e8f"],
-];
-
-export function eventTile(type: string | null) {
-  const hit = EVENT_TILES.find(([re]) => type && re.test(type));
-  return { Icon: hit?.[1] ?? PartyPopper, tone: hit?.[2] ?? "#8b6cf0" };
-}
-
-/** Квадрат с иконкой мероприятия вместо фото (фото у лидов нет). */
-export function EventTile({ type, size = 56 }: { type: string | null; size?: number }) {
-  const { Icon, tone } = eventTile(type);
-  return (
-    <span
-      aria-hidden
-      className="flex shrink-0 items-center justify-center rounded-xl"
-      style={{
-        width: size,
-        height: size,
-        color: tone,
-        background: `color-mix(in oklab, ${tone} 14%, transparent)`,
-      }}
-    >
-      <Icon style={{ width: size * 0.42, height: size * 0.42 }} />
-    </span>
-  );
-}
 
 /** Цвет этапа: открытые — по порядку, выиграно — зелёный, потеряно — серый. */
 const STAGE_TONES = ["var(--accent)", "#8b6cf0", "var(--hold)", "#2f9e8f", "#d65f9e", "#5b7cfa"];
@@ -116,7 +75,6 @@ export function LeadCardRow({
       )}
     >
       {hot ? <span className="bg-urgent absolute inset-y-0 left-0 w-1" aria-hidden /> : null}
-      <EventTile type={lead.event_type} />
       <span className="min-w-0 flex-1">
         <span className="flex items-start gap-2">
           <span className="min-w-0 flex-1 truncate text-[15.5px] font-semibold">

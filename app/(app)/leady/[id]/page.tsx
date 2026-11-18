@@ -1,8 +1,7 @@
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { LeadEditor } from "@/components/leads/lead-editor";
-import { AttachmentsCard } from "@/components/documents/attachments-card";
-import { DocumentsCard } from "@/components/documents/documents-card";
+import { DocsPaymentsBlock } from "@/components/documents/docs-payments-block";
 import { getLead, getLeadHistory, getLeadOptions, getLeads } from "@/lib/leads/queries";
 import { parseLeadFilters } from "@/lib/leads/filters";
 import { LeadRail } from "@/components/leads/lead-rail";
@@ -10,7 +9,7 @@ import { CompactNav } from "@/components/leads/compact-nav";
 import { LiveUpdates } from "@/components/leads/live-updates";
 import { withOrg } from "@/lib/db/user";
 import { leadPayments, listDocuments } from "@/lib/documents/service";
-import { PaymentsCard } from "@/components/finance/payments-card";
+import { loadPaymentPlan } from "@/lib/finance/payments";
 import { LeadClientCard } from "@/components/agency/lead-client-card";
 import { clientIdForLead } from "@/lib/agency/repository";
 import { listAttachments } from "@/lib/documents/attachments";
@@ -27,6 +26,7 @@ export default async function LeadPage({ params, searchParams }: PageProps<"/lea
       enabled: organization.documentEngine === "barowo",
       list: await listDocuments(tx, organization.id, id),
       payments: await leadPayments(tx, organization.id, id),
+      plan: await loadPaymentPlan(tx, organization.id),
       agency: organization.industryPreset === "agency",
       // Карточки модулей показываем, только если модуль включён в абонементе.
       paymentsModule: organization.modules.includes("payments"),
@@ -55,17 +55,20 @@ export default async function LeadPage({ params, searchParams }: PageProps<"/lea
           team={options.team}
           history={history}
           agencyCard={showAgency ? <LeadClientCard leadId={id} clientId={agencyClient} /> : null}
-          paymentsCard={docs.paymentsModule ? <PaymentsCard payments={docs.payments} /> : null}
-          attachmentsCard={<AttachmentsCard leadId={id} files={files} />}
-          documentsCard={
-            docs.documentsModule ? (
-              <DocumentsCard
-                leadId={id}
-                enabled={docs.enabled}
-                documents={docs.list}
-                flash={typeof dokument === "string" ? dokument.slice(0, 60) : undefined}
-              />
-            ) : null
+          // Генерация оферты, договора и меню — кнопками в «Szybkie działania».
+          docActions={docs.documentsModule && docs.enabled}
+          docsBlock={
+            <DocsPaymentsBlock
+              leadId={id}
+              files={files}
+              documents={docs.list}
+              payments={docs.payments}
+              plan={docs.plan}
+              totalGrosze={lead.budget_grosze}
+              showDocs={docs.documentsModule}
+              showPayments={docs.paymentsModule}
+              flash={typeof dokument === "string" ? dokument.slice(0, 60) : undefined}
+            />
           }
         />
         <div className="mt-5">

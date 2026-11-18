@@ -26,7 +26,8 @@ test("oferta → menu → umowa: PDF + Word, dane wracają do karty, etap rośni
   await expect(page).toHaveURL(/\/leady\/[0-9a-f-]{36}/);
 
   // Всё на одном экране лида, без вкладок (решение 047).
-  await page.getByRole("link", { name: "Premium" }).click();
+  // Генерация — в «Szybkie działania» (решение 049).
+  await page.getByRole("link", { name: "Oferta", exact: true }).click();
   await page.getByLabel("Goście").fill("70");
   await page.getByLabel("Miejsce").fill("Hotel Łazienki");
   await page.getByLabel("Godziny (np. 18:00-02:00)").fill("17:00-01:00");
@@ -34,11 +35,11 @@ test("oferta → menu → umowa: PDF + Word, dane wracają do karty, etap rośni
   await page.locator("main").getByRole("button", { name: "Generuj PDF + Word" }).click();
   await expect(page.getByText(/Gotowe: Oferta/)).toBeVisible({ timeout: 20_000 });
 
-  await page.getByRole("link", { name: /Menu dla gości/ }).click();
+  await page.getByRole("link", { name: "Menu", exact: true }).click();
   await page.locator("main").getByRole("button", { name: "Generuj PDF + Word" }).click();
   await expect(page.getByText(/Gotowe: Menu/)).toBeVisible({ timeout: 20_000 });
 
-  await page.getByRole("link", { name: /Umowa/ }).click();
+  await page.getByRole("link", { name: "Umowa", exact: true }).click();
   await expect(page.getByLabel("Cena umowy (zł)")).toHaveValue("8800");
   await page.getByLabel("Adres klienta").fill("ul. Testowa 5, 81-001 Gdynia");
   await page.locator("main").getByRole("button", { name: "Generuj PDF + Word" }).click();

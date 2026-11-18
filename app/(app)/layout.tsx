@@ -141,7 +141,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
             <Plus className="size-5" />
           </Link>
         </header>
-        <main className="mx-auto w-full max-w-[80rem] px-4 pt-5 pb-28 sm:px-6 lg:px-10 lg:pt-4 lg:pb-12">
+        <main className="mx-auto w-full max-w-[80rem] px-4 pt-5 pb-28 has-[[data-lead-split]]:max-w-none sm:px-6 lg:px-10 lg:pt-4 lg:pb-12 lg:has-[[data-lead-split]]:px-5">
           {children}
         </main>
       </div>

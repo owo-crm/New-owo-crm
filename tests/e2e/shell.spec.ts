@@ -34,9 +34,9 @@ test("spam widać dopiero po wybraniu chipu «Spam»", async ({ page, request },
 
   await login(page);
   await page.goto("/leady");
-  await expect(page.getByRole("link", { name: "Spam", exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: /^Spam( \d+)?$/ })).toBeVisible();
   await expect(page.getByText(name)).toHaveCount(0);
-  await page.getByRole("link", { name: "Spam", exact: true }).click();
+  await page.getByRole("link", { name: /^Spam( \d+)?$/ }).click();
   await expect(page).toHaveURL(/stage=spam/);
   await expect(page.getByText(name)).toHaveCount(1);
   await page.screenshot({ path: `tests/screenshots/${info.project.name}-leady-spam.png` });

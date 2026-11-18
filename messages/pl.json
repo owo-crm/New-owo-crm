@@ -256,6 +256,17 @@
     "groupEvent": "Wydarzenie",
     "groupContract": "Dane do umowy",
     "tabData": "Dane",
+    "docsPayments": "Dokumenty i płatności",
+    "chat": "Czat",
+    "chatEdit": "Zmień link do czatu",
+    "chatLink": "Link do czatu z klientem",
+    "chatHint": "WhatsApp, Messenger, Instagram — wklej link do rozmowy. Następnym razem „Czat” otworzy ją od razu.",
+    "chatInvalid": "Wklej pełny link zaczynający się od https://",
+    "emailTemplates": "E-mail z szablonu",
+    "generate": "Generuj",
+    "genOffer": "Oferta",
+    "genContract": "Umowa",
+    "genMenu": "Menu",
     "groupOffer": "Oferta",
     "guestsCount": "{count} gości",
     "lastActivity": "Ostatnia aktywność",
@@ -399,6 +410,7 @@
   "docs": {
     "title": "Dokumenty",
     "empty": "Brak dokumentów. Wygeneruj ofertę personalną albo menu dla gości.",
+    "emptyShort": "Brak dokumentów — wygeneruj je w „Szybkich działaniach”.",
     "offerFor": "Oferta personalna",
     "offerPackage": "Oferta · {pkg}",
     "guestMenu": "Menu dla gości",
@@ -553,6 +565,14 @@
     "collapseNav": "Zwiń albo rozwiń menu",
     "expandNav": "Rozwiń menu"
   },
+  "paymentPlan": {
+    "title": "Plan płatności",
+    "intro": "Ile przedpłat bierzecie i jakie kwoty. Reszta to cena minus przedpłaty. Plan trafia do nowych umów i do karty leada.",
+    "rest": "cena minus przedpłaty (liczona sama)",
+    "add": "Dodaj przedpłatę",
+    "remove": "Usuń ostatnią",
+    "saved": "Zapisano plan płatności."
+  },
   "time": {
     "minutes": "{count} min",
     "hours": "{count} godz.",
@@ -567,6 +587,10 @@
   "finance": {
     "title": "Płatności",
     "empty": "Brak płatności. Pojawią się po wygenerowaniu umowy.",
+    "stepDeposit": "Zaliczka",
+    "stepN": "Zaliczka {n}",
+    "stepRest": "Reszta",
+    "planned": "Plan płatności (umowa jeszcze nie wygenerowana)",
     "paidOf": "Wpłacono {paid} z {total}",
     "due": "termin {date}",
     "wasDue": "termin minął {date}",
@@ -1160,7 +1184,9 @@
     "tooBig": "Plik jest za duży — maksymalnie 10 MB.",
     "failed": "Nie udało się zapisać pliku.",
     "remove": "Usuń",
-    "uploading": "Wysyłam…"
+    "uploading": "Wysyłam…",
+    "gallery": "Galeria",
+    "file": "Plik"
   },
   "company": {
     "title": "Dane firmy",

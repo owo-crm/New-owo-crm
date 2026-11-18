@@ -45,7 +45,6 @@ export const DASHBOARD: NavItem = {
   icon: LayoutDashboard,
 };
 export const LEADS: NavItem = { href: "/leady", label: "nav.leads", icon: Inbox };
-export const CLIENTS: NavItem = { href: "/klienci", label: "nav.clients", icon: Users };
 export const CONTRACTS: NavItem = {
   href: "/umowy",
   label: "nav.contracts",
@@ -116,7 +115,7 @@ export const SETTINGS: NavItem = {
 };
 
 export const NAV_GROUPS: NavGroup[] = [
-  { label: "nav.groupWork", items: [DASHBOARD, LEADS, CLIENTS, CONTRACTS, CALENDAR, MAIL] },
+  { label: "nav.groupWork", items: [DASHBOARD, LEADS, CONTRACTS, CALENDAR, MAIL] },
   { label: "nav.groupMoney", items: [ADS, AGENCY, SERVICES] },
   { label: "nav.groupCompany", items: [TEAM, SETTINGS] },
 ];

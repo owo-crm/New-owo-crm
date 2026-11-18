@@ -49,16 +49,22 @@ export function MailingPanel({
   campaigns,
   dailyLimit,
   mailReady,
+  preselect,
 }: {
   contacts: Contact[];
   templates: Template[];
   campaigns: Campaign[];
   dailyLimit: number;
   mailReady: boolean;
+  /** lead_id получателя, выбранного заранее (из карточки лида). */
+  preselect?: string;
 }) {
-  const [query, setQuery] = useState("");
+  const target = contacts.find((c) => c.lead_id === preselect && !c.unsubscribed);
+  const [query, setQuery] = useState(target?.email ?? "");
   const [filters, setFilters] = useState<Record<string, boolean>>({});
-  const [picked, setPicked] = useState<Record<string, boolean>>({});
+  const [picked, setPicked] = useState<Record<string, boolean>>(
+    target ? { [target.lead_id]: true } : {},
+  );
   const [letter, setLetter] = useState<Letter>(EMPTY);
   const [html, setHtml] = useState("");
   const [note, setNote] = useState<{ text: string; bad?: boolean }>();

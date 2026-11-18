@@ -25,6 +25,7 @@ import {
   Undo2,
   User,
   Users,
+  Wallet,
   Zap,
   type LucideIcon,
 } from "lucide-react";
@@ -33,13 +34,13 @@ import { Field } from "@/components/ui/field";
 import { Picker } from "@/components/ui/picker";
 import { plDateTime, timeAgo } from "@/lib/format";
 import { t, type MessageKey } from "@/lib/i18n";
-import { addLeadNote, editLead, undoLead } from "@/lib/leads/actions";
+import { addLeadNote, editLead, setChatUrl, undoLead } from "@/lib/leads/actions";
 import type { EditableField } from "@/lib/leads/edit";
 import type { LeadEvent } from "@/lib/leads/queries";
 import { hasKnownResponse } from "@/lib/leads/response";
 import type { Lead, PipelineStage } from "@/lib/leads/types";
 import { cn } from "@/lib/utils";
-import { EventTile, stageTone } from "./lead-row";
+import { stageTone } from "./lead-row";
 
 /**
  * Карточка лида (решение 048, макет Вани): слева блоки на «холсте» — Kontakt, Wydarzenie,
@@ -91,7 +92,6 @@ const BLOCKS: Block[] = [
     icon: MessageSquareText,
     tone: "#7c5cff",
     fields: ["message"],
-    wide: true,
   },
 ];
 const inputTypes: Partial<Record<EditableField, string>> = {
@@ -154,9 +154,9 @@ export function LeadEditor({
   stages,
   team,
   history,
-  documentsCard,
+  docsBlock,
+  docActions,
   attachmentsCard,
-  paymentsCard,
   agencyCard,
   serverNow,
 }: {
@@ -166,9 +166,11 @@ export function LeadEditor({
   stages: PipelineStage[];
   team: { id: string; name: string }[];
   history: LeadEvent[];
-  documentsCard?: React.ReactNode;
+  /** «Dokumenty i płatności» — блок на холсте рядом с «Wydarzenie». */
+  docsBlock?: React.ReactNode;
+  /** Кнопки генерации оферты, договора и меню в «Szybkie działania». */
+  docActions?: boolean;
   attachmentsCard?: React.ReactNode;
-  paymentsCard?: React.ReactNode;
   agencyCard?: React.ReactNode;
 }) {
   const [current, optimistic] = useOptimistic(lead, (state: Lead, patch: Partial<Lead>) => ({
@@ -178,6 +180,12 @@ export function LeadEditor({
   const [pending, startTransition] = useTransition();
   const [editing, setEditing] = useState<string | null>(null);
   const [allHistory, setAllHistory] = useState(false);
+  const [chatEditing, setChatEditing] = useState(false);
+  /** «Czat»: есть ссылка — открыть; нет — сначала спросить ссылку (WhatsApp, Messenger, Instagram). */
+  function openChat() {
+    if (current.chat_url) window.open(current.chat_url, "_blank", "noreferrer");
+    else setChatEditing(true);
+  }
   const [error, setError] = useState<string>();
   const [undoEvent, setUndoEvent] = useState<string>();
   const now = Date.parse(serverNow);
@@ -352,25 +360,24 @@ export function LeadEditor({
             >
               <Phone className="size-5" />
             </a>
-            <a
-              href={`https://wa.me/${phone.slice(1)}`}
-              target="_blank"
-              rel="noreferrer"
-              aria-label="WhatsApp"
+            <button
+              type="button"
+              onClick={openChat}
+              aria-label={t("leads.chat")}
               className="text-ok flex size-11 items-center justify-center rounded-full"
             >
               <MessageCircle className="size-5" />
-            </a>
+            </button>
           </>
         ) : null}
         {current.email ? (
-          <a
-            href={`mailto:${current.email}`}
+          <Link
+            href={`/poczta?lead=${lead.id}`}
             aria-label={t("leads.email")}
             className="text-ink flex size-11 items-center justify-center rounded-full"
           >
             <Mail className="size-5" />
-          </a>
+          </Link>
         ) : null}
       </div>
 
@@ -384,9 +391,6 @@ export function LeadEditor({
           <span className="text-ink truncate font-medium">{current.client_name}</span>
         </nav>
         <div className="flex items-center gap-3.5">
-          <span className="lg:hidden">
-            <EventTile type={current.event_type} size={64} />
-          </span>
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
               <h1 className="min-w-0 truncate text-[24px] font-bold tracking-tight lg:text-[30px]">
@@ -461,15 +465,15 @@ export function LeadEditor({
         </div>
       ) : null}
 
-      <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_19rem]">
+      <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_20rem]">
         {/* Холст с блоками */}
         <div className="grid gap-4">
           <section
             aria-label={t("leads.tabData")}
             className="border-line rounded-2xl border bg-[radial-gradient(var(--line-strong)_1px,transparent_1px)] [background-size:18px_18px] p-3 sm:p-4"
           >
-            <div className="grid gap-3 md:grid-cols-2">
-              {BLOCKS.map((block) => (
+            <div className="grid gap-3 md:grid-cols-2 2xl:grid-cols-3">
+              {BLOCKS.flatMap((block) => [
                 <article
                   key={block.key}
                   className={cn(
@@ -477,7 +481,6 @@ export function LeadEditor({
                     editing === block.key
                       ? "border-accent ring-accent/15 ring-4"
                       : "border-line hover:border-line-strong",
-                    block.wide && "md:col-span-2",
                   )}
                 >
                   <header className="mb-2.5 flex items-center gap-2.5">
@@ -503,19 +506,30 @@ export function LeadEditor({
                     ) : null}
                   </header>
                   {editing === block.key ? blockForm(block) : blockBody(block)}
-                </article>
-              ))}
+                </article>,
+                // «Dokumenty i płatności» — сразу после «Wydarzenie», того же размера.
+                block.key === "event" && docsBlock ? (
+                  <article
+                    key="docs"
+                    className="bg-surface border-line hover:border-line-strong rounded-2xl border p-4 shadow-[var(--shadow)] transition-colors"
+                  >
+                    <header className="mb-2.5 flex items-center gap-2.5">
+                      <span className="flex size-8 items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--ok)_14%,transparent)] text-[var(--ok)]">
+                        <Wallet className="size-4" />
+                      </span>
+                      <h2 className="flex-1 text-[15px] font-semibold">
+                        {t("leads.docsPayments")}
+                      </h2>
+                    </header>
+                    {docsBlock}
+                  </article>
+                ) : null,
+              ])}
             </div>
           </section>
-          {documentsCard || agencyCard ? (
+          {agencyCard || attachmentsCard ? (
             <div className="grid items-start gap-4 2xl:grid-cols-2">
-              {documentsCard}
               {agencyCard}
-            </div>
-          ) : null}
-          {paymentsCard || attachmentsCard ? (
-            <div className="grid items-start gap-4 2xl:grid-cols-2">
-              {paymentsCard}
               {attachmentsCard}
             </div>
           ) : null}
@@ -548,46 +562,150 @@ export function LeadEditor({
               {t("leads.markContacted")}
             </Button>
           ) : null}
-          <div className="grid grid-cols-3 gap-1.5">
+          <div className="grid grid-cols-2 gap-1.5">
             {phone ? (
-              <>
-                <a
-                  href={`tel:${phone}`}
-                  className={cn(
-                    buttonVariants({ variant: "soft", size: "sm" }),
-                    "px-1 text-[12.5px]",
-                  )}
-                >
-                  <Phone />
-                  {t("leads.phoneShort")}
-                </a>
-                <a
-                  href={`https://wa.me/${phone.slice(1)}`}
-                  target="_blank"
-                  rel="noreferrer"
+              <a
+                href={`tel:${phone}`}
+                className={cn(buttonVariants({ variant: "soft", size: "sm" }), "text-[12.5px]")}
+              >
+                <Phone />
+                {t("leads.phoneShort")}
+              </a>
+            ) : null}
+            <span className="flex min-w-0">
+              <button
+                type="button"
+                onClick={openChat}
+                className={cn(
+                  buttonVariants({ variant: "success", size: "sm" }),
+                  "min-w-0 flex-1 text-[12.5px]",
+                  current.chat_url && "rounded-r-none",
+                )}
+              >
+                <MessageCircle />
+                {t("leads.chat")}
+              </button>
+              {current.chat_url ? (
+                <button
+                  type="button"
+                  onClick={() => setChatEditing(true)}
+                  aria-label={t("leads.chatEdit")}
                   className={cn(
                     buttonVariants({ variant: "success", size: "sm" }),
-                    "px-1 text-[12.5px]",
+                    "border-l-ok/30 rounded-l-none border-l px-2",
                   )}
                 >
-                  <MessageCircle />
-                  WhatsApp
-                </a>
-              </>
-            ) : null}
+                  <Pencil className="size-3.5" />
+                </button>
+              ) : null}
+            </span>
             {current.email ? (
-              <a
-                href={`mailto:${current.email}`}
+              <Link
+                href={`/poczta?lead=${lead.id}`}
                 className={cn(
                   buttonVariants({ variant: "secondary", size: "sm" }),
-                  "px-1 text-[12.5px]",
+                  "col-span-2 text-[12.5px]",
                 )}
               >
                 <Mail />
-                E-mail
-              </a>
+                {t("leads.emailTemplates")}
+              </Link>
             ) : null}
           </div>
+          {chatEditing ? (
+            <form
+              className="border-line bg-surface-2/60 grid gap-2 rounded-xl border p-3"
+              onSubmit={(e) => {
+                e.preventDefault();
+                const url = String(new FormData(e.currentTarget).get("chat") ?? "");
+                startTransition(async () => {
+                  const result = await setChatUrl(lead.id, url);
+                  if (result.error) setError(result.error);
+                  else {
+                    setChatEditing(false);
+                    if (url && !current.chat_url) window.open(url, "_blank", "noreferrer");
+                  }
+                });
+              }}
+            >
+              <label className="grid gap-1.5 text-[12.5px] font-semibold">
+                {t("leads.chatLink")}
+                <input
+                  name="chat"
+                  type="url"
+                  autoFocus
+                  defaultValue={current.chat_url ?? ""}
+                  placeholder="https://m.me/… · instagram.com/… · wa.me/…"
+                  className="border-line-strong bg-surface h-9 rounded-lg border px-2.5 text-[13px] font-normal"
+                />
+              </label>
+              <p className="text-ink-faint text-[11.5px]">{t("leads.chatHint")}</p>
+              <div className="flex flex-wrap gap-1.5">
+                <Button type="submit" size="sm" disabled={pending}>
+                  {t("leads.save")}
+                </Button>
+                {phone && !current.chat_url ? (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="secondary"
+                    onClick={(e) => {
+                      const input = e.currentTarget.form?.elements.namedItem("chat");
+                      if (input instanceof HTMLInputElement)
+                        input.value = `https://wa.me/${phone.slice(1)}`;
+                    }}
+                  >
+                    WhatsApp
+                  </Button>
+                ) : null}
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setChatEditing(false)}
+                >
+                  {t("leads.cancel")}
+                </Button>
+              </div>
+            </form>
+          ) : null}
+          {docActions ? (
+            <div className="grid gap-1.5">
+              <p className="text-[13px] font-semibold">{t("leads.generate")}</p>
+              <div className="grid grid-cols-3 gap-1.5">
+                <Link
+                  href={`/leady/${lead.id}/oferta?pakiet=${(current.package_name ?? "standard").toLowerCase()}`}
+                  className={cn(
+                    buttonVariants({ variant: "secondary", size: "sm" }),
+                    "px-1 text-[12.5px]",
+                  )}
+                >
+                  <Star />
+                  {t("leads.genOffer")}
+                </Link>
+                <Link
+                  href={`/leady/${lead.id}/umowa`}
+                  className={cn(
+                    buttonVariants({ variant: "secondary", size: "sm" }),
+                    "px-1 text-[12.5px]",
+                  )}
+                >
+                  <FileSignature />
+                  {t("leads.genContract")}
+                </Link>
+                <Link
+                  href={`/leady/${lead.id}/menu`}
+                  className={cn(
+                    buttonVariants({ variant: "secondary", size: "sm" }),
+                    "px-1 text-[12.5px]",
+                  )}
+                >
+                  <FileText />
+                  {t("leads.genMenu")}
+                </Link>
+              </div>
+            </div>
+          ) : null}
 
           <div className="border-line grid gap-2 border-t pt-4">
             <p className="flex items-center gap-2 text-[14px] font-semibold">

@@ -15,7 +15,10 @@ import { t } from "@/lib/i18n";
 export const metadata: Metadata = { title: t("mailing.title") };
 
 /** Панель рассылок: кому → что → как выглядит → отправить (решение 037). */
-export default async function MailingPage() {
+export default async function MailingPage({ searchParams }: PageProps<"/poczta">) {
+  // Пришли из карточки лида («E-mail z szablonu») — получатель уже выбран.
+  const lead = (await searchParams).lead;
+  const preselect = typeof lead === "string" && /^[0-9a-f-]{36}$/.test(lead) ? lead : undefined;
   const access = await moduleAccess("documents");
   if (!access.enabled)
     return (
@@ -55,6 +58,7 @@ export default async function MailingPage() {
           campaigns={campaigns}
           dailyLimit={mail?.dailyLimit ?? 450}
           mailReady={Boolean(mail)}
+          preselect={preselect}
         />
       )}
     </>

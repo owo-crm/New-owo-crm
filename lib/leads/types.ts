@@ -28,6 +28,7 @@ export const leadSchema = z.object({
   client_address: z.string().nullable().default(null),
   next_contact_at: z.string().nullable().default(null),
   deposit_paid_at: z.string().nullable().default(null),
+  chat_url: z.string().nullable().default(null),
 });
 export type Lead = z.infer<typeof leadSchema>;
 export type PipelineStage = {

@@ -164,3 +164,30 @@ export async function createManualLead(
     return { error: t("leads.saveError") };
   }
 }
+
+/** Ссылка на чат с клиентом (WhatsApp, Messenger, Instagram…): кнопка «Czat» в карточке лида. */
+export async function setChatUrl(id: string, url: string): Promise<LeadActionResult> {
+  const parsed = z
+    .union([
+      z.literal(""),
+      z
+        .string()
+        .trim()
+        .max(500)
+        .regex(/^https:\/\/[^\s]+$/),
+    ])
+    .safeParse(url.trim());
+  if (!z.uuid().safeParse(id).success || !parsed.success) return { error: t("leads.chatInvalid") };
+  try {
+    await withOrg((tx, { organization }) =>
+      tx.query(
+        "update public.leads set chat_url=$3 where organization_id=$1 and id=$2 and deleted_at is null",
+        [organization.id, id, parsed.data || null],
+      ),
+    );
+  } catch {
+    return { error: t("leads.saveError") };
+  }
+  refreshLead(id);
+  return {};
+}

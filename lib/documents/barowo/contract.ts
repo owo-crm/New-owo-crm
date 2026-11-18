@@ -28,6 +28,8 @@ export function contractSnapshot(
   packageName: string,
   values: ContractValues,
   now = new Date(),
+  /** Сумма предоплат из плана бизнеса (решение 049), по умолчанию 500 + 1000. */
+  deposit: number = BAROWO_CONTRACT.deposit,
 ) {
   const eventDate = e.parseDocumentDate_(values.date);
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -45,7 +47,6 @@ export function contractSnapshot(
   const guests = e.parseDocumentGuests_(values.guests);
   const hours = e.parseDocumentHours_(values.hours);
   const price = e.parseDocumentMoney_(values.price);
-  const deposit = BAROWO_CONTRACT.deposit;
   if (price < deposit)
     throw new Error(`Cena umowy musi być co najmniej równa zadatkowi (${deposit} zł).`);
   let depositDate = new Date(eventDate);
