@@ -133,10 +133,13 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
             className="min-w-0 flex-1"
           />
           <CommandButton className="w-10 justify-center px-0 [&>kbd]:hidden [&>span]:hidden" />
-          <ThemeToggle
-            className="text-ink-soft hover:text-ink flex size-10 shrink-0 items-center justify-center rounded-lg"
-            iconOnly
-          />
+          <Link
+            href="/leady/nowy"
+            aria-label={t("nav.newLead")}
+            className="bg-accent text-accent-ink flex size-10 shrink-0 items-center justify-center rounded-full shadow-[var(--shadow-pop)] transition-transform duration-150 active:scale-[0.94]"
+          >
+            <Plus className="size-5" />
+          </Link>
         </header>
         <main className="mx-auto w-full max-w-[80rem] px-4 pt-5 pb-28 sm:px-6 lg:px-10 lg:pt-4 lg:pb-12">
           {children}

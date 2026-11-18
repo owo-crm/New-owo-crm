@@ -19,8 +19,11 @@ const DETAILED = ["stage", "source", "assigned", "from", "to"] as const;
 export function LeadFiltersForm({
   filters,
   options,
+  counts = {},
 }: {
   filters: LeadFilters;
+  /** Лидов на этапе — числа на чипах (решение 048). */
+  counts?: Record<string, number>;
   options: {
     stages: PipelineStage[];
     channels: LeadChannel[];
@@ -97,50 +100,95 @@ export function LeadFiltersForm({
           className="gap-2"
         >
           <SlidersHorizontal className="size-4" />
-          {active ? t("leads.filtersOn", { count: active }) : t("leads.filters")}
+          <span className="max-sm:sr-only">
+            {active ? t("leads.filtersOn", { count: active }) : t("leads.filters")}
+          </span>
         </Button>
       </div>
 
-      <nav aria-label={t("leads.filters")} className="flex flex-wrap gap-1.5">
-        {quick.map(([value, label]) => {
-          const on = (filters.quick ?? "") === value && !lostSelected;
+      {/* Чипы листаются вбок (как в мобильном макете): «Wszystkie», этапы с числами, быстрые фильтры. */}
+      <nav
+        aria-label={t("leads.filters")}
+        className="-mx-4 flex [scrollbar-width:none] gap-1.5 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0"
+      >
+        {(() => {
+          const chip = (on: boolean, dashed = false) =>
+            cn(
+              "inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border px-3.5 text-[13px] font-semibold whitespace-nowrap transition-colors",
+              on
+                ? "border-ink bg-ink text-bg"
+                : dashed
+                  ? "border-line-strong text-ink-faint hover:text-ink border-dashed"
+                  : "border-line bg-surface text-ink-soft hover:border-line-strong hover:text-ink",
+            );
+          const num = (n: number | undefined, on: boolean) =>
+            n ? <span className={on ? "opacity-70" : "text-ink-faint"}>{n}</span> : null;
+          const total = options.stages
+            .filter((st) => st.kind !== "lost")
+            .reduce((sum, st) => sum + (counts[st.key] ?? 0), 0);
+          const allOn = !filters.quick && !filters.stage;
           return (
-            <Link
-              key={label}
-              href={leadFilterUrl(filters, {
-                quick: (value || undefined) as LeadFilters["quick"],
-                stage: lostSelected ? undefined : filters.stage,
+            <>
+              <Link
+                href={leadFilterUrl(filters, { quick: undefined, stage: undefined })}
+                aria-current={allOn ? "true" : undefined}
+                className={chip(allOn)}
+              >
+                {t("leads.quickAll")} {num(total, allOn)}
+              </Link>
+              {options.stages
+                .filter((st) => st.kind !== "lost" && counts[st.key])
+                .map((st) => {
+                  const on = filters.stage === st.key;
+                  return (
+                    <Link
+                      key={st.key}
+                      href={leadFilterUrl(filters, {
+                        quick: undefined,
+                        stage: on ? undefined : st.key,
+                      })}
+                      aria-current={on ? "true" : undefined}
+                      className={chip(on)}
+                    >
+                      {st.label_pl} {num(counts[st.key], on)}
+                    </Link>
+                  );
+                })}
+              {quick.slice(1).map(([value, label]) => {
+                const on = filters.quick === value;
+                return (
+                  <Link
+                    key={label}
+                    href={leadFilterUrl(filters, {
+                      quick: on ? undefined : (value as LeadFilters["quick"]),
+                      stage: undefined,
+                    })}
+                    aria-current={on ? "true" : undefined}
+                    className={chip(on)}
+                  >
+                    {t(label)}
+                  </Link>
+                );
               })}
-              aria-current={on ? "true" : undefined}
-              className={cn(
-                "h-8 rounded-full border px-3 text-[13px] leading-[30px] font-semibold transition-colors",
-                on
-                  ? "border-ink bg-ink text-bg"
-                  : "border-line text-ink-soft hover:border-line-strong hover:text-ink",
-              )}
-            >
-              {t(label)}
-            </Link>
+              {lost.map((st) => {
+                const on = filters.stage === st.key;
+                return (
+                  <Link
+                    key={st.key}
+                    href={leadFilterUrl(filters, {
+                      quick: undefined,
+                      stage: on ? undefined : st.key,
+                    })}
+                    aria-current={on ? "true" : undefined}
+                    className={chip(on, true)}
+                  >
+                    {st.label_pl} {num(counts[st.key], on)}
+                  </Link>
+                );
+              })}
+            </>
           );
-        })}
-        {lost.map((stage) => {
-          const on = filters.stage === stage.key;
-          return (
-            <Link
-              key={stage.key}
-              href={leadFilterUrl(filters, { quick: undefined, stage: on ? undefined : stage.key })}
-              aria-current={on ? "true" : undefined}
-              className={cn(
-                "h-8 rounded-full border border-dashed px-3 text-[13px] leading-[30px] font-semibold transition-colors",
-                on
-                  ? "border-ink bg-ink text-bg border-solid"
-                  : "border-line-strong text-ink-faint hover:text-ink",
-              )}
-            >
-              {stage.label_pl}
-            </Link>
-          );
-        })}
+        })()}
       </nav>
 
       {open ? (

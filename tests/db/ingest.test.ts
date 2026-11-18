@@ -211,3 +211,13 @@ it("email/name queries with digits do not match unrelated phone digits", async (
   );
   expect(phone.rows).toEqual([{ id: lead.id }]);
 });
+
+it("next_contact_at принимает время по Варшаве", async () => {
+  const lead = await ingest(USER_A, orgA, "605100299", "next@example.com");
+  await change(lead.id, { next_contact_at: "2026-12-03 14:00:00 Europe/Warsaw" });
+  const row = await db.query<{ t: string }>(
+    `select to_char(next_contact_at at time zone 'UTC','YYYY-MM-DD HH24:MI') as t from public.leads where id=$1`,
+    [lead.id],
+  );
+  expect(row.rows[0].t).toBe("2026-12-03 13:00");
+});

@@ -49,11 +49,8 @@ test("oferta → menu → umowa: PDF + Word, dane wracają do karty, etap rośni
     .evaluateAll((a) => a.map((x) => x.getAttribute("href")!));
   expect(files).toHaveLength(6);
   for (const href of files) expect((await page.request.get(href)).status()).toBe(200);
-  // Этап виден дорожкой, а не списком (решение 035).
-  await expect(page.getByRole("button", { name: "Umowa wysłana" })).toHaveAttribute(
-    "aria-current",
-    "step",
-  );
+  // Этап — пилюля рядом с именем (решение 048).
+  await expect(page.locator("main h1 + *")).toContainText("Umowa wysłana");
   await expect(page.getByText("Hotel Łazienki")).toBeVisible();
   await page.screenshot({
     path: `tests/screenshots/${info.project.name}-dokumenty.png`,

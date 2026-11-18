@@ -18,6 +18,7 @@ export const editableFields = [
   "service_hours",
   "client_full_name",
   "client_address",
+  "next_contact_at",
 ] as const;
 const PLAIN_TEXT: Partial<Record<string, number>> = {
   package_name: 60,
@@ -48,6 +49,13 @@ export function prepareLeadPatch(
         .parse(input),
     };
   if (field === "assigned_to") return { assigned_to: input ? z.uuid().parse(input) : null };
+  // «Następny kontakt»: дата и время по Варшаве из полей формы («2026-12-03T14:00»).
+  if (field === "next_contact_at") {
+    if (!input.trim()) return { next_contact_at: null };
+    const m = /^(\d{4}-\d{2}-\d{2})(?:[T ](\d{2}:\d{2}))?$/.exec(input.trim());
+    if (!m) throw new Error("invalid_datetime");
+    return { next_contact_at: `${m[1]} ${m[2] ?? "09:00"}:00 Europe/Warsaw` };
+  }
   if (PLAIN_TEXT[field]) {
     const value = z.string().trim().max(PLAIN_TEXT[field]!).parse(input);
     return { [field]: value || null };

@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { BarChart3, Briefcase, Inbox, LayoutDashboard, Menu, Plus, X } from "lucide-react";
+import { BarChart3, Briefcase, CalendarDays, Inbox, LayoutDashboard, Menu, X } from "lucide-react";
 import { NAV_ALL, NAV_GROUPS, visible, type NavContext, type NavItem } from "./nav-items";
 import { cn } from "@/lib/utils";
+import { ThemeToggle } from "./theme-toggle";
 import { t } from "@/lib/i18n";
 
 function isActive(pathname: string, item: NavItem) {
@@ -105,10 +106,13 @@ export function BottomNav({ ctx, waiting = 0 }: { ctx: NavContext; waiting?: num
   const fourth = ctx.agency
     ? { href: "/agencja", label: t("nav.agency"), icon: Briefcase }
     : { href: "/statystyka", label: t("nav.stats"), icon: BarChart3 };
+  // Как в мобильном макете (решение 048): Leady · Kalendarz · Statystyka · Menu,
+  // «＋ Nowy lead» — в верхней панели. Без модуля календаря второй вкладкой идёт Pulpit.
   const tabs = [
-    { href: "/dzisiaj", label: t("nav.dashboard"), icon: LayoutDashboard },
     { href: "/leady", label: t("nav.leads"), icon: Inbox },
-    null,
+    ctx.modules.includes("calendar")
+      ? { href: "/kalendarz", label: t("nav.calendar"), icon: CalendarDays }
+      : { href: "/dzisiaj", label: t("nav.dashboard"), icon: LayoutDashboard },
     fourth,
   ];
   return (
@@ -117,39 +121,33 @@ export function BottomNav({ ctx, waiting = 0 }: { ctx: NavContext; waiting?: num
         aria-label="Menu główne"
         className="border-line bg-surface/95 fixed inset-x-0 bottom-0 z-30 border-t pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
       >
-        <ul className="mx-auto grid h-16 w-full max-w-md grid-cols-5 items-center">
-          {tabs.map((tab) =>
-            tab === null ? (
-              <li key="plus" className="flex justify-center">
-                <Link
-                  href="/leady/nowy"
-                  aria-label={t("nav.newLead")}
-                  className="bg-accent text-accent-ink flex size-11 items-center justify-center rounded-full shadow-[var(--shadow-pop)] transition-transform duration-150 active:scale-[0.96]"
-                >
-                  <Plus className="size-5" />
-                </Link>
-              </li>
-            ) : (
-              <li key={tab.href} className="min-w-0">
-                <Link
-                  href={tab.href}
-                  aria-current={pathname.startsWith(tab.href) ? "page" : undefined}
-                  className={cn(
-                    "relative flex flex-col items-center gap-1 py-2 text-[11px] font-medium",
-                    pathname.startsWith(tab.href) ? "text-accent" : "text-ink-faint",
-                  )}
-                >
-                  <tab.icon className="size-5" />
-                  <span className="max-w-full truncate px-1">{tab.label}</span>
-                  {tab.href === "/leady" && waiting ? (
-                    <span className="bg-urgent absolute top-1 left-1/2 ml-2 min-w-4 rounded-full px-1 text-center text-[10px] leading-4 font-semibold text-white">
-                      {waiting}
-                    </span>
-                  ) : null}
-                </Link>
-              </li>
-            ),
-          )}
+        <ul className="mx-auto grid h-16 w-full max-w-md grid-cols-4 items-center">
+          {tabs.map((tab) => (
+            <li key={tab.href} className="min-w-0">
+              <Link
+                href={tab.href}
+                aria-current={pathname.startsWith(tab.href) ? "page" : undefined}
+                className={cn(
+                  "relative flex flex-col items-center gap-1 py-2 text-[11px] font-medium",
+                  pathname.startsWith(tab.href) ? "text-accent" : "text-ink-faint",
+                )}
+              >
+                <tab.icon className="size-5" />
+                <span className="max-w-full truncate px-1">{tab.label}</span>
+                {pathname.startsWith(tab.href) ? (
+                  <span
+                    className="bg-accent absolute bottom-0.5 h-[3px] w-6 rounded-full"
+                    aria-hidden
+                  />
+                ) : null}
+                {tab.href === "/leady" && waiting ? (
+                  <span className="bg-urgent absolute top-1 left-1/2 ml-2 min-w-4 rounded-full px-1 text-center text-[10px] leading-4 font-semibold text-white">
+                    {waiting}
+                  </span>
+                ) : null}
+              </Link>
+            </li>
+          ))}
           <li className="min-w-0">
             <button
               type="button"
@@ -189,6 +187,9 @@ export function BottomNav({ ctx, waiting = 0 }: { ctx: NavContext; waiting?: num
               </button>
             </div>
             <GroupedNav ctx={ctx} waiting={waiting} onNavigate={() => setOpen(false)} />
+            <div className="border-line mt-4 border-t px-3 pt-3">
+              <ThemeToggle className="text-ink-soft hover:text-ink flex h-10 items-center gap-3 text-[14px]" />
+            </div>
           </div>
         </div>
       ) : null}

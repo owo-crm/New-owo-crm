@@ -105,3 +105,15 @@ export function getLeadHistory(id: string) {
     return rows;
   });
 }
+
+/** Сколько лидов на каждом этапе (чипы над списком). */
+export function getStageCounts() {
+  return withOrg(async (tx, { organization }) => {
+    const { rows } = await tx.query<{ stage_key: string; n: number }>(
+      `select stage_key, count(*)::int as n from public.leads
+       where organization_id=$1 and deleted_at is null group by stage_key`,
+      [organization.id],
+    );
+    return Object.fromEntries(rows.map((r) => [r.stage_key, r.n])) as Record<string, number>;
+  });
+}

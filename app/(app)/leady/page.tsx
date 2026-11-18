@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Inbox } from "lucide-react";
-import { EmptyState, PageHeader } from "@/components/app-shell/page";
+import { EmptyState } from "@/components/app-shell/page";
 import { buttonVariants } from "@/components/ui/button";
 import { LeadFiltersForm } from "@/components/leads/lead-filters";
 import { Kanban } from "@/components/leads/kanban";
@@ -9,26 +9,29 @@ import { LeadList } from "@/components/leads/lead-list";
 import { LiveUpdates } from "@/components/leads/live-updates";
 import { LeadViewTabs } from "@/components/leads/view-tabs";
 import { requireOrganization } from "@/lib/auth/session";
-import { getLeadOptions, getLeads } from "@/lib/leads/queries";
+import { getLeadOptions, getLeads, getStageCounts } from "@/lib/leads/queries";
 import { leadPageUrl, parseLeadFilters } from "@/lib/leads/filters";
 import { t } from "@/lib/i18n";
 export const metadata: Metadata = { title: t("nav.leads") };
 export default async function Page({ searchParams }: PageProps<"/leady">) {
   const { organization } = await requireOrganization();
   const filters = parseLeadFilters(await searchParams);
-  const [{ leads, total }, options] = await Promise.all([getLeads(filters), getLeadOptions()]);
+  const [{ leads, total }, options, counts] = await Promise.all([
+    getLeads(filters),
+    getLeadOptions(),
+    getStageCounts(),
+  ]);
   const now = new Date().toISOString();
   return (
     <>
-      <PageHeader
-        title={t("nav.leads")}
-        subtitle={t("leads.count", { count: total })}
-        aside={
-          <div className="flex flex-wrap items-center gap-2">
-            <LiveUpdates organizationId={organization.id} />
-          </div>
-        }
-      />
+      {/* Крупный заголовок как в мобильном макете (решение 048). */}
+      <header className="mb-3 flex items-end justify-between gap-3">
+        <div>
+          <h1 className="text-[30px] leading-tight font-bold tracking-tight">{t("nav.leads")}</h1>
+          <p className="text-ink-soft text-[13px]">{t("leads.count", { count: total })}</p>
+        </div>
+        <LiveUpdates organizationId={organization.id} />
+      </header>
       <div className="mb-4">
         <LeadViewTabs
           current={filters.view === "board" ? "board" : "list"}
@@ -37,7 +40,12 @@ export default async function Page({ searchParams }: PageProps<"/leady">) {
           calendar={organization.modules.includes("calendar")}
         />
       </div>
-      <LeadFiltersForm key={JSON.stringify(filters)} filters={filters} options={options} />
+      <LeadFiltersForm
+        key={JSON.stringify(filters)}
+        filters={filters}
+        options={options}
+        counts={counts}
+      />
       {filters.view === "board" ? (
         <Kanban leads={leads} stages={options.stages} total={total} />
       ) : leads.length ? (

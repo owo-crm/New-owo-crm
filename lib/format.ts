@@ -71,3 +71,27 @@ export function plForm<T extends string>(n: number, one: T, few: T, many: T): T 
   if (d >= 2 && d <= 4 && (h < 12 || h > 14)) return few;
   return many;
 }
+
+/** «teraz», «5 min temu», «2 godz. temu», «wczoraj», «3 dni temu», дальше — дата. */
+export function timeAgo(iso: string, now: number = Date.now()) {
+  const m = Math.max(0, Math.floor((now - Date.parse(iso)) / 60000));
+  if (m < 1) return t("time.now");
+  if (m < 60) return t("time.minutesAgo", { count: m });
+  const h = Math.floor(m / 60);
+  if (h < 24) return t("time.hoursAgo", { count: h });
+  const d = Math.floor(h / 24);
+  if (d === 1) return t("time.yesterday");
+  if (d < 7) return t("time.daysAgo", { count: d });
+  return plDateTime(iso).split(",")[0];
+}
+
+/** Время в списке: сегодня — «22:26», иначе — «15.12». */
+export function listTime(iso: string, now: number = Date.now()) {
+  const fmt = (o: Intl.DateTimeFormatOptions) =>
+    new Intl.DateTimeFormat("pl-PL", { timeZone: "Europe/Warsaw", ...o }).format(new Date(iso));
+  const day = (v: number) =>
+    new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Warsaw" }).format(new Date(v));
+  return day(Date.parse(iso)) === day(now)
+    ? fmt({ hour: "2-digit", minute: "2-digit" })
+    : fmt({ day: "2-digit", month: "2-digit" });
+}
