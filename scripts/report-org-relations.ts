@@ -36,7 +36,10 @@ try {
     console.log(`Raport klasyfikacji organizacji (M1.2) — ${new Date().toISOString()}`);
     console.log("TYLKO PODGLĄD: nic nie zostało zapisane. Listę «client» zatwierdza właściciel.\n");
     for (const r of rows) {
-      const label = r.proposal + (r.confirm_required ? " (do potwierdzenia)" : "");
+      const label =
+        r.proposal === "decide"
+          ? "DECYZJA WŁAŚCICIELA"
+          : r.proposal + (r.confirm_required ? " (do potwierdzenia)" : "");
       console.log(`■ ${r.name}  [${r.industry_preset}]  → ${label}`);
       console.log(
         `  członkowie: ${r.members.map((m) => `${m.name} (${m.role}${m.is_service ? ", serwis" : ""})`).join(", ") || "—"}`,

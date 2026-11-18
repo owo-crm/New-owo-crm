@@ -5,7 +5,7 @@ import { TYPE_PARSERS, type Database } from "@/lib/db/core";
 import { ensureAgencyWorkspace, linkBusinessesToAgency } from "@/lib/db/bootstrap";
 import { orgRelationsReport } from "@/lib/platform/org-relations-report";
 
-/** M1.2: отчёт классификации — только чтение, Barowo = service, client только с оплатой. */
+/** M1.2: отчёт классификации — только чтение; Barowo = service; явное создание = client; старая автопривязка = решение владельца. */
 const ADMIN = "c1000000-0000-4000-8000-000000000001";
 const IVAN = "c1000000-0000-4000-8000-000000000002";
 let pg: PGlite;
@@ -41,7 +41,18 @@ beforeAll(async () => {
     await asUser(pg, ADMIN, () =>
       pg.query("select public.mark_service_membership($1)", [ids[key]]),
     );
-  await linkBusinessesToAgency(db, () => {}); // как в продакшне: все привязаны автоматически
+  await linkBusinessesToAgency(db, () => {}); // старая автопривязка при старте (created_by пуст)
+  // «Nowy biznes»: явная связь с created_by.
+  ids.fresh = (
+    await asUser(pg, ADMIN, () =>
+      pg.query<{ id: string }>("select public.create_organization('Nowa Firma','m12-fresh') as id"),
+    )
+  ).rows[0].id;
+  await pg.query(
+    `insert into public.agency_clients (organization_id, name, client_org_id, status, started_at, created_by)
+     select o.id, 'Nowa Firma', $1, 'active', current_date, $2 from public.organizations o where o.industry_preset='agency'`,
+    [ids.fresh, ADMIN],
+  );
   // Оплаченный счёт Stripe у «Studio Płatne» и (ошибочно) у Barowo.
   for (const key of ["paid", "barowo"])
     await pg.query(
@@ -69,10 +80,14 @@ it("классификация по D-02 и ничего не записывае
   expect(by("OWO Ads").proposal).toBe("agency");
   expect(by("Barowo")).toMatchObject({ proposal: "service", confirm_required: false });
   expect(by("Barowo").reasons.join(" ")).toMatch(/M1\.5/);
-  expect(by("Studio Płatne")).toMatchObject({ proposal: "client", confirm_required: true });
+  // Оплата Stripe — не критерий (D-23): старая автопривязка → решение владельца.
+  expect(by("Studio Płatne")).toMatchObject({ proposal: "decide", confirm_required: true });
   expect(by("Studio Płatne").orders.stripe_invoices).toBe(1);
+  expect(by("Studio Płatne").reasons.join(" ")).toMatch(/nie kryterium/);
+  // Явное создание через OWO → client без подтверждения.
+  expect(by("Nowa Firma")).toMatchObject({ proposal: "client", confirm_required: false });
   expect(by("Firma E2E").proposal).toBe("none");
   // Есть строка agency_clients (автопривязка), но нет оплат — это не «client».
   expect(by("Kawiarnia").agency_client?.likely_created_by).toMatch(/automatycznie/);
-  expect(by("Kawiarnia").proposal).toBe("service");
+  expect(by("Kawiarnia").proposal).toBe("decide");
 });

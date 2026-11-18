@@ -4,16 +4,19 @@ import type { Database } from "../db/core.ts";
  * M1.2 — отчёт классификации организаций (docs/architecture/OWO_CRM_MIGRATION_PLAN.md, D-02).
  *
  * ТОЛЬКО ЧТЕНИЕ. Ничего не записывает и не меняет: результат — предложение для владельца.
- * Существующая строка agency_clients НЕ считается доказательством коммерческих отношений
- * (её создавала автопривязка linkBusinessesToAgency при каждом старте).
- *
- * Критерии `client` (D-02): подтверждённые коммерческие отношения с OWO Ads (договор / заказ услуг)
- * ИЛИ коммерческая подписка OWO CRM, И реальная оплата или документированное обязательство.
- * Отчёт видит только данные в базе: оплаченные заказы и Stripe-подписку. Договоры и обязательства
- * вне системы отчёт проверить не может — поэтому `client` всегда «do potwierdzenia».
+ * Правила (D-02, пересмотрено 2026-11-18; Stripe — не критерий, D-23):
+ *  - кабинет агентства — не классифицируется;
+ *  - Barowo (фирма Ивана) — `service`; конкретную организацию владелец подтверждает по id;
+ *  - тестовая организация — без связи;
+ *  - связь создана ЯВНО (created_by указан: «Nowy biznes», мастер «Utwórz CRM klienta», из лида) —
+ *    `client`: создание бизнеса через OWO само является явным действием;
+ *  - связь создана СТАРОЙ автопривязкой при старте (linkBusinessesToAgency, без created_by) —
+ *    `decide`: решает владелец (в отчёте — заказы, выплаты, сервисный доступ);
+ *  - связи нет, но есть сервисный доступ OWO — `service`; иначе — без связи.
+ * Stripe-события и заказы со stripe_invoice_id выводятся только как история.
  */
 
-export type Proposal = "client" | "service" | "none" | "agency";
+export type Proposal = "client" | "service" | "none" | "agency" | "decide";
 
 export type OrgRelationRow = {
   organization_id: string;
@@ -190,34 +193,34 @@ export async function orgRelationsReport(db: Database): Promise<OrgRelationRow[]
     } else if (TEST.test(o.name)) {
       proposal = "none";
       reasons.push("Nazwa wskazuje na firmę testową.");
-    } else if (
-      stripeInvoices > 0 ||
-      manualPaid > 0 ||
-      ["active", "trialing", "past_due"].includes(billing?.status ?? "")
-    ) {
+    } else if (ac && (ac.created_by || ac.lead_id)) {
       proposal = "client";
-      confirm = true;
-      if (stripeInvoices)
-        reasons.push(`Opłacone faktury Stripe (abonament CRM): ${stripeInvoices}.`);
-      if (manualPaid) reasons.push(`Opłacone ręczne zamówienia agencji: ${manualPaid}.`);
-      if (billing && ["active", "trialing", "past_due"].includes(billing.status))
-        reasons.push(`Subskrypcja Stripe w statusie «${billing.status}».`);
       reasons.push(
-        "Wymaga potwierdzenia: umowa/zamówienie OWO Ads lub subskrypcja + realna płatność lub udokumentowane zobowiązanie.",
+        `Związek utworzony jawnie (${likely}) — nowy biznes założony przez OWO jest klientem (D-02).`,
       );
+    } else if (ac) {
+      proposal = "decide";
+      confirm = true;
+      reasons.push(
+        `Wpis w agency_clients pochodzi ze starego automatycznego przypisania (${likely}) — decyzja właściciela: client / service / brak.`,
+      );
+      if (members.some((m) => m.is_service))
+        reasons.push(
+          "Zespół OWO ma dostęp serwisowy — bez decyzji proponowane minimum: «service».",
+        );
     } else if (members.some((m) => m.is_service)) {
       proposal = "service";
-      reasons.push(
-        "Brak płatności i subskrypcji; zespół OWO ma dostęp serwisowy — «service», żeby go nie stracić. Bez dowodów komercyjnych nie «client».",
-      );
+      reasons.push("Brak wpisu w agency_clients; zespół OWO ma dostęp serwisowy.");
     } else {
       proposal = "none";
-      reasons.push("Brak płatności, subskrypcji i dostępu serwisowego OWO.");
+      reasons.push("Brak wpisu w agency_clients i dostępu serwisowego OWO.");
     }
-    if (ac && proposal !== "client" && proposal !== "agency")
+    if (stripeInvoices || manualPaid || paidGrosze)
       reasons.push(
-        `Wpis w agency_clients istnieje (${likely}) — nie jest dowodem relacji handlowej.`,
+        `Historia (informacyjnie, nie kryterium): opłacone zamówienia agencji ${paidGrosze / 100} zł, w tym faktury Stripe: ${stripeInvoices}, ręczne: ${manualPaid}.`,
       );
+    if (billing && billing.status !== "none")
+      reasons.push(`Historia Stripe (informacyjnie): status subskrypcji «${billing.status}».`);
 
     out.push({
       organization_id: o.id,
