@@ -17,7 +17,7 @@
 | Очередь | таблица `notification_deliveries` с `for update skip locked` | `0011_notifications.sql` |
 | Живые обновления | LISTEN/NOTIFY → `/api/live` | `lib/db/listen.ts` |
 | Документы | DOCX-шаблон + LibreOffice → PDF; код бота Barowo исполняется «как есть» | `lib/documents/barowo/*`, `docx-template.ts` |
-| Биллинг | собственный клиент Stripe, webhook | `lib/billing/*`, `app/api/stripe/webhook` |
+| Биллинг | собственный клиент Stripe, webhook — **выводится из эксплуатации (D-23, `STRIPE_DECOMMISSION_PLAN.md`)**; без ключей работает в локальном режиме | `lib/billing/*`, `app/api/stripe/webhook` |
 | i18n | один язык `messages/pl.json`, типизированные ключи | `lib/i18n.ts` |
 
 ### 1.2 Таблицы [Факт] — список из задания подтверждён
@@ -100,5 +100,5 @@
 - Каналы приёма (`channels`, вебхук с маппингом полей) — превратить в «входящие» любой сущности.
 - `lead_events` — образец журнала; обобщить до `record_events`.
 - Весь домен `agency_*` и расчёт 10/25/65 — переносится модулем без изменения формул.
-- Биллинг Stripe и `organization_modules`.
+- `organization_modules` и расчёт абонемента (Stripe — нет, D-23).
 - Документы: генератор DOCX/PDF как сервис модуля документов.
