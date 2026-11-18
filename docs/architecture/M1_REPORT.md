@@ -1,0 +1,104 @@
+# M1.1–M1.2 — отчёт (2026-11-18)
+
+> Разрешено владельцем: только M1.1 и M1.2. M1.3 не начат, миграция `0039` не создана, Stripe
+> webhook и `recordInvoice()` не менялись, исторические записи Barowo не трогались, воркер не
+> переносился, P1–P7 не исправлялись, golden-снимки не обновлялись.
+
+## 1. Изменённые файлы
+| Файл | Изменение |
+|---|---|
+| `lib/db/bootstrap.ts` | новая функция `linkBusinessesToAgencyIfEnabled(db, env, log)`; сама `linkBusinessesToAgency` не изменена |
+| `scripts/migrate.ts` | при старте вызывается `linkBusinessesToAgencyIfEnabled(db, process.env)` вместо безусловной привязки |
+| `lib/platform/org-relations-report.ts` | логика отчёта M1.2 (только `select`) |
+| `scripts/report-org-relations.ts` | запуск отчёта в транзакции `read only` |
+| `package.json` | команда `report:org-relations` |
+| `tests/db/admin-access.test.ts` | +2 теста M1.1 |
+| `tests/db/org-relations-report.test.ts` | новый тест M1.2 |
+
+## 2. Как работает `AUTO_LINK_AGENCY_CLIENTS`
+- Привязка выполняется **только** при значении ровно `true`. Любое другое значение (нет переменной,
+  пусто, `false`, `1`, `TRUE`) → привязка не выполняется, в лог старта пишется
+  `Agencja: automatyczne przypisywanie biznesów wyłączone (AUTO_LINK_AGENCY_CLIENTS).`
+- Существующие строки `agency_clients` не удаляются и не меняются.
+- Сервисный доступ команды OWO к Barowo и другим организациям не зависит от автопривязки:
+  он хранится в `memberships` (`is_service`) и сохраняется (проверено тестом).
+- Явные действия, которые по-прежнему создают связь: «Nowy klient» (агентство), «Dodaj klienta
+  agencji» из лида на этапе «Klient», «Nowy biznes» (см. риск R4).
+
+## 3. Тесты и `npm run check`
+- `admin-access`: «без флага привязка не выполняется» (5 значений переменной, число строк не
+  меняется, сервисный доступ к Barowo на месте); «с флагом — как раньше, существующие связи не
+  меняются, новый бизнес привязывается только с флагом».
+- `org-relations-report`: Barowo → `service`; бизнес с оплаченным счётом Stripe → `client`
+  (к подтверждению); тестовая фирма → без связи; автопривязанный бизнес без оплат → не `client`;
+  отчёт ничего не записывает (счётчики таблиц до/после равны).
+- `npm run check`: **51 файл, 333 теста — все проходят** (до M1: 330); golden-снимки M0 без
+  изменений; lint — 0 ошибок, те же 14 предупреждений.
+
+## 4. Как проверить после деплоя, что автопривязка не выполняется
+1. В Railway → сервис `crm` → Deployments → логи старта: строка
+   `Agencja: automatyczne przypisywanie biznesów wyłączone (AUTO_LINK_AGENCY_CLIENTS).`
+   и **нет** строки `Agencja: dodano klientów z istniejących biznesów`.
+2. Переменной `AUTO_LINK_AGENCY_CLIENTS` в Railway быть не должно (или не `true`).
+3. Контрольный запрос до и после перезапуска (только чтение):
+   `select count(*), max(created_at) from public.agency_clients;` — значения не меняются.
+4. Отчёт M1.2 до и после рестарта даёт тот же список `agency_clients`.
+
+## 5. Отчёт M1.2: запуск и пример
+```
+npm run report:org-relations            # текст
+npm run report:org-relations -- --json  # JSON для архива
+```
+В Railway: сервис `crm` → «Run command». Нужен `DATABASE_URL` продакшна — у этой сессии доступа
+к нему нет, поэтому **продакшн-отчёт запускает владелец** и присылает вывод.
+
+Пример на локальной тестовой базе (e2e-данные, **не продакшн**):
+```
+■ Firma E2E  [event-services]  → none
+  billing: none, subskrypcja nie, 149.00 zł/mies.; zdarzenia Stripe: opłacone 0, nieudane 0
+  · Nazwa wskazuje na firmę testową.
+■ OWO Ads E2E  [agency]  → agency
+■ Foto desktop 6379  [event-services]  → service
+  członkowie: E2E Tester (admin, serwis)
+  agency_clients: active, ręcznie / «Nowy biznes» (created_by ustawione)
+  · Brak płatności i subskrypcji; zespół OWO ma dostęp serwisowy — «service», żeby go nie stracić.
+  · Wpis w agency_clients istnieje (…) — nie jest dowodem relacji handlowej.
+■ Barowo desktop  [event-services]  → service
+  · Barowo — firma Ivana, nie klient OWO Ads (decyzja właściciela, D-02).
+```
+
+### Правила предложения (отчёт только предлагает)
+| Условие | Предложение |
+|---|---|
+| `industry_preset = 'agency'` | `agency` (не классифицируется) |
+| имя содержит «Barowo» | `service` (решение владельца); при наличии заказов агентства — пометка «в отчёт M1.5» |
+| имя похоже на тестовое (test, e2e, demo, próbn…) | без связи |
+| оплаченные счета Stripe, оплаченные ручные заказы агентства или подписка `active/trialing/past_due` | `client` **(do potwierdzenia)** — нужен договор/заказ или подписка + реальная оплата/обязательство |
+| нет оплат, но есть сервисный доступ OWO | `service` (чтобы не потерять доступ) |
+| иначе | без связи |
+Строка `agency_clients` в основаниях указана с вероятным способом создания (автопривязка /
+«Nowy biznes» / из лида), но **никогда** не является основанием для `client`.
+
+## 6. Предлагаемая классификация
+Реальный список зависит от продакшн-данных — **предварительно**, по известной информации:
+| Организация | Предложение | Основание |
+|---|---|---|
+| OWO Ads | agency | кабинет агентства |
+| Barowo | **service** | решение владельца (D-02) |
+| Организации с оплатами/подпиской | client — к подтверждению | только после проверки договора и оплаты |
+| Остальные, обслуживаемые командой | service | сервисный доступ без коммерческих доказательств |
+| Тестовые / пустые | без связи | — |
+Окончательный список — после запуска отчёта на продакшне и вашего утверждения.
+
+## 7. Риски, требующие решения владельца
+| # | Риск | Что нужно |
+|---|---|---|
+| R1 | Если у Barowo была Stripe-подписка, её оплаты уже стали заказами агентства «CRM (abonament)» и вошли в раздел 10/25/65 и, возможно, в выплаты | финансовый отчёт Barowo (до M1.5) и решение по корректировкам |
+| R2 | `recordInvoice()` до M1.4 продолжит создавать заказы агентства для **любой** организации со строкой `agency_clients`, включая Barowo, если Stripe пришлёт оплату | решить: ускорить M1.4 или временно не выставлять Barowo счета через Stripe |
+| R3 | Barowo определяется по имени («barowo») — тестовые копии тоже совпадут | владелец подтверждает конкретную организацию по id в отчёте |
+| R4 | «Nowy biznes» (`lib/team/business-actions.ts:42`) по-прежнему сам делает новый бизнес клиентом агентства (`status active`) — это явное действие, но оно создаёт коммерческую связь без подтверждения | решить в M1.3: создавать `service` вместо `client` / спрашивать при создании |
+| R5 | Выплаты партнёрам хранятся по месяцам, не по заказам — связь «заказ → выплата» в отчёте приблизительная (выплаты в месяцах с оплаченными заказами) | ручная проверка в финансовом отчёте M1.5 |
+| R6 | Нужен запуск отчёта на продакшне — у сессии нет доступа к базе | владелец запускает `npm run report:org-relations` в Railway |
+
+**Дальше не иду.** M1.3 начнётся после того, как вы проверите продакшн-отчёт и утвердите
+конкретный список `client` / `service`.

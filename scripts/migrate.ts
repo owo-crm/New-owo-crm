@@ -6,7 +6,7 @@ import {
   bootstrapAdmin,
   ensureAgencyWorkspace,
   ensurePlatformAdmin,
-  linkBusinessesToAgency,
+  linkBusinessesToAgencyIfEnabled,
   removeAccounts,
   ensureVapidKeys,
 } from "../lib/db/bootstrap.ts";
@@ -48,7 +48,7 @@ try {
   await removeAccounts(db, process.env);
   await ensureVapidKeys(db, process.env);
   await ensureAgencyWorkspace(db, process.env);
-  await linkBusinessesToAgency(db);
+  await linkBusinessesToAgencyIfEnabled(db, process.env);
 } finally {
   await client.end();
 }

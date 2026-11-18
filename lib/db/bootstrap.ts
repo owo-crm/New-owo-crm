@@ -187,6 +187,25 @@ export async function linkBusinessesToAgency(db: Database, log = console.log) {
 }
 
 /**
+ * M1.1 (docs/architecture/OWO_CRM_MIGRATION_PLAN.md, решение D-02): автоматическая привязка
+ * выключена по умолчанию. Она делала КАЖДЫЙ бизнес клиентом агентства при каждом старте,
+ * поэтому `agency_clients` перестал отражать реальные коммерческие отношения (Barowo — фирма
+ * Ивана, а не клиент). Включается только явно: AUTO_LINK_AGENCY_CLIENTS=true.
+ * Существующие строки agency_clients не трогаются; новые связи — только явными действиями.
+ */
+export async function linkBusinessesToAgencyIfEnabled(
+  db: Database,
+  env: Record<string, string | undefined>,
+  log = console.log,
+) {
+  if (env.AUTO_LINK_AGENCY_CLIENTS !== "true") {
+    log("Agencja: automatyczne przypisywanie biznesów wyłączone (AUTO_LINK_AGENCY_CLIENTS).");
+    return 0;
+  }
+  return linkBusinessesToAgency(db, log);
+}
+
+/**
  * Удаление лишних аккаунтов (решение 031): ADMIN_REMOVE_LOGINS — логины через запятую,
  * по умолчанию «test01» (тестовый аккаунт первой настройки). Всё, чем аккаунт владеет,
  * переходит главному админу (ADMIN_LOGIN): владение бизнесами, услуги, вклады, лиды.

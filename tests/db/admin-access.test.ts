@@ -6,6 +6,7 @@ import {
   ensureAgencyWorkspace,
   ensurePlatformAdmin,
   linkBusinessesToAgency,
+  linkBusinessesToAgencyIfEnabled,
   removeAccounts,
   ensureVapidKeys,
 } from "@/lib/db/bootstrap";
@@ -84,6 +85,23 @@ describe("админ платформы из переменных", () => {
     ).rejects.toThrow();
   });
 
+  it("M1.1: без AUTO_LINK_AGENCY_CLIENTS=true автопривязка не выполняется", async () => {
+    const count = async () =>
+      (await pg.query<{ n: number }>("select count(*)::int as n from public.agency_clients"))
+        .rows[0].n;
+    const before = await count();
+    for (const flag of [undefined, "", "false", "1", "TRUE"])
+      expect(
+        await linkBusinessesToAgencyIfEnabled(db, { AUTO_LINK_AGENCY_CLIENTS: flag }, () => {}),
+      ).toBe(0);
+    expect(await count()).toBe(before);
+    // Сервисный доступ админа платформы к Barowo не зависит от автопривязки.
+    expect((await roles("szef.owo")).find((r) => r.name === "Barowo")).toMatchObject({
+      role: "admin",
+      is_service: true,
+    });
+  });
+
   it("все бизнесы становятся клиентами кабинета OWO Ads, повтор без дублей", async () => {
     expect(await linkBusinessesToAgency(db, () => {})).toBe(2); // Barowo + Studio
     expect(await linkBusinessesToAgency(db, () => {})).toBe(0);
@@ -91,6 +109,29 @@ describe("админ платформы из переменных", () => {
       await pg.query<{ name: string }>("select name from public.agency_clients order by name")
     ).rows.map((r) => r.name);
     expect(names).toEqual(["Barowo", "Studio"]);
+  });
+
+  it("M1.1: с AUTO_LINK_AGENCY_CLIENTS=true работает как раньше; существующие связи не меняются", async () => {
+    const snapshot = async () =>
+      (
+        await pg.query<{ name: string; status: string; client_org_id: string }>(
+          "select name, status, client_org_id from public.agency_clients order by name",
+        )
+      ).rows;
+    const before = await snapshot();
+    expect(
+      await linkBusinessesToAgencyIfEnabled(db, { AUTO_LINK_AGENCY_CLIENTS: "true" }, () => {}),
+    ).toBe(0);
+    expect(await linkBusinessesToAgencyIfEnabled(db, {}, () => {})).toBe(0);
+    expect(await snapshot()).toEqual(before);
+    // Новый бизнес без флага не привязывается, с флагом — привязывается.
+    await asUser(pg, IVAN, () => pg.query("select public.create_organization('Nowa','nowa-m11')"));
+    expect(await linkBusinessesToAgencyIfEnabled(db, {}, () => {})).toBe(0);
+    expect((await snapshot()).map((r) => r.name)).not.toContain("Nowa");
+    expect(
+      await linkBusinessesToAgencyIfEnabled(db, { AUTO_LINK_AGENCY_CLIENTS: "true" }, () => {}),
+    ).toBe(1);
+    expect((await snapshot()).map((r) => r.name)).toContain("Nowa");
   });
 
   it("второй админ платформы в кабинете агентства — владелец, а не обслуживающий аккаунт", async () => {
