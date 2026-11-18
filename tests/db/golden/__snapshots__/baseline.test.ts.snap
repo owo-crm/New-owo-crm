@@ -1,0 +1,935 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`M0 golden — кабинет агентства > agency_order_split по каждому оплаченному заказу 1`] = `
+[
+  {
+    "amount": 333333,
+    "split": [
+      {
+        "amount_grosze": 72500,
+        "role": "company",
+        "user_id": null,
+      },
+      {
+        "amount_grosze": 29000,
+        "role": "sale",
+        "user_id": null,
+      },
+      {
+        "amount_grosze": 188500,
+        "role": "work",
+        "user_id": null,
+      },
+    ],
+  },
+  {
+    "amount": 400000,
+    "split": [
+      {
+        "amount_grosze": 100000,
+        "role": "company",
+        "user_id": null,
+      },
+      {
+        "amount_grosze": 40000,
+        "role": "sale",
+        "user_id": null,
+      },
+      {
+        "amount_grosze": 260000,
+        "role": "work",
+        "user_id": null,
+      },
+    ],
+  },
+  {
+    "amount": 1000000,
+    "split": [
+      {
+        "amount_grosze": 250000,
+        "role": "company",
+        "user_id": null,
+      },
+      {
+        "amount_grosze": 100000,
+        "role": "sale",
+        "user_id": "ARTEM",
+      },
+      {
+        "amount_grosze": 390000,
+        "role": "work",
+        "user_id": "NIKON",
+      },
+      {
+        "amount_grosze": 260000,
+        "role": "work",
+        "user_id": "IVAN",
+      },
+    ],
+  },
+]
+`;
+
+exports[`M0 golden — кабинет агентства > agency_summary — текущий и прошлый месяц 1`] = `
+{
+  "ad_budget_grosze": 800000,
+  "by_source": [
+    {
+      "amount_grosze": 1333333,
+      "orders": 2,
+      "source": "Instagram",
+    },
+  ],
+  "clients": [
+    {
+      "client_org_id": null,
+      "created_at": "M+0",
+      "id": "<uuid>",
+      "last_activity": "M+0",
+      "month_grosze": 1933333,
+      "month_orders": 4,
+      "name": "Studio",
+      "status": "active",
+    },
+  ],
+  "costs_to_people": [
+    {
+      "amount_grosze": 33333,
+      "user_id": "ARTEM",
+    },
+  ],
+  "direct_costs_grosze": 43333,
+  "expected_grosze": 500000,
+  "fund": {
+    "balance": 410500,
+    "contributions": 0,
+    "month_in": 322500,
+    "month_out": 12000,
+  },
+  "invoiced_grosze": 1833333,
+  "month": "M+0/d01",
+  "overdue": [
+    {
+      "amount_grosze": 250000,
+      "client_id": "<uuid>",
+      "client_name": "Studio",
+      "due_date": "M-1/d20",
+      "id": "<uuid>",
+      "title": "Zlecenie",
+    },
+  ],
+  "overdue_grosze": 250000,
+  "payouts": [
+    {
+      "amount_grosze": 50000,
+      "user_id": "NIKON",
+    },
+  ],
+  "received_grosze": 1333333,
+  "split": [
+    {
+      "amount_grosze": 322500,
+      "role": "company",
+      "user_id": null,
+    },
+    {
+      "amount_grosze": 100000,
+      "role": "sale",
+      "user_id": "ARTEM",
+    },
+    {
+      "amount_grosze": 29000,
+      "role": "sale",
+      "user_id": null,
+    },
+    {
+      "amount_grosze": 390000,
+      "role": "work",
+      "user_id": "NIKON",
+    },
+    {
+      "amount_grosze": 260000,
+      "role": "work",
+      "user_id": "IVAN",
+    },
+    {
+      "amount_grosze": 188500,
+      "role": "work",
+      "user_id": null,
+    },
+  ],
+}
+`;
+
+exports[`M0 golden — кабинет агентства > agency_summary — текущий и прошлый месяц 2`] = `
+{
+  "ad_budget_grosze": 400000,
+  "by_source": [
+    {
+      "amount_grosze": 400000,
+      "orders": 1,
+      "source": "Instagram",
+    },
+  ],
+  "clients": [
+    {
+      "client_org_id": null,
+      "created_at": "M+0",
+      "id": "<uuid>",
+      "last_activity": "M+0",
+      "month_grosze": 650000,
+      "month_orders": 2,
+      "name": "Studio",
+      "status": "active",
+    },
+  ],
+  "costs_to_people": [],
+  "direct_costs_grosze": 0,
+  "expected_grosze": 0,
+  "fund": {
+    "balance": 410500,
+    "contributions": 0,
+    "month_in": 100000,
+    "month_out": 0,
+  },
+  "invoiced_grosze": 650000,
+  "month": "M-1/d01",
+  "overdue": [
+    {
+      "amount_grosze": 250000,
+      "client_id": "<uuid>",
+      "client_name": "Studio",
+      "due_date": "M-1/d20",
+      "id": "<uuid>",
+      "title": "Zlecenie",
+    },
+  ],
+  "overdue_grosze": 250000,
+  "payouts": [],
+  "received_grosze": 400000,
+  "split": [
+    {
+      "amount_grosze": 100000,
+      "role": "company",
+      "user_id": null,
+    },
+    {
+      "amount_grosze": 40000,
+      "role": "sale",
+      "user_id": null,
+    },
+    {
+      "amount_grosze": 260000,
+      "role": "work",
+      "user_id": null,
+    },
+  ],
+}
+`;
+
+exports[`M0 golden — кабинет агентства > заказы и выплаты агентства по месяцам (база M1.5) 1`] = `
+[
+  {
+    "month": "M-1",
+    "n": 1,
+    "status": "invoiced",
+    "total": 250000,
+  },
+  {
+    "month": "M-1",
+    "n": 1,
+    "status": "paid",
+    "total": 400000,
+  },
+  {
+    "month": "M+0",
+    "n": 1,
+    "status": "draft",
+    "total": 100000,
+  },
+  {
+    "month": "M+0",
+    "n": 1,
+    "status": "invoiced",
+    "total": 500000,
+  },
+  {
+    "month": "M+0",
+    "n": 2,
+    "status": "paid",
+    "total": 1333333,
+  },
+]
+`;
+
+exports[`M0 golden — кабинет агентства > заказы и выплаты агентства по месяцам (база M1.5) 2`] = `
+[
+  {
+    "month": "M+0",
+    "total": 50000,
+    "user_id": "NIKON",
+  },
+]
+`;
+
+exports[`M0 golden — кабинет мероприятий > ads_report (Reklama) — текущий месяц 1`] = `
+{
+  "campaigns": [
+    {
+      "campaign_id": "m1",
+      "campaign_name": "Wesela jesień",
+      "clicks": 120,
+      "crm_leads": 2,
+      "impressions": 5000,
+      "platform": "manual",
+      "platform_leads": 3,
+      "spend_grosze": 30000,
+      "won": 0,
+    },
+    {
+      "campaign_id": "c2",
+      "campaign_name": "Firmowe",
+      "clicks": 40,
+      "crm_leads": 0,
+      "impressions": 2000,
+      "platform": "meta",
+      "platform_leads": 1,
+      "spend_grosze": 15000,
+      "won": 0,
+    },
+    {
+      "campaign_id": "c3",
+      "campaign_name": "Bez zapytań",
+      "clicks": 10,
+      "crm_leads": 0,
+      "impressions": 900,
+      "platform": "meta",
+      "platform_leads": 0,
+      "spend_grosze": 5000,
+      "won": 0,
+    },
+  ],
+  "clicks": 170,
+  "crm_leads": 2,
+  "impressions": 7900,
+  "spend_grosze": 50000,
+  "unmatched_leads": 0,
+  "won": 0,
+}
+`;
+
+exports[`M0 golden — кабинет мероприятий > calendar_events (Kalendarz) 1`] = `
+[
+  {
+    "client_name": "Kasia Minione",
+    "confirmed": true,
+    "event_city": "Gdańsk",
+    "event_date": "M-1/d15",
+    "event_type": "Wesele",
+    "id": "LEAD_9",
+    "stage_key": "contract_signed",
+  },
+  {
+    "client_name": "Piotr Zieliński",
+    "confirmed": true,
+    "event_city": "Gdańsk",
+    "event_date": "M+1/d03",
+    "event_type": "Wesele",
+    "id": "LEAD_5",
+    "stage_key": "deposit_paid",
+  },
+  {
+    "client_name": "Anna Nowak",
+    "confirmed": true,
+    "event_city": "Gdańsk",
+    "event_date": "M+1/d20",
+    "event_type": "Wesele",
+    "id": "LEAD_2",
+    "stage_key": "contract_signed",
+  },
+  {
+    "client_name": "Anna Nowak",
+    "confirmed": false,
+    "event_city": "Gdańsk",
+    "event_date": "M+2/d14",
+    "event_type": "Wesele",
+    "id": "LEAD_1",
+    "stage_key": "new",
+  },
+  {
+    "client_name": "Jan Kowalski",
+    "confirmed": false,
+    "event_city": "Gdańsk",
+    "event_date": "M+3/d07",
+    "event_type": "Wesele",
+    "id": "LEAD_3",
+    "stage_key": "contacted",
+  },
+  {
+    "client_name": "Ola Lis",
+    "confirmed": false,
+    "event_city": "Gdańsk",
+    "event_date": "M+4/d09",
+    "event_type": "Urodziny",
+    "id": "LEAD_4",
+    "stage_key": "contract_sent",
+  },
+]
+`;
+
+exports[`M0 golden — кабинет мероприятий > clients_list (Klienci) 1`] = `
+[
+  {
+    "client_name": "Anna Nowak",
+    "contracts": 1,
+    "email": "annanowak@example.com",
+    "first_seen": "M-1",
+    "last_event": "M+1/d20",
+    "last_seen": "M-1",
+    "lead_id": "LEAD_2",
+    "leads": 1,
+    "person_key": "+48500000001",
+    "phone_e164": "+48500000001",
+    "stage_key": "contract_signed",
+  },
+  {
+    "client_name": "Kasia Minione",
+    "contracts": 1,
+    "email": "kasiaminione@example.com",
+    "first_seen": "M-5",
+    "last_event": "M-1/d15",
+    "last_seen": "M-5",
+    "lead_id": "LEAD_9",
+    "leads": 1,
+    "person_key": "+48500000009",
+    "phone_e164": "+48500000009",
+    "stage_key": "contract_signed",
+  },
+  {
+    "client_name": "Ola Lis",
+    "contracts": 0,
+    "email": "olalis@example.com",
+    "first_seen": "M-2",
+    "last_event": "M+4/d09",
+    "last_seen": "M-2",
+    "lead_id": "LEAD_4",
+    "leads": 1,
+    "person_key": "+48500000004",
+    "phone_e164": "+48500000004",
+    "stage_key": "contract_sent",
+  },
+  {
+    "client_name": "Piotr Zieliński",
+    "contracts": 1,
+    "email": "piotrzieliński@example.com",
+    "first_seen": "M-1",
+    "last_event": "M+1/d03",
+    "last_seen": "M-1",
+    "lead_id": "LEAD_5",
+    "leads": 1,
+    "person_key": "+48500000005",
+    "phone_e164": "+48500000005",
+    "stage_key": "deposit_paid",
+  },
+]
+`;
+
+exports[`M0 golden — кабинет мероприятий > contracts_list (Umowy) 1`] = `
+[
+  {
+    "amount_grosze": 350000,
+    "client_name": "Piotr Zieliński",
+    "email": "piotrzieliński@example.com",
+    "event_city": "Gdańsk",
+    "event_date": "M+1/d03",
+    "event_type": "Wesele",
+    "lead_id": "LEAD_5",
+    "number": "8/2026",
+    "paid_grosze": 50000,
+    "phone_e164": "+48500000005",
+    "signed_at": "M-1",
+    "stage_key": "deposit_paid",
+  },
+  {
+    "amount_grosze": 900000,
+    "client_name": "Anna Nowak",
+    "email": "annanowak@example.com",
+    "event_city": "Gdańsk",
+    "event_date": "M+1/d20",
+    "event_type": "Wesele",
+    "lead_id": "LEAD_2",
+    "number": "7/2026",
+    "paid_grosze": 50000,
+    "phone_e164": "+48500000001",
+    "signed_at": "M-1",
+    "stage_key": "contract_signed",
+  },
+  {
+    "amount_grosze": 0,
+    "client_name": "Kasia Minione",
+    "email": "kasiaminione@example.com",
+    "event_city": "Gdańsk",
+    "event_date": "M-1/d15",
+    "event_type": "Wesele",
+    "lead_id": "LEAD_9",
+    "number": null,
+    "paid_grosze": 0,
+    "phone_e164": "+48500000009",
+    "signed_at": "M-5",
+    "stage_key": "contract_signed",
+  },
+]
+`;
+
+exports[`M0 golden — кабинет мероприятий > dashboard_charts (Pulpit, графики) 1`] = `
+{
+  "ahead": [
+    {
+      "confirmed": 0,
+      "month": "M+0",
+      "tentative": 0,
+    },
+    {
+      "confirmed": 2,
+      "month": "M+1",
+      "tentative": 0,
+    },
+    {
+      "confirmed": 0,
+      "month": "M+2",
+      "tentative": 1,
+    },
+    {
+      "confirmed": 0,
+      "month": "M+3",
+      "tentative": 1,
+    },
+    {
+      "confirmed": 0,
+      "month": "M+4",
+      "tentative": 1,
+    },
+    {
+      "confirmed": 0,
+      "month": "M+5",
+      "tentative": 0,
+    },
+  ],
+  "months": [
+    {
+      "leads": 2,
+      "month": "M-5",
+      "won": 1,
+    },
+    {
+      "leads": 0,
+      "month": "M-4",
+      "won": 0,
+    },
+    {
+      "leads": 0,
+      "month": "M-3",
+      "won": 0,
+    },
+    {
+      "leads": 1,
+      "month": "M-2",
+      "won": 0,
+    },
+    {
+      "leads": 2,
+      "month": "M-1",
+      "won": 2,
+    },
+    {
+      "leads": 4,
+      "month": "M+0",
+      "won": 0,
+    },
+  ],
+  "sources": [
+    {
+      "leads": 4,
+      "source": "Strona",
+    },
+    {
+      "leads": 2,
+      "source": "Facebook",
+    },
+    {
+      "leads": 1,
+      "source": "Instagram",
+    },
+  ],
+}
+`;
+
+exports[`M0 golden — кабинет мероприятий > finance_summary (Statystyka) — текущий и прошлый месяц 1`] = `
+{
+  "by_source": [
+    {
+      "leads": 1,
+      "open_grosze": 300000,
+      "paid_grosze": 50000,
+      "source": "Facebook",
+    },
+    {
+      "leads": 1,
+      "open_grosze": 850000,
+      "paid_grosze": 50000,
+      "source": "Instagram",
+    },
+  ],
+  "expected_grosze": 100000,
+  "funnel": [
+    {
+      "key": "new",
+      "kind": "open",
+      "label": "Nowy",
+      "leads": 1,
+      "position": 0,
+    },
+    {
+      "key": "contacted",
+      "kind": "open",
+      "label": "Skontaktowano",
+      "leads": 1,
+      "position": 1,
+    },
+    {
+      "key": "offer_sent",
+      "kind": "open",
+      "label": "Oferta wysłana",
+      "leads": 1,
+      "position": 2,
+    },
+    {
+      "key": "offer_accepted",
+      "kind": "open",
+      "label": "Oferta zaakceptowana",
+      "leads": 0,
+      "position": 3,
+    },
+    {
+      "key": "contract_sent",
+      "kind": "open",
+      "label": "Umowa wysłana",
+      "leads": 1,
+      "position": 4,
+    },
+    {
+      "key": "contract_signed",
+      "kind": "won",
+      "label": "Umowa podpisana",
+      "leads": 2,
+      "position": 5,
+    },
+    {
+      "key": "deposit_paid",
+      "kind": "won",
+      "label": "Zadatek wpłacony",
+      "leads": 1,
+      "position": 6,
+    },
+    {
+      "key": "rejected",
+      "kind": "lost",
+      "label": "Odrzucony",
+      "leads": 1,
+      "position": 7,
+    },
+    {
+      "key": "spam",
+      "kind": "lost",
+      "label": "Spam",
+      "leads": 1,
+      "position": 8,
+    },
+  ],
+  "month": "M+0/d01",
+  "months": [
+    {
+      "month": "M-1",
+      "paid_grosze": 50000,
+    },
+    {
+      "month": "M+0",
+      "paid_grosze": 50000,
+    },
+  ],
+  "overdue": [
+    {
+      "amount_grosze": 300000,
+      "client_name": "Piotr Zieliński",
+      "due_date": "M-1/d28",
+      "id": "<uuid>",
+      "label": "Wynagrodzenie końcowe",
+      "lead_id": "LEAD_5",
+    },
+    {
+      "amount_grosze": 100000,
+      "client_name": "Anna Nowak",
+      "due_date": "M+0/d10",
+      "id": "<uuid>",
+      "label": "Druga zaliczka",
+      "lead_id": "LEAD_2",
+    },
+  ],
+  "overdue_grosze": 400000,
+  "paid_grosze": 50000,
+  "signed_grosze": 1250000,
+  "upcoming": [
+    {
+      "amount_grosze": 750000,
+      "client_name": "Anna Nowak",
+      "due_date": "M+1/d20",
+      "id": "<uuid>",
+      "label": "Wynagrodzenie końcowe",
+      "lead_id": "LEAD_2",
+    },
+  ],
+}
+`;
+
+exports[`M0 golden — кабинет мероприятий > finance_summary (Statystyka) — текущий и прошлый месяц 2`] = `
+{
+  "by_source": [
+    {
+      "leads": 1,
+      "open_grosze": 300000,
+      "paid_grosze": 50000,
+      "source": "Facebook",
+    },
+    {
+      "leads": 1,
+      "open_grosze": 850000,
+      "paid_grosze": 50000,
+      "source": "Instagram",
+    },
+  ],
+  "expected_grosze": 300000,
+  "funnel": [
+    {
+      "key": "new",
+      "kind": "open",
+      "label": "Nowy",
+      "leads": 1,
+      "position": 0,
+    },
+    {
+      "key": "contacted",
+      "kind": "open",
+      "label": "Skontaktowano",
+      "leads": 1,
+      "position": 1,
+    },
+    {
+      "key": "offer_sent",
+      "kind": "open",
+      "label": "Oferta wysłana",
+      "leads": 1,
+      "position": 2,
+    },
+    {
+      "key": "offer_accepted",
+      "kind": "open",
+      "label": "Oferta zaakceptowana",
+      "leads": 0,
+      "position": 3,
+    },
+    {
+      "key": "contract_sent",
+      "kind": "open",
+      "label": "Umowa wysłana",
+      "leads": 1,
+      "position": 4,
+    },
+    {
+      "key": "contract_signed",
+      "kind": "won",
+      "label": "Umowa podpisana",
+      "leads": 2,
+      "position": 5,
+    },
+    {
+      "key": "deposit_paid",
+      "kind": "won",
+      "label": "Zadatek wpłacony",
+      "leads": 1,
+      "position": 6,
+    },
+    {
+      "key": "rejected",
+      "kind": "lost",
+      "label": "Odrzucony",
+      "leads": 1,
+      "position": 7,
+    },
+    {
+      "key": "spam",
+      "kind": "lost",
+      "label": "Spam",
+      "leads": 1,
+      "position": 8,
+    },
+  ],
+  "month": "M-1/d01",
+  "months": [
+    {
+      "month": "M-1",
+      "paid_grosze": 50000,
+    },
+    {
+      "month": "M+0",
+      "paid_grosze": 50000,
+    },
+  ],
+  "overdue": [
+    {
+      "amount_grosze": 300000,
+      "client_name": "Piotr Zieliński",
+      "due_date": "M-1/d28",
+      "id": "<uuid>",
+      "label": "Wynagrodzenie końcowe",
+      "lead_id": "LEAD_5",
+    },
+    {
+      "amount_grosze": 100000,
+      "client_name": "Anna Nowak",
+      "due_date": "M+0/d10",
+      "id": "<uuid>",
+      "label": "Druga zaliczka",
+      "lead_id": "LEAD_2",
+    },
+  ],
+  "overdue_grosze": 400000,
+  "paid_grosze": 50000,
+  "signed_grosze": 1250000,
+  "upcoming": [
+    {
+      "amount_grosze": 750000,
+      "client_name": "Anna Nowak",
+      "due_date": "M+1/d20",
+      "id": "<uuid>",
+      "label": "Wynagrodzenie końcowe",
+      "lead_id": "LEAD_2",
+    },
+  ],
+}
+`;
+
+exports[`M0 golden — кабинет мероприятий > work_queue (Pulpit) 1`] = `
+{
+  "form_connected": false,
+  "mine_count": 0,
+  "month_leads": 4,
+  "month_won": 0,
+  "now": "M+0",
+  "response_minutes": 0,
+  "tasks": [
+    {
+      "client_name": "Jan Kowalski",
+      "due_at": "M+0",
+      "id": "LEAD_3",
+      "phone_e164": "+48500000003",
+      "title": null,
+    },
+  ],
+  "tasks_count": 1,
+  "upcoming": [
+    {
+      "client_name": "Piotr Zieliński",
+      "confirmed": true,
+      "event_city": "Gdańsk",
+      "event_date": "M+1/d03",
+      "event_type": "Wesele",
+      "id": "LEAD_5",
+    },
+    {
+      "client_name": "Anna Nowak",
+      "confirmed": true,
+      "event_city": "Gdańsk",
+      "event_date": "M+1/d20",
+      "event_type": "Wesele",
+      "id": "LEAD_2",
+    },
+    {
+      "client_name": "Anna Nowak",
+      "confirmed": false,
+      "event_city": "Gdańsk",
+      "event_date": "M+2/d14",
+      "event_type": "Wesele",
+      "id": "LEAD_1",
+    },
+    {
+      "client_name": "Jan Kowalski",
+      "confirmed": false,
+      "event_city": "Gdańsk",
+      "event_date": "M+3/d07",
+      "event_type": "Wesele",
+      "id": "LEAD_3",
+    },
+    {
+      "client_name": "Ola Lis",
+      "confirmed": false,
+      "event_city": "Gdańsk",
+      "event_date": "M+4/d09",
+      "event_type": "Urodziny",
+      "id": "LEAD_4",
+    },
+  ],
+  "waiting": [
+    {
+      "assigned_to": null,
+      "budget_grosze": null,
+      "chat_url": null,
+      "client_address": null,
+      "client_full_name": null,
+      "client_name": "Anna Nowak",
+      "consent_at": null,
+      "created_at": "M+0",
+      "custom_fields": {},
+      "deleted_at": null,
+      "deposit_paid_at": null,
+      "email": "annanowak@example.com",
+      "event_city": "Gdańsk",
+      "event_date": "M+2/d14",
+      "event_type": "Wesele",
+      "first_response_at": null,
+      "guests": null,
+      "id": "LEAD_1",
+      "legacy_uid": null,
+      "marketing_consent_at": null,
+      "message": "",
+      "next_contact_at": null,
+      "number": 1,
+      "organization_id": "<uuid>",
+      "package_name": null,
+      "page_url": null,
+      "phone_e164": "+48500000001",
+      "raw_payload": {},
+      "referrer": null,
+      "service_hours": null,
+      "source_channel_id": null,
+      "source_label": "Strona",
+      "stage_key": "new",
+      "updated_at": "M+0",
+      "utm": {
+        "campaign": "Wesela jesień",
+      },
+      "venue": null,
+    },
+  ],
+  "waiting_count": 1,
+}
+`;
+
+exports[`M0 golden — кабинет мероприятий > агрегаты платежей по организации (база M1.5 и M3) 1`] = `
+[
+  {
+    "n": 5,
+    "paid": 100000,
+    "total": 1250000,
+  },
+]
+`;
