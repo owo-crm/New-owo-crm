@@ -13,8 +13,11 @@
 4. **OWO конструирует, клиент пользуется**: изменение конфигурации — только у сервисной роли
    платформы (D-07).
 5. **Сложная логика — кодом в модулях**, конфигурация её подключает, а не заменяет.
-6. **Финансы разделены**: платежи клиентов CRM, финансы агентства и подписки платформы —
-   три независимых контура (D-09).
+6. **Три независимых денежных контура (D-09, утверждено)**: (1) `payments` — платежи и выручка
+   организаций-клиентов; (2) `agency_*` — заказы, расходы, распределение и фонд OWO Ads;
+   (3) `organization_billing`/`billing_events` — подписки за платформу. Связь между контурами —
+   только явная и документированная (единственная сейчас: оплата подписки организации с
+   `relation = 'client'` создаёт заказ агентства «CRM (abonament)», D-02).
 
 ## 2. Слои
 
@@ -81,7 +84,7 @@ flowchart TB
 | Участники и роли | `memberships`, `invitations`, **новые** `roles`, `role_permissions` | роли per организация (owner/admin/member — системные + роли шаблона) |
 | Сервисный доступ OWO | **новая** `platform_staff` (user_id, level `operator`/`architect`) | отделён от `memberships`; даёт право конфигурировать (см. §8) |
 | Биллинг | `organization_modules`, `organization_billing`, `billing_events`, **новый** реестр `platform_modules` | подписка платформы (контур №3) |
-| Файлы | `lead_attachments`, `document_files` → **`files`** (record-agnostic) | хранение, скачивание с проверкой прав |
+| Файлы | `lead_attachments`, `document_files` → **`files`** (метаданные в БД) + интерфейс хранения `FileStorage` (D-22) | содержимое в приватном S3-совместимом хранилище, доступ только после проверки прав через короткоживущие подписанные ссылки, публичного доступа нет |
 | Уведомления | `notification_settings`, `notification_deliveries`, push, telegram | доставка; события приходят из автоматизаций |
 | Аудит | **новая** `audit_log` | кто/что/когда для конфигурации, прав, финансов |
 | Интеграции | `channels`, `platform_secrets`, **новая** `integration_connections` | входящие каналы, исходящие вебхуки, OAuth/ключи (шифр) |
@@ -171,6 +174,11 @@ export default defineModule({
 `advanced_documents`, `ads_analytics`, `mailing`, `agency_finance`.
 
 ## 8. Agency Domain
+**Одно агентство (D-21, утверждено):** сейчас платформа обслуживает только OWO Ads; multi-agency,
+франшизы и white-label не реализуются. Но связь всегда явная — `platform_managed_orgs.agency_org_id`;
+код не ищет «первое найденное агентство» (как сегодня `linkBusinessesToAgency` с `limit 1`) и не
+использует фиксированный ID.
+
 Модуль `agency_finance`, включается только организации-агентству (флаг в `platform_modules`
 `restricted_to_platform: true`). Таблицы `agency_*` остаются как есть. Связь с клиентскими
 организациями — только через явную таблицу **`platform_managed_orgs`** (агентство ↔ организация,

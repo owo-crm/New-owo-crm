@@ -18,6 +18,7 @@ gantt
   section Данные
   M4.1 entity_types/entity_fields, роли :m41, 3, 4
   M3 Contacts + payments/tasks/files обобщённые :m3, 4, 5
+  M3.x Перенос файлов в S3 :m3x, 5, 6
   M4.2 Движок records и безопасность полей :m42, 5, 7
   section Конфигурация
   M5 Config Engine + шаблоны (только чтение, Barowo/OWO как есть) :m5, 7, 9
@@ -35,7 +36,7 @@ gantt
 |---|---|
 | Цель | Зафиксировать текущее поведение, чтобы ловить регрессии |
 | Текущие | 53 файла тестов, e2e 37 сценариев (`tests/db`, `tests/unit`, `tests/e2e`) |
-| Новые | Снимки по каждой организации: количество и суммы `lead_payments` (всего / оплачено), заказы и выплаты агентства по месяцам (база для M1.5 и M3). Снимки результатов SQL-функций на фиксированном наборе данных: `work_queue`, `dashboard_charts`, `calendar_events`, `clients_list`, `contracts_list`, `finance_summary`, `ads_report`, `agency_order_split`, сводка агентства за месяц (`tests/db/golden/*.test.ts`) |
+| Новые | **Статистика файлов** (D-22): количество, суммарный и максимальный объём, типы по `lead_attachments`, `document_files`, `organization_templates` на организацию (`scripts/report-files.ts`, только чтение). Снимки по каждой организации: количество и суммы `lead_payments` (всего / оплачено), заказы и выплаты агентства по месяцам (база для M1.5 и M3). Снимки результатов SQL-функций на фиксированном наборе данных: `work_queue`, `dashboard_charts`, `calendar_events`, `clients_list`, `contracts_list`, `finance_summary`, `ads_report`, `agency_order_split`, сводка агентства за месяц (`tests/db/golden/*.test.ts`) |
 | Миграции БД | нет |
 | Файлы | `tests/db/golden/`, `tests/fixtures/barowo-like.sql`, `agency-like.sql` |
 | Совместимость | — |
@@ -45,7 +46,7 @@ gantt
 
 ### M1 — Platform Core: аудит, сервисный доступ, связи организаций, воркер
 Порядок внутри этапа строгий: **M1.1 → M1.2 → [утверждение списка] → M1.3 → M1.4 →
-[финансовый отчёт Barowo + согласование] → M1.5 → M1.6**. M1 начинается только после M0.
+[финансовый отчёт Barowo + согласование] → M1.5 → M1.6**; M1.7 (проект хранения файлов) — параллельно. M1 начинается только после M0.
 
 **M1.1 Отключить автосвязь (до любой миграции отношений).**
 `linkBusinessesToAgency()` (`lib/db/bootstrap.ts:167`) при каждом старте делает **каждую**
@@ -104,6 +105,13 @@ approved_at, note, primary key (agency_org_id, org_id))`, `organization_service_
 | `paid` | **исходные суммы и история сохраняются без изменений**; если заказ участвовал в распределении — при необходимости отдельная **компенсирующая запись** (новая строка с пометкой и ссылкой на исходный заказ) по согласованию |
 | любые | уже выплаченные партнёрам суммы **не пересчитываются автоматически**, закрытые периоды не переписываются |
 Строка `agency_clients` Barowo — `status = 'lost'` + заметка (не удаляется: на неё ссылаются заказы).
+
+**M1.7 Интерфейс хранения файлов (только проектирование и код без переключения, D-22).**
+`lib/platform/files/storage.ts`: `FileStorage { put(key, bytes, contentType, sha256) ; get(key) ;
+signedUrl(key, ttlSeconds) ; delete(key) ; head(key) }` с двумя реализациями — `PostgresStorage`
+(текущее `bytea`) и `S3Storage` (приватный bucket, S3-совместимый). Выбор реализации по метаданным
+файла (`files.storage`), не глобально. Скачивание: маршрут приложения проверяет права → выдаёт
+подписанную ссылку на ≤ 5 минут (S3) или отдаёт поток (Postgres). Публичных объектов нет.
 
 **M1.6 Отдельный воркер (D-08, утверждено).** Выполняется после M0 и миграции отношений
 (M1.3–M1.5), до M6. Условия: отдельный сервис Railway, тот же Docker-образ, команда
@@ -204,6 +212,20 @@ create view public.lead_payments with (security_invoker = true) as
 | Проверки | тесты идентичности выше; число лидов на контакт; ручная проверка отчёта склеек |
 | Откат | `drop view lead_payments; alter table lead_payments_legacy rename to lead_payments;` + обратный перенос строк, созданных после миграции (`legacy_lead_payment = false`) |
 
+**Файлы (D-22):** `0044_tasks_files_activities.sql` создаёт
+`files (organization_id, id, filename, content_type, size_bytes, sha256 text not null,
+storage text check in ('postgres','s3'), storage_key text, created_by, created_at, unique (organization_id, id))`.
+Метаданные переносятся из `lead_attachments`/`document_files`/`organization_templates` с `storage='postgres'`
+(`storage_key` = ссылка на исходную строку), содержимое пока остаётся в БД; `lead_attachments` → view совместимости.
+
+**M3.x — перенос содержимого в S3-совместимое хранилище** (отдельный шаг после проверки M3):
+1. резервная копия БД; 2. по каждому файлу: `put` в приватный bucket → `head` + сверка `sha256` и
+размера → `files.storage = 's3'`; 3. сверка количества и сумм контрольных сумм по организации;
+4. **fallback**: при ошибке чтения из S3 сервис читает старое `bytea` (флаг `FILES_FALLBACK_POSTGRES`)
+и пишет предупреждение; 5. `bytea` в БД **не удаляется** до успешной проверки и резервной копии;
+очистка — отдельная миграция в M9. Тесты: контрольные суммы до/после, скачивание через подписанную
+ссылку только с правами, истёкшая ссылка → 403, прямой URL без подписи → 403.
+
 > Примечание: `payments` ссылается на `entity_types`, поэтому M3 выполняется после создания
 > `entity_types` с регистрацией стандартных сущностей — **первая часть M4 (M4.1) переносится перед
 > M3**: таблицы `entity_types`/`entity_fields` и регистрация `leads`, `contacts`, `payments`,
@@ -213,7 +235,7 @@ create view public.lead_payments with (security_invoker = true) as
 **M4.1 (выполняется перед M3):** `entity_types`, `entity_fields`, `record_counters`; регистрация
 стандартных сущностей (`storage='table'`) и их колонок; `roles`, `role_permissions`
 (+ `memberships.role_id`, системные роли = owner/admin/member); `can()`.
-**M4.2 (после M3):** `records`, `record_values`, `record_unique_keys`, `record_links`, `record_files`,
+**M4.2 (после M3; D-10 утверждено — ограничения query engine см. CONFIG_ENGINE_SPEC §5.1):** `records`, `record_values`, `record_unique_keys`, `record_links`, `record_files`,
 функции `record_read`, `records_query`, `record_write`, `record_link_add/remove`,
 `record_file_add/remove`, `record_ref_check`, `sensitive_access_log` (CONFIG_ENGINE_SPEC §2–4).
 
@@ -278,16 +300,32 @@ create view public.lead_payments with (security_invoker = true) as
   не теряются; удаление `agency_ad_accounts` — только в M9.
 - - Технический тест: шаблон `automotive@1` на **тестовой** организации, без кода модуля —
   проверка records, связей, процесса, напоминаний.
-- Потенциальный пилот `mortgage_refi@1` — только после интервью с клиентом и утверждения
-  процесса, ролей и чувствительных полей; до M4.2 возможен лишь быстрый вариант в текущей
+- `mortgage_refi@1` — **отложен до разговора с клиентом** (сущности, этапы, комиссии, документы,
+  автоматизации, чувствительные поля, роли, сроки хранения, RODO/KNF не утверждены); до M4.2 возможен лишь быстрый вариант в текущей
   системе (отдельный пресет), см. DECISIONS.
 Проверки: сценарии §7 ниже. Откат: модуль выключается, старые страницы на месте.
 
 ### M9 — Уборка
 Только после 4+ недель работы всех организаций на новом runtime: удалить `lib/presets`
 стадии, старые триггеры уведомлений, `custom_field_defs`, старое меню; перевести
-`lead_payments` в чистый view или удалить. Каждое удаление — отдельная миграция с
+`lead_payments` в чистый view или удалить. Удалить `agency_ad_accounts` (после карты переноса) и содержимое `bytea` файлов (после M3.x, проверки sha256 и резервной копии). Каждое удаление — отдельная миграция с
 предварительной проверкой «нет чтений» (логирование обращений на этапе M7).
+
+## 7a. Зависимости этапов от решений
+| Этап | Требует утверждённых решений / шлюзов |
+|---|---|
+| M0 | — (включая статистику файлов, D-22) |
+| M1 | D-02 (+ отчёт классификации до M1.3, финансовый отчёт Barowo до M1.5), D-08 (M1.6), D-21, D-22 (M1.7 проект) |
+| M2 | D-14 |
+| M4.1 | D-03, D-04, D-16 |
+| M3 | D-09, D-11, D-15 (ручная проверка неоднозначных склеек), D-22 (`files`) |
+| M3.x | D-22 + резервная копия |
+| M4.2 | D-04, D-10, D-19 |
+| M5 | D-06, D-07, D-13, D-17 |
+| M6 | D-08 (воркер уже отдельный), D-20 |
+| M7 | D-06 |
+| M8 | D-12 (+ карта переноса рекламы), D-18; mortgage_refi — только после интервью |
+| M9 | все шлюзы закрыты, 4+ недели на новом runtime |
 
 ## 8. Карта переноса `agency_ad_accounts` → `ad_accounts` (черновик, уточняется отчётом)
 Готовится скриптом `scripts/report-agency-ad-accounts.ts` (только чтение) **до** миграции рекламы.
@@ -326,7 +364,10 @@ create view public.lead_payments with (security_invoker = true) as
 | Финансы | golden: `agency_order_split`, сводка агентства, `finance_summary`, `contracts_list` до/после M2–M3 идентичны | `tests/db/golden/*` |
 | Миграции | прогон всех миграций на копии продовой схемы + проверка сумм платежей и количества лидов | `scripts/verify-migration.ts` |
 | Регрессия | e2e 37 сценариев на legacy и config runtime | `tests/e2e` |
-| Нагрузка | 100 тыс. records, фильтр по 2 полям + сортировка < 200 мс; `ads_report` и `finance_summary` на 50 тыс. лидов | `tests/perf` (ручной запуск) |
+| Вложенные связи (D-10) | путь из 3 связей отклоняется; путь через поле без права/`sensitive` без права → ошибка; путь через запись другой организации → пусто; > 10 условий → ошибка | `tests/db/records-query-limits.test.ts` |
+| Журнал чувствительных данных (D-19) | строка на каждое поле с `result`, `request_id`; отказ тоже пишется; значения не пишутся; очистка удаляет только просроченные без `legal_hold` | `tests/db/sensitive-log.test.ts` |
+| Файлы (D-22) | sha256 до/после переноса; подписанная ссылка только после проверки прав; истёкшая → 403; fallback на Postgres | `tests/db/files-storage.test.ts` |
+| Нагрузка | 100 тыс. records, фильтр по 2 полям + сортировка < 200 мс; путь из 2 связей + фильтр + сортировка < 300 мс; `ads_report` и `finance_summary` на 50 тыс. лидов | `tests/perf` (ручной запуск) |
 
 ## 7. Проверка сценариев после M8
 - **Barowo:** несколько заявок у одного контакта со своими этапами; мероприятия в календаре;

@@ -239,22 +239,40 @@ alter table public.record_files  enable row level security;
 `domain_events` в той же транзакции. Связи — `record_link_add/remove`, файлы — `record_file_add/remove`
 с теми же проверками.
 
-### 4.4 Аудит чувствительных данных
+### 4.4 Аудит чувствительных данных (D-19, утверждено)
 ```sql
 create table public.sensitive_access_log (
   id bigint generated always as identity primary key,
-  organization_id uuid not null, user_id uuid not null,
-  entity_type_id uuid not null, record_id uuid not null,
-  field_keys text[] not null,          -- какие поля были возвращены; значений не храним
+  organization_id uuid not null,
+  actor_id uuid not null,               -- пользователь, системный актор автоматизации или platform_staff
+  actor_kind text not null check (actor_kind in ('member','platform_staff','automation')),
+  entity_type_id uuid not null,
+  record_id uuid not null,
+  field_id uuid not null,               -- строка на каждое поле
   action text not null check (action in ('read','write','export')),
-  created_at timestamptz not null default now()
+  result text not null check (result in ('granted','denied')),
+  request_id text not null,             -- id запроса/запуска (app.request_id), для сквозного поиска
+  retain_until date not null default (current_date + interval '24 months'),
+  legal_hold boolean not null default false,   -- документированная необходимость хранить дольше
+  created_at timestamptz not null default now(),
+  foreign key (organization_id, field_id) references public.entity_fields(organization_id, id)
 );
+create index sal_org_time on public.sensitive_access_log (organization_id, created_at desc);
+create index sal_retention on public.sensitive_access_log (retain_until) where not legal_hold;
 ```
-`record_read`/`records_query` пишут строку, если в ответ попало хотя бы одно `sensitive`-поле.
-Доступ к журналу — owner организации и `platform_staff`. Хранение 24 месяца (уточнить с клиентом).
+- Пишут функции `record_read`, `records_query`, `record_write`, экспорт — по строке на каждое
+  `sensitive`-поле, **включая отказы** (`result = 'denied'`). Значения полей не записываются никогда.
+- `request_id` выставляет `withOrg` (`set_config('app.request_id', …)`), воркер — `run_id:step`.
+- Журнал — append-only: `insert` только из функций, `update/delete` запрещены всем, кроме задания
+  очистки. Чтение — owner организации и `platform_staff`.
+- **Хранение 24 месяца** (утверждено как первоначальный срок): ежедневное задание воркера удаляет
+  строки с `retain_until < current_date and not legal_hold`. `legal_hold` ставится только с записью
+  причины в `audit_log`. Перед запуском CRM с чувствительными финансовыми данными срок
+  подтверждается с ответственным за RODO и юристом.
 
-### 4.5 Сценарий `mortgage_refi`
-Поля текущего кредита (остаток, ставка, платёж, банк, PESEL/доходы — если появятся) помечаются
+### 4.5 Сценарий `mortgage_refi` (предварительный пример, не утверждён)
+Все решения по сущностям, полям, ролям и срокам — после разговора с клиентом. Иллюстрация механизма:
+поля текущего кредита (остаток, ставка, платёж, банк, PESEL/доходы — если появятся) помечаются
 `sensitive`; роль «asystent» видит контакт и статус заявки, но не суммы кредита; экспорт CSV
 таких полей — отдельное право `action:export_sensitive`. Сотрудник OWO с сервисным доступом
 видит данные только при активном `organization_service_grants` (срок, причина), каждое чтение
@@ -330,6 +348,20 @@ where r.organization_id = $1 and lo.to_id = $4 and r.deleted_at is null;
 ```
 Вызов из сервиса: `records_query(org, 'repair_order', '{"vehicle.owner":{"eq":"<contact>"}}', …)` — фильтр `{"field":"vehicle.owner","op":"eq","value":":contact"}`
 (глубина пути ≤ 2, D-10).
+
+### 5.1 Ограничения query engine (D-10, утверждено)
+- Путь фильтра или сортировки — не более **2 связей** (`vehicle.owner.email` = 2 перехода);
+  путь длиннее → ошибка валидации конфигурации/запроса, а не урезанный результат.
+- Каждый шаг пути — поле `relation` с правом `read` на поле и на целевую сущность; конечное поле —
+  с правом `read` и `filterable = true`; `sensitive`-поле в пути фильтра — только при явном праве
+  (иначе фильтр раскрывал бы значение).
+- Число условий в одном запросе ≤ 10, вложенность групп `all/any` ≤ 3, сортировка ≤ 2 полей,
+  `limit` ≤ 200; рекурсия и произвольные JOIN не поддерживаются.
+- Более сложные отчёты — проверенные SQL-функции специализированных модулей (ограничение D-10
+  относится только к универсальному query engine).
+- Тесты: путь из 3 связей отклоняется; путь через поле без права → ошибка; путь через запись
+  другой организации ничего не возвращает; производительность — 100 тыс. записей, путь из 2
+  связей + фильтр + сортировка < 300 мс (`tests/perf/records-query.test.ts`).
 
 ## 6. Конфигурация организации
 
@@ -454,14 +486,20 @@ stateDiagram-v2
 Архивированные поля возвращаются (данные не удалялись). Нельзя откатить, если между версиями
 шла миграция значений, — валидатор показывает это.
 
-### 6.3 Шаблоны
+### 6.3 Шаблоны (D-13, утверждено)
+- Каждый шаблон — неизменяемые версии `template_versions` (после публикации `manifest` не меняется).
 - Создание CRM: `template_versions.manifest` → `organization_configs.draft` (+
   `base_template_version_id`) → публикация.
 - Индивидуальная адаптация — правка черновика организации.
-- **Обновление шаблона** не распространяется автоматически. В админке OWO у организации видно
-  «доступна версия шаблона 4 (сейчас 3)» → трёхстороннее слияние по ключам: изменения шаблона
-  применяются там, где организация не меняла элемент; конфликты показываются списком.
-- Шаблоны: `event_services` (Barowo), `agency` (OWO Ads), `automotive`, `real_estate`.
+- **Обновление — только вручную, трёхстороннее слияние.** OWO сравнивает: (1) базовую версию
+  шаблона организации, (2) новую версию шаблона, (3) текущую конфигурацию организации. Инструмент
+  `config_template_diff(org, new_version)` показывает по ключам (сущность, поле, этап, представление,
+  правило): «изменено только в шаблоне» (предлагается принять), «изменено только в организации»
+  (сохраняется), «изменено в обоих» (конфликт, решает OWO). Принятые изменения попадают в
+  черновик; публикация — обычная (валидация, `config_versions`), `base_template_version_id`
+  обновляется. **Автоматического обновления клиентских CRM нет.**
+- Шаблоны: `event_services` (Barowo), `agency` (OWO Ads), `automotive` (технический тест);
+  `mortgage_refi` — после интервью с клиентом.
 
 ## 7. Конструктор интерфейса
 
