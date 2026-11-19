@@ -18,7 +18,10 @@ const SCAN = [
   ".env.example",
 ];
 // Файлы, где «stripe» встречается только как ИСТОРИЯ данных (колонки, отчёты), без вызовов API.
-const HISTORY_ONLY = new Set(["lib/platform/org-relations-report.ts"]);
+const HISTORY_ONLY = new Set([
+  "lib/platform/org-relations-report.ts",
+  "lib/platform/barowo-finance-report.ts",
+]);
 
 function files(p: string): string[] {
   const full = path.join(root, p);

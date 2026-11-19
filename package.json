@@ -18,6 +18,7 @@
     "import:leads": "node --experimental-strip-types --env-file-if-exists=.env.local scripts/import-apps-script.ts",
     "db:migrate": "node --experimental-strip-types --env-file-if-exists=.env.local scripts/migrate.ts",
     "report:org-relations": "node --experimental-strip-types --env-file-if-exists=.env.local scripts/report-org-relations.ts",
+    "report:barowo-finance": "node --experimental-strip-types --env-file-if-exists=.env.local scripts/report-barowo-finance.ts",
     "report:files": "node --experimental-strip-types --env-file-if-exists=.env.local scripts/report-files.ts",
     "user:create": "node --experimental-strip-types --env-file-if-exists=.env.local scripts/create-user.ts"
   },
