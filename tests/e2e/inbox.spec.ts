@@ -49,6 +49,11 @@ test("wiadomość klienta widać jako czat", async ({ page }, info) => {
     [id, who],
   );
   await db.query(
+    `insert into public.mail_messages (organization_id, direction, counterpart, subject, body_text, created_at, read_at, status, status_at, opened_at)
+     values ($1,'out',$2,'Re: Oferta Barowo — wesele 14.06','Oczywiście, mocktaile dodamy bez dopłaty.', now() - interval '10 minutes', now(), 'opened', now() - interval '3 minutes', now() - interval '3 minutes')`,
+    [id, who],
+  );
+  await db.query(
     `insert into public.organization_mail_settings (organization_id, transport, from_name, from_email)
      values ($1,'resend','Firma E2E','kontakt@firma.test') on conflict (organization_id) do nothing`,
     [id],
@@ -68,6 +73,7 @@ test("wiadomość klienta widać jako czat", async ({ page }, info) => {
     .getByPlaceholder("Napisz odpowiedź…")
     .fill("Oczywiście! Dodamy mocktaile — bez dopłaty do 20 osób.");
   await expect(page.getByRole("button", { name: "Wyślij" })).toBeEnabled();
+  await expect(chat.getByText(/Otwarto/)).toBeVisible();
   await expect(page.locator("section header").getByText("Anna Nowak")).toBeVisible();
   await page.screenshot({ path: `tests/screenshots/${info.project.name}-poczta-czat.png` });
 });

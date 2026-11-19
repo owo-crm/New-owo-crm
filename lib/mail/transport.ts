@@ -124,7 +124,7 @@ export async function deliverMail(
   settings: MailSettings,
   input: OutgoingMail,
   deps: { smtp?: SmtpFactory; fetch?: typeof fetch } = {},
-): Promise<void> {
+): Promise<{ providerId: string | null }> {
   if (settings.transport === "none") throw new MailError("not_configured");
   if (!settings.secret) throw new MailError("not_configured");
   const mail = validateMail(input);
@@ -164,7 +164,8 @@ export async function deliverMail(
     } catch (error) {
       throw classifySmtpError(error);
     }
-    return;
+    // SMTP не сообщает, дошло ли письмо: статус останется «Wysłano».
+    return { providerId: null };
   }
 
   // Resend — для фирм со своим доменом (клиенты агентства).
@@ -194,7 +195,10 @@ export async function deliverMail(
   } catch (error) {
     throw new MailError("connection_failed", (error as Error).message);
   }
-  if (response.ok) return;
+  if (response.ok) {
+    const data = (await response.json().catch(() => null)) as { id?: string } | null;
+    return { providerId: typeof data?.id === "string" ? data.id : null };
+  }
   const detail = (await response.text().catch(() => "")).slice(0, 300);
   if (response.status === 401 || response.status === 403)
     throw new MailError("auth_failed", detail);

@@ -159,7 +159,10 @@ export function LeadEditor({
   attachmentsCard,
   agencyCard,
   serverNow,
+  mailProblem,
 }: {
+  /** Последнее письмо клиенту не дошло или помечено как спам (решение 052). */
+  mailProblem?: { status: "bounced" | "complained"; detail: string | null } | null;
   /** Время отрисовки на сервере — «2 godz. temu» без расхождения при гидратации. */
   serverNow: string;
   lead: Lead;
@@ -241,6 +244,15 @@ export function LeadEditor({
             <p className="truncate text-[19px] font-bold tracking-tight">{current.client_name}</p>
             {line(Phone, phone ?? empty)}
             {line(Mail, current.email ?? empty)}
+            {mailProblem ? (
+              <p
+                className="text-urgent text-[12.5px] font-semibold"
+                title={mailProblem.detail ?? undefined}
+              >
+                ⚠{" "}
+                {t(mailProblem.status === "bounced" ? "inbox.leadBounced" : "inbox.leadComplained")}
+              </p>
+            ) : null}
           </div>
         );
       case "event":

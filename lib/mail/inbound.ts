@@ -114,3 +114,39 @@ export function replySubject(subject: string) {
   const base = subject.replace(/^\s*((re|odp|aw|fwd?)\s*:\s*)+/i, "").trim();
   return base ? `Re: ${base}` : "Re:";
 }
+
+/** События о судьбе отправленного письма (решение 052). */
+export const STATUS_EVENTS = {
+  "email.sent": "sent",
+  "email.delivery_delayed": "delayed",
+  "email.delivered": "delivered",
+  "email.opened": "opened",
+  "email.bounced": "bounced",
+  "email.complained": "complained",
+} as const;
+export type MailStatus = (typeof STATUS_EVENTS)[keyof typeof STATUS_EVENTS];
+
+export const statusEvent = z.object({
+  type: z.enum(Object.keys(STATUS_EVENTS) as [keyof typeof STATUS_EVENTS]),
+  created_at: z.string().max(60).optional(),
+  data: z
+    .object({
+      email_id: z.string().min(1).max(200),
+      bounce: z
+        .object({ message: z.string().max(1000).nullish(), type: z.string().max(100).nullish() })
+        .partial()
+        .nullish(),
+    })
+    .passthrough(),
+});
+export type StatusEvent = z.infer<typeof statusEvent>;
+
+/** Порядок статусов: новый применяется, только если он «дальше» текущего. */
+export const STATUS_RANK: Record<MailStatus, number> = {
+  sent: 0,
+  delayed: 1,
+  delivered: 2,
+  opened: 3,
+  complained: 4,
+  bounced: 5,
+};

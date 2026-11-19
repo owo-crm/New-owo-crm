@@ -8,6 +8,12 @@ _(пусто — если задача прервана, описать здес
 
 ---
 
+## 2026-11-19 · Claude · Статусы писем (решение 052)
+
+- Миграция 042: `status`, `status_at`, `opened_at`, `status_detail` у `mail_messages`; Resend id отправленного письма сохраняется.
+- Вебхук принимает `email.delivered/opened/bounced/complained/delivery_delayed`; в чате ✓ / ✓✓ / «Otwarto» / «Nie dostarczono», предупреждение в карточке лида.
+- Проверки: `npm run check`, e2e `inbox.spec.ts`.
+
 ## 2026-11-19 · Claude · Переписка в «Poczta» и новый вид писем (решение 051)
 
 - Приём почты через Resend Inbound: вебхук с проверкой подписи, догрузка тела, привязка к лиду (миграция 041, `lib/mail/inbound.ts`, `lib/mail/inbox*.ts`).

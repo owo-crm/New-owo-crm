@@ -55,6 +55,14 @@ export function ThreadList({ threads, active }: { threads: Thread[]; active?: st
                     {th.last_direction === "out" ? `${t("inbox.you")}: ` : ""}
                     {preview}
                   </span>
+                  {th.bounced ? (
+                    <span
+                      title={t("inbox.status.bounced")}
+                      className="text-urgent shrink-0 text-[11.5px] font-bold"
+                    >
+                      ⚠
+                    </span>
+                  ) : null}
                   {th.unread ? (
                     <span className="bg-accent text-accent-ink min-w-5 rounded-full px-1.5 text-center text-[11px] leading-5 font-bold">
                       {th.unread}

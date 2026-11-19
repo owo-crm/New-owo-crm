@@ -92,8 +92,9 @@ export async function sendBusinessMail(
   const sent = await recipientsSentToday(db, organizationId);
   if (sent + checked.to.length > loaded.dailyLimit)
     throw new MailError("daily_limit", `${sent}/${loaded.dailyLimit}`);
+  let providerId: string | null = null;
   try {
-    await deliverMail(loaded.settings, checked, deps);
+    ({ providerId } = await deliverMail(loaded.settings, checked, deps));
   } catch (error) {
     const mailError = error instanceof MailError ? error : new MailError("send_failed");
     await log(db, organizationId, checked.to.length, false, mailError.code, meta);
@@ -101,6 +102,7 @@ export async function sendBusinessMail(
   }
   await log(db, organizationId, checked.to.length, true, null, meta);
   return {
+    providerId,
     recipients: checked.to.length,
     sentToday: sent + checked.to.length,
     limit: loaded.dailyLimit,

@@ -193,3 +193,45 @@ describe("входящие письма", () => {
     });
   });
 });
+
+describe("статусы отправленных писем (решение 052)", () => {
+  it("доставлено → открыто; позднее «доставлено» не откатывает; отказ перекрывает", async () => {
+    const { applyStatus } = await import("@/lib/mail/inbox");
+    await recordOutgoing(q(), {
+      organizationId: org,
+      leadId,
+      to: "anna@example.com",
+      subject: "Re: Oferta",
+      text: "Statusy",
+      html: null,
+      inReplyTo: null,
+      sentBy: OWNER,
+      providerId: "re_out_1",
+    });
+    const status = async () =>
+      (
+        await db.query<{ status: string; opened_at: string | null; status_detail: string | null }>(
+          "select status, opened_at, status_detail from public.mail_messages where provider_id='re_out_1'",
+        )
+      ).rows[0];
+    expect((await status()).status).toBe("sent");
+    const ev = (type: string, extra = {}) => ({
+      type,
+      created_at: "2026-11-19T19:00:00.000Z",
+      data: { email_id: "re_out_1", ...extra },
+    });
+    await applyStatus(q(), org, ev("email.delivered") as never);
+    await applyStatus(q(), org, ev("email.opened") as never);
+    expect(await applyStatus(q(), org, ev("email.delivered") as never)).toEqual({ updated: 0 });
+    expect(await status()).toMatchObject({ status: "opened" });
+    expect((await status()).opened_at).not.toBeNull();
+    await applyStatus(
+      q(),
+      org,
+      ev("email.bounced", { bounce: { message: "Mailbox full" } }) as never,
+    );
+    expect(await status()).toMatchObject({ status: "bounced", status_detail: "Mailbox full" });
+    // чужая фирма не может поменять статус чужого письма
+    expect(await applyStatus(q(), other, ev("email.delivered") as never)).toEqual({ updated: 0 });
+  });
+});
