@@ -193,3 +193,73 @@ describe("явное создание связи после M1.3", () => {
     expect(seen.rows).toEqual([]);
   });
 });
+
+describe("миграция 0040: Barowo — отдельная экосистема", () => {
+  const M40 = "20261119000040_barowo_separate.sql";
+  async function setup(withOrder: boolean) {
+    const db = new PGlite();
+    for (const f of readdirSync(dir)
+      .filter((f) => f.endsWith(".sql"))
+      .sort())
+      if (f < MIGRATION) await db.exec(readFileSync(path.join(dir, f), "utf8"));
+    for (const id of [ADMIN, IVAN]) await createUser(db, id);
+    await db.query("update auth.users set is_platform_admin=true where id=$1", [ADMIN]);
+    const agency = (
+      await asUser(db, ADMIN, () =>
+        db.query<{ id: string }>(
+          "select public.create_organization('OWO Ads','owo','agency') as id",
+        ),
+      )
+    ).rows[0].id;
+    const barowo = (
+      await asUser(db, IVAN, () =>
+        db.query<{ id: string }>("select public.create_organization('Barowo','barowo') as id"),
+      )
+    ).rows[0].id;
+    const client = (
+      await db.query<{ id: string }>(
+        "insert into public.agency_clients (organization_id, name, client_org_id, status) values ($1,'Barowo',$2,'active') returning id",
+        [agency, barowo],
+      )
+    ).rows[0].id;
+    if (withOrder)
+      await db.query(
+        "insert into public.agency_orders (organization_id, client_id, title, kind, amount_grosze, period_month) values ($1,$2,'X','project',100,date_trunc('month',now())::date)",
+        [agency, client],
+      );
+    await db.exec(readFileSync(path.join(dir, MIGRATION), "utf8"));
+    await db.exec(readFileSync(path.join(dir, M40), "utf8"));
+    return { db, barowo };
+  }
+  const count = async (db: PGlite, table: string) =>
+    (await db.query<{ n: number }>(`select count(*)::int as n from public.${table}`)).rows[0].n;
+
+  it("без заказов: связь и строка agency_clients убраны, всё записано в аудит, участники Barowo на месте", async () => {
+    const { db, barowo } = await setup(false);
+    expect(await count(db, "platform_managed_orgs")).toBe(0);
+    expect(await count(db, "agency_clients")).toBe(0);
+    const audit = await db.query<{ action: string }>(
+      "select action from public.audit_log where organization_id=$1 order by id",
+      [barowo],
+    );
+    expect(audit.rows.map((r) => r.action)).toEqual([
+      "relation.create",
+      "agency_client.delete",
+      "relation.delete",
+    ]);
+    const members = await db.query<{ user_id: string; role: string }>(
+      "select user_id, role from public.memberships where organization_id=$1 order by role",
+      [barowo],
+    );
+    expect(members.rows).toContainEqual({ user_id: IVAN, role: "owner" });
+    expect(members.rows.map((m) => m.user_id)).toContain(ADMIN);
+    await db.close();
+  });
+
+  it("если есть заказ агентства — ничего не удаляется", async () => {
+    const { db } = await setup(true);
+    expect(await count(db, "platform_managed_orgs")).toBe(1);
+    expect(await count(db, "agency_clients")).toBe(1);
+    await db.close();
+  });
+});
