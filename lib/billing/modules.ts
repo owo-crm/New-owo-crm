@@ -2,7 +2,7 @@ import type { MessageKey } from "@/lib/i18n";
 
 /**
  * Каталог модулей CRM и цены (netto, гроши, в месяц). Решение 022.
- * Цены — только здесь: расчёт (pricing.ts), Stripe и экраны берут их отсюда.
+ * Цены — только здесь: расчёт (pricing.ts) и экраны берут их отсюда.
  * Ключи совпадают с check-ограничением в db/migrations/20261111000021_billing.sql.
  */
 export const MODULE_KEYS = ["leads", "channels", "documents", "payments", "calendar"] as const;

@@ -2,18 +2,13 @@
 import { Picker } from "@/components/ui/picker";
 
 import { useState, useTransition } from "react";
-import { Copy, Link2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PriceTable } from "@/components/billing/price-table";
-import {
-  checkoutLinkAction,
-  createClientCrmAction,
-  saveSubscriptionAction,
-} from "@/lib/billing/actions";
+import { createClientCrmAction, saveSubscriptionAction } from "@/lib/billing/actions";
 import { ADDON_KEYS, MODULES, type AddonKey } from "@/lib/billing/modules";
 import { calculatePrice } from "@/lib/billing/pricing";
 import { PRESETS, PRESET_KEYS } from "@/lib/presets";
-import { t, type MessageKey } from "@/lib/i18n";
+import { t } from "@/lib/i18n";
 
 function ModuleChecks({
   value,
@@ -96,16 +91,12 @@ export type SubscriptionInitial = {
   discountPct: number;
   email: string;
   seats: number;
-  status: string;
-  hasSubscription: boolean;
-  stripeEnabled: boolean;
-  lastError: string | null;
   requests: string[];
 };
 
 /**
- * Абонемент клиента в кабинете агентства: модули, скидки, живая цена (та же функция, что и
- * для Stripe), сохранение → Stripe пересчитывает подписку сам; ссылка на первую оплату.
+ * Абонемент клиента в кабинете агентства: модули, скидки, живая цена, сохранение → локальный
+ * пересчёт суммы (D-23). Оплата — вне платформы; заказ «CRM (abonament)» вносится вручную.
  */
 export function SubscriptionPanel({
   clientId,
@@ -120,8 +111,6 @@ export function SubscriptionPanel({
   const [email, setEmail] = useState(initial.email);
   const [pending, start] = useTransition();
   const [message, setMessage] = useState<{ text: string; error?: boolean }>();
-  const [link, setLink] = useState<string>();
-  const [copied, setCopied] = useState(false);
 
   const discountPct = Math.min(100, Math.max(0, Number(discount.replace(",", ".")) || 0));
   const price = calculatePrice({
@@ -134,8 +123,6 @@ export function SubscriptionPanel({
   return (
     <div className="grid gap-4" data-testid="subscription-panel">
       <p className="text-ink-soft text-[13px]">
-        {t("billing.settings.status")}:{" "}
-        <b className="text-ink">{t(`billing.status.${initial.status}` as MessageKey)}</b> ·{" "}
         {t("billing.agency.seats", { count: Math.max(1, initial.seats) })}
       </p>
       {initial.requests.length > 0 ? (
@@ -181,9 +168,6 @@ export function SubscriptionPanel({
         </label>
       </div>
       <PriceTable price={price} />
-      {initial.lastError ? (
-        <p className="text-urgent text-[13px]">Stripe: {initial.lastError}</p>
-      ) : null}
       {message ? (
         <p role="status" className={message.error ? "text-urgent text-sm" : "text-ok text-sm"}>
           {message.text}
@@ -206,51 +190,7 @@ export function SubscriptionPanel({
         {t("billing.agency.save")}
       </Button>
 
-      {initial.stripeEnabled && !initial.hasSubscription ? (
-        <div className="border-line grid gap-2 border-t pt-4">
-          <Button
-            variant="secondary"
-            disabled={pending}
-            onClick={() =>
-              start(async () => {
-                const r = await checkoutLinkAction(clientId);
-                if (r.url) setLink(r.url);
-                else setMessage({ text: r.error ?? "", error: true });
-              })
-            }
-          >
-            <Link2 />
-            {t("billing.agency.checkout")}
-          </Button>
-          <p className="text-ink-faint text-[12px]">{t("billing.agency.checkoutHint")}</p>
-          {link ? (
-            <div className="flex items-center gap-2">
-              <input
-                readOnly
-                value={link}
-                className="border-line-strong bg-surface-2 h-10 min-w-0 flex-1 rounded-lg border px-3 text-[13px]"
-                onFocus={(e) => e.currentTarget.select()}
-              />
-              <Button
-                variant="ghost"
-                size="icon"
-                aria-label={t("billing.agency.copy")}
-                onClick={() => {
-                  void navigator.clipboard?.writeText(link);
-                  setCopied(true);
-                }}
-              >
-                <Copy />
-              </Button>
-              {copied ? (
-                <span className="text-ok text-[12px]">{t("billing.agency.copied")}</span>
-              ) : null}
-            </div>
-          ) : null}
-        </div>
-      ) : !initial.stripeEnabled ? (
-        <p className="text-ink-faint text-[12px]">{t("billing.agency.stripeOff")}</p>
-      ) : null}
+      <p className="text-ink-faint text-[12px]">{t("billing.agency.manualHint")}</p>
     </div>
   );
 }

@@ -12,7 +12,7 @@ import {
 
 /**
  * Сколько бизнес платит в месяц. Чистая функция: её зовут экран агентства (живая цена),
- * синхронизация со Stripe (строки подписки) и тесты. Решение 022.
+ * пересчёт абонемента (lib/billing/sync.ts) и тесты. Решения 022, D-23.
  *
  * Правила:
  * - база «Leady» всегда; модули — по списку;
@@ -20,7 +20,7 @@ import {
  * - места: сверх включённых (1, в пакете 3) — по SEAT_PRICE_GROSZE;
  * - клиент рекламы: база 0, модули и пакет −50 %;
  * - дополнительная скидка discountBp — на всё;
- * - всё в грошах, округление вниз; VAT 23 % сверху (Stripe добавляет налог к счёту сам).
+ * - всё в грошах, округление вниз; VAT 23 % сверху (для информации: фактура выставляется вне системы).
  */
 export type PriceInput = {
   modules: ModuleKey[];
@@ -30,7 +30,7 @@ export type PriceInput = {
 };
 
 export type PriceLine = {
-  /** Стабильный ключ строки: по нему синхронизируется строка подписки Stripe. */
+  /** Стабильный ключ строки цены (модуль, места или пакет). */
   key: "leads" | "channels" | "documents" | "payments" | "calendar" | "bundle" | "seats";
   quantity: number;
   /** Цена за единицу после скидок. */
@@ -91,7 +91,7 @@ export function calculatePrice(input: PriceInput): Price {
   const bundle = packed !== null && sum(packed) < sum(single);
   const lines = bundle ? packed : single;
   const netGrosze = sum(lines);
-  // VAT считаем от суммы счёта и округляем до гроша (как Stripe — по сумме строк).
+  // VAT считаем от суммы счёта и округляем до гроша (по сумме строк).
   const vatGrosze = Math.round((netGrosze * VAT_RATE_BP) / 10000);
   return { lines, netGrosze, vatGrosze, grossGrosze: netGrosze + vatGrosze, bundle };
 }

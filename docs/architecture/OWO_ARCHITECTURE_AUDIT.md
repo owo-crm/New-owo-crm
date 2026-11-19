@@ -17,7 +17,7 @@
 | Очередь | таблица `notification_deliveries` с `for update skip locked` | `0011_notifications.sql` |
 | Живые обновления | LISTEN/NOTIFY → `/api/live` | `lib/db/listen.ts` |
 | Документы | DOCX-шаблон + LibreOffice → PDF; код бота Barowo исполняется «как есть» | `lib/documents/barowo/*`, `docx-template.ts` |
-| Биллинг | собственный клиент Stripe, webhook — **выводится из эксплуатации (D-23, `STRIPE_DECOMMISSION_PLAN.md`)**; без ключей работает в локальном режиме | `lib/billing/*`, `app/api/stripe/webhook` |
+| Биллинг | на момент аудита — собственный клиент Stripe и вебхук; **удалены (D-23)**, абонемент считается локально | `lib/billing/*` |
 | i18n | один язык `messages/pl.json`, типизированные ключи | `lib/i18n.ts` |
 
 ### 1.2 Таблицы [Факт] — список из задания подтверждён

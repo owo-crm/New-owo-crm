@@ -1,9 +1,6 @@
 "use server";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { z } from "zod";
-import { requireOrganization } from "@/lib/auth/session";
-import { appConfig } from "@/lib/config";
 import { asUser, getDb, one, sqlState } from "@/lib/db";
 import { withOrg } from "@/lib/db/user";
 import { requireAgency } from "@/lib/agency/repository";
@@ -12,10 +9,8 @@ import { isPresetKey } from "@/lib/presets";
 import { t } from "@/lib/i18n";
 import { ADDON_KEYS, isAddonKey } from "./modules";
 import { resyncBilling } from "./service";
-import { stripeConfig } from "./stripe";
-import { createCheckoutLink, createPortalLink } from "./sync";
 
-export type BillingResult = { ok?: true; error?: string; url?: string; message?: string };
+export type BillingResult = { ok?: true; error?: string; message?: string };
 
 // ───────── Сторона клиента ─────────
 
@@ -37,29 +32,6 @@ export async function requestModuleAction(module: string): Promise<BillingResult
   }
   revalidatePath("/agencja");
   return { ok: true };
-}
-
-/** Портал Stripe: карта, счета, отмена. Только owner/admin бизнеса. */
-export async function openPortalAction(): Promise<BillingResult> {
-  const { organization } = await requireOrganization();
-  const config = stripeConfig();
-  if (!config || organization.role === "member")
-    return { error: t("billing.settings.notConnected") };
-  const customer = await getDb()
-    .query<{ c: string | null }>(
-      "select stripe_customer_id as c from public.organization_billing where organization_id=$1",
-      [organization.id],
-    )
-    .then((r) => r.rows[0]?.c);
-  if (!customer) return { error: t("billing.settings.notConnected") };
-  let url: string;
-  try {
-    url = await createPortalLink(config, customer, `${appConfig.siteUrl}/ustawienia/abonament`);
-  } catch (error) {
-    console.error("[billing] portal", (error as Error).message);
-    return { error: t("common.unknownError") };
-  }
-  redirect(url);
 }
 
 // ───────── Сторона агентства ─────────
@@ -86,8 +58,8 @@ const subscriptionSchema = z.object({
 });
 
 /**
- * Сохранить модули и условия абонемента клиента → пересчёт → Stripe (если подключён):
- * сумма подписки меняется сразу, доплата за остаток месяца списывается автоматически.
+ * Сохранить модули и условия абонемента клиента → локальный пересчёт суммы (D-23).
+ * Оплата — вне платформы; заказ «CRM (abonament)» агентство вносит вручную.
  */
 export async function saveSubscriptionAction(
   clientId: string,
@@ -117,26 +89,7 @@ export async function saveSubscriptionAction(
   const result = await resyncBilling(target.org);
   revalidatePath(`/agencja/klienci/${clientId}`);
   if (!result) return { error: t("common.unknownError") };
-  return {
-    ok: true,
-    message: t(result.mode === "stripe" ? "billing.agency.saved" : "billing.agency.savedLocal"),
-  };
-}
-
-/** Ссылка на первую оплату (Stripe Checkout). Клиенту её отправляет человек — мы ничего не шлём сами. */
-export async function checkoutLinkAction(clientId: string): Promise<BillingResult> {
-  const target = await clientOrg(clientId);
-  if (!target) return { error: t("billing.agency.noCrm") };
-  const config = stripeConfig();
-  if (!config) return { error: t("billing.agency.stripeOff") };
-  try {
-    const url = await createCheckoutLink(getDb(), target.org, config, appConfig.siteUrl);
-    revalidatePath(`/agencja/klienci/${clientId}`);
-    return { ok: true, url };
-  } catch (error) {
-    console.error("[billing] checkout", (error as Error).message);
-    return { error: t("common.unknownError") };
-  }
+  return { ok: true, message: t("billing.agency.savedLocal") };
 }
 
 /**

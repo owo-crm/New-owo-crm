@@ -108,7 +108,7 @@ export async function joinAction(_prev: JoinState, form: FormData): Promise<Join
   } catch {
     return { error: t("team.inviteInvalid") };
   }
-  // Новый пользователь → место в абонементе (сумма в Stripe растёт сама).
+  // Новый пользователь → место в абонементе (сумма пересчитывается локально).
   after(() => resyncBilling(org));
   return enter(org);
 }

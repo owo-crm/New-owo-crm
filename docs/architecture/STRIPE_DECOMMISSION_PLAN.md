@@ -1,8 +1,10 @@
-# Отказ от Stripe и встроенного приёма платежей — аудит и план (проект, ждёт утверждения)
+# Отказ от Stripe и встроенного приёма платежей — аудит, план и выполнение
 
 > Решение владельца (2026-11-18): отказаться от Stripe и приёма платежей внутри платформы.
-> Этот документ — аудит и **план**. Код, данные, таблицы и переменные Railway **не менялись**.
-> Каждый шаг выполняется только после отдельного утверждения (D-23).
+> **Статус (2026-11-19):** решение окончательное (полное удаление, не временное отключение).
+> S3 + S4 выполнены в ветке `claude/new-session-pojyef` и **влиты в main только после подтверждения
+> владельцем S2** (иначе живые подписки Stripe продолжили бы списывать деньги без записи в CRM).
+> Данные, таблицы и миграции не менялись.
 
 ## 0. Что важно понять сразу
 **[Факт]** Без `STRIPE_SECRET_KEY` биллинг уже работает в «локальном» режиме:
@@ -92,3 +94,50 @@
   (включая Barowo). Поэтому **S2 рекомендуется выполнить до M1.3**.
 - Критерии `client` больше не используют Stripe (D-02, пересмотр).
 - Финансовый отчёт Barowo (до M1.5) по-прежнему нужен: прошлые заказы могли прийти из Stripe.
+
+
+## 5. Выполнение
+
+### S2 — внешние действия (выполняет владелец, сессия секреты и Stripe не трогает)
+1. Stripe Dashboard → **Billing → Subscriptions**: фильтр «Active / Trialing / Past due». Для каждой
+   подписки — **Cancel subscription** (рекомендуется «immediately» и без автоматического возврата;
+   спорные возвраты — вручную). Записать список отменённых (id клиента, сумма) — для истории.
+2. Stripe Dashboard → **Developers → Webhooks** → endpoint `…/api/stripe/webhook` → **Disable** или
+   **Delete**.
+3. Railway → проект → сервис `crm` → **Variables**: удалить `STRIPE_SECRET_KEY`,
+   `STRIPE_WEBHOOK_SECRET`, `STRIPE_TAX_RATE_ID`, `STRIPE_AUTOMATIC_TAX` (какие есть).
+4. Railway → сервис `crm` → **Restart / Redeploy**.
+5. Сообщить «S2 выполнен» — после этого ветка с S3+S4 вливается в main.
+
+### S3 + S4 — удаление из приложения (сделано в ветке, ждёт S2)
+**Удалённые файлы:** `lib/billing/stripe.ts` (клиент API, подпись вебхука), `app/api/stripe/webhook/route.ts`,
+`components/billing/portal-button.tsx`, `tests/unit/billing-stripe.test.ts`.
+**Удалено из кода:** `handleStripeEvent`, `recordInvoice` (создание заказов агентства из оплат),
+`createCheckoutLink`, `createPortalLink`, продукты/клиенты/строки подписки Stripe, Stripe-часть
+`syncSubscription`; Server Actions `checkoutLinkAction`, `openPortalAction`; кнопки «Link do pierwszej
+płatności» и портала; статус подписки Stripe и «Stripe: ошибка» в интерфейсе; тексты `billing.status.*`,
+`billing.invoice`, `billing.agency.checkout*/copy*/stripeOff/saved`, `billing.settings.notConnected/status/manage`;
+`STRIPE_*` в `.env.example`. Зависимостей npm Stripe не было (собственный клиент).
+**Сохранено:** модули (`organization_modules`, `set_organization_modules`, `moduleAccess`/`gate.ts`,
+«Poproś o moduł»), расчёт абонемента (`pricing.ts`, места, скидка, «klient reklamy»),
+`organization_billing` как локальный учёт, `syncSubscription` (только локальный пересчёт), мастер
+«Utwórz CRM klienta» и автоматический `client` у новых бизнесов, весь учёт агентства, `lead_payments`.
+**Новые тексты:** «Abonament» — сумма по модулям и людям, фактура и оплата вне системы; в карточке
+клиента агентства — подсказка добавить заказ «CRM (abonament)» вручную или «Powtórz abonamenty».
+**Проверки:** `tests/db/billing-sync.test.ts` (переписан): локальный пересчёт без Stripe и без
+изменения истории; места и скидка; ручной заказ CRM → 65 % ответственному; «Powtórz abonamenty»;
+старый заказ Stripe виден в сводке как «Abonament CRM» с комиссией; пересчёт не создаёт заказов.
+`tests/unit/no-stripe.test.ts`: нет вебхука, клиента, портала, Checkout и `STRIPE_*` в коде.
+`npm run check` — 51 файл, 332 теста; golden M0 без изменений; e2e — 37/37; `POST /api/stripe/webhook` → 404.
+
+### Оставшиеся упоминания Stripe (только история)
+- SQL-миграции `0021` (таблицы `organization_billing`, `billing_events`, колонка `stripe_invoice_id`),
+  `0023`/`0025` (источник «Abonament CRM» по `stripe_invoice_id` в `agency_summary`) — **не меняются**.
+- `lib/platform/org-relations-report.ts` / `scripts/report-org-relations.ts` — показывают историю
+  Stripe в отчёте M1.2 (не критерий).
+- Документация (`docs/architecture/*`, `docs/decisions.md`, `docs/audit/*`) — описание истории и решения.
+
+### Найдено попутно (не исправлялось)
+`agency_repeat_retainers` (`0020`) копирует сумму, исполнителей и продавцов, но **не копирует
+`service_id`**: повторённый заказ «CRM (abonament)» остаётся без ссылки на услугу (раздел 65 %
+сохраняется через скопированных исполнителей). Влияет на отчёты по услугам — решение отдельно.

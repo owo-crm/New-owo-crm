@@ -1,25 +1,22 @@
 import type { Metadata } from "next";
 import { Check } from "lucide-react";
 import { Card, PageHeader } from "@/components/app-shell/page";
-import { PortalButton } from "@/components/billing/portal-button";
 import { PriceTable } from "@/components/billing/price-table";
 import { RequestModuleButton } from "@/components/billing/request-module-button";
 import { requireOrganization } from "@/lib/auth/session";
 import { ADDON_KEYS, MODULES } from "@/lib/billing/modules";
 import { getBillingView } from "@/lib/billing/repository";
 import { formatMoney } from "@/lib/finance/money";
-import { plDateTime } from "@/lib/format";
-import { t, type MessageKey } from "@/lib/i18n";
+import { t } from "@/lib/i18n";
 
 export const metadata: Metadata = { title: t("billing.settings.title") };
 
-/** Абонемент глазами клиента: модули, цена, статус оплаты, портал Stripe. */
+/** Абонемент глазами клиента: модули и расчётная цена. Оплата — вне платформы (D-23). */
 export default async function SubscriptionPage() {
   const { organization } = await requireOrganization();
   // Своё бизнес-членство проверено requireOrganization — читать можно.
   const view = await getBillingView(organization.id);
   if (!view) return null;
-  const canManage = organization.role !== "member";
   return (
     <div className="max-w-3xl">
       <PageHeader
@@ -63,19 +60,10 @@ export default async function SubscriptionPage() {
         </Card>
         <Card title={t("billing.settings.monthly")}>
           <p className="text-ink-soft mb-3 text-sm">
-            {t("billing.settings.status")}:{" "}
-            <b className="text-ink">{t(`billing.status.${view.status}` as MessageKey)}</b>
-            {view.periodEnd ? ` · ${plDateTime(view.periodEnd)}` : ""} ·{" "}
             {t("billing.settings.seats", { count: Math.max(1, view.state.seats) })}
           </p>
           <PriceTable price={view.price} />
-          {canManage && view.stripeEnabled && view.state.customerId ? (
-            <div className="mt-4">
-              <PortalButton />
-            </div>
-          ) : !view.state.customerId ? (
-            <p className="text-ink-faint mt-3 text-[13px]">{t("billing.settings.notConnected")}</p>
-          ) : null}
+          <p className="text-ink-faint mt-3 text-[13px]">{t("billing.settings.offline")}</p>
         </Card>
       </div>
     </div>

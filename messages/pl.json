@@ -983,26 +983,14 @@
     },
     "settings": {
       "title": "Abonament",
-      "text": "Twoje moduły, cena i płatności",
-      "intro": "Moduły włącza OWO Ads. Brakuje czegoś? Poproś o moduł — opłata zmieni się automatycznie.",
-      "status": "Status",
+      "text": "Twoje moduły i cena",
+      "intro": "Moduły włącza OWO Ads. Brakuje czegoś? Poproś o moduł — kwotę abonamentu przeliczymy.",
       "monthly": "Miesięcznie",
       "net": "netto",
       "vat": "VAT 23 %",
       "gross": "brutto",
       "seats": "Użytkownicy: {count}",
-      "manage": "Faktury i karta płatnicza",
-      "notConnected": "Płatności jeszcze nie są podłączone."
-    },
-    "status": {
-      "none": "Nie podłączono",
-      "incomplete": "Czeka na pierwszą płatność",
-      "trialing": "Okres próbny",
-      "active": "Aktywny",
-      "past_due": "Zaległa płatność",
-      "unpaid": "Nieopłacony",
-      "canceled": "Anulowany",
-      "paused": "Wstrzymany"
+      "offline": "Kwota wyliczona według modułów i liczby osób. Fakturę i płatność ustala OWO Ads poza systemem."
     },
     "agency": {
       "title": "Abonament CRM",
@@ -1012,22 +1000,16 @@
       "seats": "Użytkownicy w CRM: {count}",
       "email": "E-mail do faktur",
       "save": "Zapisz i zaktualizuj płatność",
-      "saved": "Zapisano. Stripe nalicza nową kwotę od razu (proporcjonalnie).",
       "savedLocal": "Zapisano moduły. Stripe nie jest podłączony — kwota zmieni się po podłączeniu.",
-      "checkout": "Link do pierwszej płatności",
-      "checkoutHint": "Wyślij klientowi — po opłaceniu karta będzie obciążana co miesiąc automatycznie.",
-      "copy": "Kopiuj",
-      "copied": "Skopiowano",
       "requests": "Klient prosi o: {modules}",
       "noCrm": "Najpierw utwórz lub powiąż CRM klienta.",
-      "stripeOff": "Stripe nie jest skonfigurowany (STRIPE_SECRET_KEY)."
+      "manualHint": "Opłata za abonament odbywa się poza systemem. Zamówienie „CRM (abonament)” dodaj ręcznie albo przyciskiem „Powtórz abonamenty”."
     },
     "wizard": {
       "title": "Utwórz CRM klienta",
       "preset": "Branża",
       "create": "Utwórz CRM"
-    },
-    "invoice": "CRM: {modules} · {month}"
+    }
   },
   "command": {
     "title": "Szybkie wyszukiwanie",

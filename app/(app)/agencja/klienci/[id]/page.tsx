@@ -252,11 +252,6 @@ export default async function ClientPage({ params }: PageProps<"/agencja/klienci
                   discountPct: billing.state.discountBp / 100,
                   email: billing.state.email ?? client.email ?? "",
                   seats: billing.state.seats,
-                  status: billing.status,
-                  hasSubscription:
-                    Boolean(billing.state.subscriptionId) && billing.status !== "canceled",
-                  stripeEnabled: billing.stripeEnabled,
-                  lastError: billing.lastError,
                   requests: billing.requests,
                 }}
               />
