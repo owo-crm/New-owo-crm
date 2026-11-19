@@ -59,10 +59,13 @@ export function NavLink({
 export function GroupedNav({
   ctx,
   waiting = 0,
+  unreadMail = 0,
   onNavigate,
 }: {
   ctx: NavContext;
   waiting?: number;
+  /** Непрочитанные письма клиентов — значок у «Poczta». */
+  unreadMail?: number;
   onNavigate?: () => void;
 }) {
   return (
@@ -79,7 +82,13 @@ export function GroupedNav({
               <NavLink
                 key={item.href}
                 href={item.href}
-                badge={item.href === "/leady" ? waiting : undefined}
+                badge={
+                  item.href === "/leady"
+                    ? waiting
+                    : item.href === "/poczta"
+                      ? unreadMail
+                      : undefined
+                }
                 onNavigate={onNavigate}
               />
             ))}
@@ -94,7 +103,15 @@ export function GroupedNav({
  * Нижняя панель на телефоне: Pulpit · Leady · ＋ · Agencja/Statystyka · Menu.
  * «Menu» открывает шторку со всеми разделами — те же группы, что на компьютере.
  */
-export function BottomNav({ ctx, waiting = 0 }: { ctx: NavContext; waiting?: number }) {
+export function BottomNav({
+  ctx,
+  waiting = 0,
+  unreadMail = 0,
+}: {
+  ctx: NavContext;
+  waiting?: number;
+  unreadMail?: number;
+}) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   useEffect(() => {
@@ -186,7 +203,12 @@ export function BottomNav({ ctx, waiting = 0 }: { ctx: NavContext; waiting?: num
                 <X className="size-5" />
               </button>
             </div>
-            <GroupedNav ctx={ctx} waiting={waiting} onNavigate={() => setOpen(false)} />
+            <GroupedNav
+              ctx={ctx}
+              waiting={waiting}
+              unreadMail={unreadMail}
+              onNavigate={() => setOpen(false)}
+            />
             <div className="border-line mt-4 border-t px-3 pt-3">
               <ThemeToggle className="text-ink-soft hover:text-ink flex h-10 items-center gap-3 text-[14px]" />
             </div>

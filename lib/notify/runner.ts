@@ -32,6 +32,11 @@ export async function runNotifications(leadId?: string) {
     await runMailingQueue(siteOrigin()).catch((error) =>
       console.error("[mailing]", (error as Error).message),
     );
+    // Входящие письма, у которых не удалось сразу забрать текст из Resend.
+    const { retryPendingBodies } = await import("@/lib/mail/inbox");
+    await retryPendingBodies(db).catch((error) =>
+      console.error("[inbox]", (error as Error).message),
+    );
   }
   if (!config.enabled) {
     if (!leadId) await repository.prepare(); // уборка журнала и сессий всё равно нужна

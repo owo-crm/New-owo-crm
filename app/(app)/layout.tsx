@@ -9,6 +9,7 @@ import { NavToggle } from "@/components/app-shell/nav-toggle";
 import { ThemeToggle } from "@/components/app-shell/theme-toggle";
 import { Avatar } from "@/components/ui/avatar";
 import { avatarUrl } from "@/lib/avatars/image";
+import { unreadCount } from "@/lib/mail/inbox-read";
 import { buttonVariants } from "@/components/ui/button";
 import { getOrganizations, requireOrganization } from "@/lib/auth/session";
 import { signOut } from "@/lib/auth/actions";
@@ -24,7 +25,10 @@ import { isAgency } from "@/lib/presets";
 export default async function AppLayout({ children }: LayoutProps<"/">) {
   const { user, organization } = await requireOrganization();
   const organizations = await getOrganizations();
-  const queue = await getWorkQueue();
+  const [queue, unreadMail] = await Promise.all([
+    getWorkQueue(),
+    unreadCount().catch(() => 0),
+  ]);
   const ctx = {
     agency: isAgency(organization.industryPreset),
     modules: organization.modules,
@@ -82,7 +86,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
             className="border-line rounded-xl border"
           />
           <div className="-mx-1 min-h-0 flex-1 overflow-y-auto px-1">
-            <GroupedNav ctx={ctx} waiting={queue.waiting_count} />
+            <GroupedNav ctx={ctx} waiting={queue.waiting_count} unreadMail={unreadMail} />
           </div>
           <div className="border-line flex items-center gap-3 border-t px-1 pt-4 group-data-[nav=rail]/shell:px-0">
             <Link
@@ -146,7 +150,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
         </main>
       </div>
 
-      <BottomNav ctx={ctx} waiting={queue.waiting_count} />
+      <BottomNav ctx={ctx} waiting={queue.waiting_count} unreadMail={unreadMail} />
       <CommandMenu links={links} organizations={organizations} currentOrgId={organization.id} />
     </div>
   );

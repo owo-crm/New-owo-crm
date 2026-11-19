@@ -3,6 +3,7 @@ import { getDb } from "@/lib/db";
 import { loadMailSettings, recipientsSentToday, sendBusinessMail } from "@/lib/mail/service";
 import { MailError } from "@/lib/mail/transport";
 import { renderLetter } from "./render";
+import { loadLetterLook } from "@/lib/mail/look";
 
 /**
  * Отправка рассылки порциями.
@@ -35,13 +36,14 @@ export async function sendMailingBatch(organizationId: string, origin: string, m
   const room = Math.min(max, loaded.dailyLimit - sentToday);
   if (room <= 0) return { sent: 0, reason: "daily_limit" as const };
 
-  const { rows: brandRows } = await db.query<{ name: string; brand_color: string }>(
-    "select name, brand_color from public.organizations where id = $1",
+  const { rows: brandRows } = await db.query<{ name: string }>(
+    "select name from public.organizations where id = $1",
     [organizationId],
   );
   const brand = brandRows[0];
   if (!brand) return { sent: 0, reason: "not_configured" as const };
 
+  const look = await loadLetterLook(db, organizationId, origin);
   const { rows } = await db.query<Row>("select * from public.mailing_next($1,$2)", [
     organizationId,
     room,
@@ -63,7 +65,7 @@ export async function sendMailingBatch(organizationId: string, origin: string, m
         organizationId,
         origin,
         brand: brand.name,
-        brandColor: brand.brand_color,
+        look,
       },
     );
     try {

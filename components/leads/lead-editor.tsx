@@ -372,7 +372,7 @@ export function LeadEditor({
         ) : null}
         {current.email ? (
           <Link
-            href={`/poczta?lead=${lead.id}`}
+            href={`/poczta?c=${encodeURIComponent(current.email.toLowerCase())}`}
             aria-label={t("leads.email")}
             className="text-ink flex size-11 items-center justify-center rounded-full"
           >
@@ -601,7 +601,7 @@ export function LeadEditor({
             </span>
             {current.email ? (
               <Link
-                href={`/poczta?lead=${lead.id}`}
+                href={`/poczta?c=${encodeURIComponent(current.email.toLowerCase())}`}
                 className={cn(
                   buttonVariants({ variant: "secondary", size: "sm" }),
                   "col-span-2 text-[12.5px]",
