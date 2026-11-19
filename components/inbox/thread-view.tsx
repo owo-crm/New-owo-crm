@@ -14,6 +14,7 @@ import type { Template } from "@/lib/mailing/repository";
 import { stripQuote } from "@/lib/mail/inbound";
 import { t } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
+import { AutoRefresh } from "./auto-refresh";
 import { Composer } from "./composer";
 
 const stamp = (iso: string) =>
@@ -31,6 +32,7 @@ export function ThreadView({
   messages,
   lead,
   name,
+  brand,
   templates,
   mailReady,
 }: {
@@ -39,6 +41,8 @@ export function ThreadView({
   lead: { id: string; client_name: string } | null;
   /** Имя из заголовка From, если лида нет. */
   name: string | null;
+  /** Название фирмы — для темы первого письма. */
+  brand: string;
   templates: Template[];
   mailReady: boolean;
 }) {
@@ -54,6 +58,11 @@ export function ThreadView({
       .at(-1);
     return subject && subject !== before ? subject : "";
   });
+  const lastWithSubject = [...messages].reverse().find((m) => m.subject.trim());
+  const defaultSubject = lastWithSubject
+    ? `Re: ${clean(lastWithSubject.subject)}`
+    : t("inbox.defaultSubject", { firm: brand });
+
   return (
     <section className="flex min-h-0 flex-1 flex-col">
       <header className="border-line flex items-center gap-3 border-b px-4 py-3">
@@ -144,7 +153,13 @@ export function ThreadView({
         })}
       </ol>
 
-      <Composer to={counterpart} templates={templates} mailReady={mailReady} />
+      <Composer
+        to={counterpart}
+        templates={templates}
+        mailReady={mailReady}
+        defaultSubject={defaultSubject}
+      />
+      <AutoRefresh />
     </section>
   );
 }

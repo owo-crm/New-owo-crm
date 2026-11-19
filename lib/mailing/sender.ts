@@ -2,8 +2,9 @@ import "server-only";
 import { getDb } from "@/lib/db";
 import { loadMailSettings, recipientsSentToday, sendBusinessMail } from "@/lib/mail/service";
 import { MailError } from "@/lib/mail/transport";
-import { renderLetter } from "./render";
+import { fillName, renderLetter } from "./render";
 import { loadLetterLook } from "@/lib/mail/look";
+import { findLeadByEmail, recordOutgoing } from "@/lib/mail/inbox";
 
 /**
  * Отправка рассылки порциями.
@@ -69,12 +70,25 @@ export async function sendMailingBatch(organizationId: string, origin: string, m
       },
     );
     try {
-      await sendBusinessMail(
+      const { providerId } = await sendBusinessMail(
         db,
         organizationId,
         { to: [row.email], subject: letter.subject, html: letter.html, text: letter.text },
         { kind: "mailing" },
       );
+      // Письмо рассылки попадает в переписку с этим клиентом: когда он ответит,
+      // в чате видно, на что именно (и у письма будут статусы «Dostarczono», «Otwarto»).
+      await recordOutgoing(db, {
+        organizationId,
+        leadId: await findLeadByEmail(db, organizationId, row.email),
+        to: row.email,
+        subject: letter.subject,
+        text: chatText(row, row.name ?? ""),
+        html: letter.html,
+        inReplyTo: null,
+        sentBy: null,
+        providerId,
+      }).catch((error) => console.error("[mailing] chat", (error as Error).message));
       await db.query("select public.mailing_mark($1,$2,true,null)", [
         organizationId,
         row.recipient_id,
@@ -103,4 +117,9 @@ export async function runMailingQueue(origin: string) {
   let sent = 0;
   for (const row of rows) sent += (await sendMailingBatch(row.organization_id, origin)).sent;
   return { sent, organizations: rows.length };
+}
+
+/** Текст письма для чата: заголовок и тело, с подставленным именем, без оформления. */
+function chatText(row: Row, name: string) {
+  return fillName([row.heading1, row.heading2, row.body].filter(Boolean).join("\n\n"), name);
 }

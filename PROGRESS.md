@@ -8,6 +8,12 @@ _(пусто — если задача прервана, описать здес
 
 ---
 
+## 2026-11-19 · Claude · Poczta: nagłówek w odpowiedzi, rozsyłki w czacie, odświeżanie
+
+- Odpowiedź tekstem ma nagłówek (domyślnie temat bez «Re:», można wpisać własny i temat) — przycisk «Nagłówek».
+- Każdy list z rozsyłki trafia do czatu z klientem (z id Resend → statusy).
+- Czat i lista rozmów odświeżają się co 10 s (nowe odpowiedzi i statusy bez przeładowania).
+
 ## 2026-11-19 · Claude · Статусы писем (решение 052)
 
 - Миграция 042: `status`, `status_at`, `opened_at`, `status_detail` у `mail_messages`; Resend id отправленного письма сохраняется.

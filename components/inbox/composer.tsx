@@ -2,7 +2,7 @@
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { FileText, Loader2, SendHorizontal, X } from "lucide-react";
+import { FileText, Heading, Loader2, SendHorizontal, X } from "lucide-react";
 import { Picker } from "@/components/ui/picker";
 import { Notice } from "@/components/ui/notice";
 import { sendReplyAction } from "@/lib/mail/inbox-actions";
@@ -18,13 +18,20 @@ export function Composer({
   to,
   templates,
   mailReady,
+  defaultSubject,
 }: {
+  /** Тема по умолчанию: «Re: …» последнего письма или «Wiadomość od …». */
+  defaultSubject: string;
   to: string;
   templates: Template[];
   mailReady: boolean;
 }) {
   const [text, setText] = useState("");
   const [templateId, setTemplateId] = useState("");
+  const [head, setHead] = useState({ open: false, subject: "", heading1: "", heading2: "" });
+  const autoHeading = (head.subject || defaultSubject)
+    .replace(/^\s*((re|odp|aw|fwd?)\s*:\s*)+/i, "")
+    .trim();
   const [error, setError] = useState<string>();
   const [pending, start] = useTransition();
   const router = useRouter();
@@ -47,11 +54,19 @@ export function Composer({
     if (pending || (!template && !text.trim())) return;
     setError(undefined);
     start(async () => {
-      const result = await sendReplyAction({ to, text, templateId: template?.id });
+      const result = await sendReplyAction({
+        to,
+        text,
+        templateId: template?.id,
+        subject: head.subject || undefined,
+        heading1: head.heading1 || undefined,
+        heading2: head.heading2 || undefined,
+      });
       if (result.error) setError(result.error);
       else {
         setText("");
         setTemplateId("");
+        setHead({ open: false, subject: "", heading1: "", heading2: "" });
         router.refresh();
       }
     });
@@ -77,20 +92,50 @@ export function Composer({
           </button>
         </div>
       ) : (
-        <textarea
-          ref={area}
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
-              e.preventDefault();
-              send();
-            }
-          }}
-          rows={3}
-          placeholder={t("inbox.placeholder")}
-          className="border-line-strong bg-surface focus:border-ink max-h-60 min-h-20 w-full resize-y rounded-xl border px-3 py-2.5 text-[14px] outline-none"
-        />
+        <>
+          {head.open ? (
+            <div className="grid gap-2 sm:grid-cols-3">
+              <input
+                value={head.subject}
+                onChange={(e) => setHead({ ...head, subject: e.target.value })}
+                maxLength={200}
+                aria-label={t("inbox.subject")}
+                placeholder={`${t("inbox.subject")}: ${defaultSubject}`}
+                className="border-line-strong bg-surface h-9 rounded-lg border px-3 text-[13px] sm:col-span-3"
+              />
+              <input
+                value={head.heading1}
+                onChange={(e) => setHead({ ...head, heading1: e.target.value })}
+                maxLength={60}
+                aria-label={t("inbox.heading1")}
+                placeholder={t("inbox.heading1")}
+                className="border-line-strong bg-surface text-accent h-9 rounded-lg border px-3 text-[13px] font-bold"
+              />
+              <input
+                value={head.heading2}
+                onChange={(e) => setHead({ ...head, heading2: e.target.value })}
+                maxLength={60}
+                aria-label={t("inbox.heading2")}
+                placeholder={autoHeading || t("inbox.heading2")}
+                className="border-line-strong bg-surface h-9 rounded-lg border px-3 text-[13px] font-bold sm:col-span-2"
+              />
+            </div>
+          ) : null}
+          <textarea
+            ref={area}
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+                e.preventDefault();
+                send();
+              }
+            }}
+            rows={3}
+            placeholder={t("inbox.placeholder")}
+            className="border-line-strong bg-surface focus:border-ink max-h-60 min-h-20 w-full resize-y rounded-xl border px-3 py-2.5 text-[14px] outline-none"
+          />
+        </>
       )}
       <div className="flex items-center gap-2">
         {templates.length ? (
@@ -113,6 +158,20 @@ export function Composer({
               </option>
             ))}
           </Picker>
+        ) : null}
+        {!template ? (
+          <button
+            type="button"
+            aria-pressed={head.open}
+            onClick={() => setHead({ ...head, open: !head.open })}
+            className={cn(
+              "border-line-strong hover:bg-surface-2 flex h-9 items-center gap-1.5 rounded-lg border px-3 text-[13px] font-semibold",
+              head.open && "bg-surface-2",
+            )}
+          >
+            <Heading className="size-4" />
+            {t("inbox.headingToggle")}
+          </button>
         ) : null}
         <span className="text-ink-faint hidden flex-1 text-[11.5px] md:block">
           {t("inbox.hint")}

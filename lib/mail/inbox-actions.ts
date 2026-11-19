@@ -27,6 +27,10 @@ const replyInput = z.object({
   to: z.string().trim().toLowerCase().pipe(z.email()),
   text: z.string().max(20000).default(""),
   templateId: z.uuid().optional(),
+  /** Тема и заголовок письма для ответа текстом; пустые — подставляются сами. */
+  subject: z.string().trim().max(200).optional(),
+  heading1: z.string().trim().max(60).optional(),
+  heading2: z.string().trim().max(60).optional(),
 });
 
 /**
@@ -36,7 +40,7 @@ const replyInput = z.object({
 export async function sendReplyAction(raw: unknown): Promise<InboxResult> {
   const parsed = replyInput.safeParse(raw);
   if (!parsed.success) return { error: t("inbox.invalid") };
-  const { to, text, templateId } = parsed.data;
+  const { to, text, templateId, heading1 } = parsed.data;
   if (!templateId && !text.trim()) return { error: t("inbox.empty") };
   const { user, organization } = await requireOrganization();
   const db = getDb();
@@ -91,12 +95,17 @@ export async function sendReplyAction(raw: unknown): Promise<InboxResult> {
           buttonText: template.button_text,
           buttonUrl: template.button_url,
         }
-      : {
-          subject: last
-            ? replySubject(last.subject)
-            : t("inbox.defaultSubject", { firm: organization.name }),
-          body: text,
-        },
+      : (() => {
+          const subject =
+            parsed.data.subject ||
+            (last
+              ? replySubject(last.subject)
+              : t("inbox.defaultSubject", { firm: organization.name }));
+          // Заголовок письма: свой или тема без «Re:», чтобы ответ не выглядел голым текстом.
+          const heading2 =
+            parsed.data.heading2 || subject.replace(/^\s*((re|odp|aw|fwd?)\s*:\s*)+/i, "").trim();
+          return { subject, body: text, heading1: heading1 || null, heading2: heading2 || null };
+        })(),
     { name: leadName, email: to },
     {
       organizationId: organization.id,
