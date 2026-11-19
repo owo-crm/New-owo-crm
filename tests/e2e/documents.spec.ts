@@ -6,7 +6,7 @@ const ip = () => ({
   "x-real-ip": `10.0.${Math.floor(Math.random() * 250)}.${Math.floor(Math.random() * 250)}`,
 });
 
-test("oferta → menu → umowa: PDF + Word, dane wracają do karty, etap rośnie", async ({
+test("oferta → menu → umowa: PDF + Word, dane wracają do karty, etap bez zmian do wysyłki", async ({
   page,
   request,
 }, info) => {
@@ -25,9 +25,10 @@ test("oferta → menu → umowa: PDF + Word, dane wracają do karty, etap rośni
   await page.getByText(name).click();
   await expect(page).toHaveURL(/\/leady\/[0-9a-f-]{36}/);
 
-  // Всё на одном экране лида, без вкладок (решение 047).
-  // Генерация — в «Szybkie działania» (решение 049).
-  await page.getByRole("link", { name: "Oferta", exact: true }).click();
+  // Формы документов открываются напрямую; из «Szybkie działania» они ведут в чат (решение 053),
+  // а у этого лида нет e-maila — кнопки там неактивны (tests/e2e/chat-documents.spec.ts).
+  const leadUrl = page.url();
+  await page.goto(`${leadUrl}/oferta?pakiet=standard`);
   await page.getByLabel("Goście").fill("70");
   await page.getByLabel("Miejsce").fill("Hotel Łazienki");
   await page.getByLabel("Godziny (np. 18:00-02:00)").fill("17:00-01:00");
@@ -35,11 +36,11 @@ test("oferta → menu → umowa: PDF + Word, dane wracają do karty, etap rośni
   await page.locator("main").getByRole("button", { name: "Generuj PDF + Word" }).click();
   await expect(page.getByText(/Gotowe: Oferta/)).toBeVisible({ timeout: 20_000 });
 
-  await page.getByRole("link", { name: "Menu", exact: true }).click();
+  await page.goto(`${leadUrl}/menu`);
   await page.locator("main").getByRole("button", { name: "Generuj PDF + Word" }).click();
   await expect(page.getByText(/Gotowe: Menu/)).toBeVisible({ timeout: 20_000 });
 
-  await page.getByRole("link", { name: "Umowa", exact: true }).click();
+  await page.goto(`${leadUrl}/umowa`);
   await expect(page.getByLabel("Cena umowy (zł)")).toHaveValue("8800");
   await page.getByLabel("Adres klienta").fill("ul. Testowa 5, 81-001 Gdynia");
   await page.locator("main").getByRole("button", { name: "Generuj PDF + Word" }).click();
@@ -50,8 +51,8 @@ test("oferta → menu → umowa: PDF + Word, dane wracają do karty, etap rośni
     .evaluateAll((a) => a.map((x) => x.getAttribute("href")!));
   expect(files).toHaveLength(6);
   for (const href of files) expect((await page.request.get(href)).status()).toBe(200);
-  // Этап — пилюля рядом с именем (решение 048).
-  await expect(page.locator("main h1 + *")).toContainText("Umowa wysłana");
+  // Генерация больше не двигает этап — только подтверждённая отправка клиенту (решение 053).
+  await expect(page.locator("main h1 + *")).not.toContainText("Umowa wysłana");
   await expect(page.getByText("Hotel Łazienki")).toBeVisible();
   await page.screenshot({
     path: `tests/screenshots/${info.project.name}-dokumenty.png`,

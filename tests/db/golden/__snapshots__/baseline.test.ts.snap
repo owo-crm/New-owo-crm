@@ -826,16 +826,8 @@ exports[`M0 golden — кабинет мероприятий > work_queue (Pulpi
   "month_won": 0,
   "now": "M+0",
   "response_minutes": 0,
-  "tasks": [
-    {
-      "client_name": "Jan Kowalski",
-      "due_at": "M+0",
-      "id": "LEAD_3",
-      "phone_e164": "+48500000003",
-      "title": null,
-    },
-  ],
-  "tasks_count": 1,
+  "tasks": [],
+  "tasks_count": 0,
   "upcoming": [
     {
       "client_name": "Piotr Zieliński",

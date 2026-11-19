@@ -40,10 +40,13 @@ export function OfferForm({
   leadId,
   pkg,
   values,
+  templateId,
 }: {
   leadId: string;
   pkg: string;
   values: Record<string, string>;
+  /** Шаблон письма из «Szybkie działania»: после генерации — в чат с PDF (решение 053). */
+  templateId?: string;
 }) {
   const [state, action] = useActionState<DocumentFormState, FormData>(createOfferAction, {});
   const v = state.values ?? values;
@@ -52,6 +55,7 @@ export function OfferForm({
     <form action={action} className="grid gap-5">
       <input type="hidden" name="leadId" value={leadId} />
       <input type="hidden" name="pkg" value={pkg} />
+      {templateId ? <input type="hidden" name="tpl" value={templateId} /> : null}
       {state.error ? <Notice tone="error">{state.error}</Notice> : null}
       <Card>
         <div className="grid gap-4 sm:grid-cols-2">
@@ -82,11 +86,20 @@ export function OfferForm({
   );
 }
 
-export function GuestMenuForm({ leadId, menu }: { leadId: string; menu: string }) {
+export function GuestMenuForm({
+  leadId,
+  menu,
+  templateId,
+}: {
+  leadId: string;
+  menu: string;
+  templateId?: string;
+}) {
   const [state, action] = useActionState<DocumentFormState, FormData>(createGuestMenuAction, {});
   return (
     <form action={action} className="grid gap-5">
       <input type="hidden" name="leadId" value={leadId} />
+      {templateId ? <input type="hidden" name="tpl" value={templateId} /> : null}
       {state.error ? <Notice tone="error">{state.error}</Notice> : null}
       <Card>
         <Area name="menu" label={t("docs.f_menu")} value={state.values?.menu ?? menu} rows={18} />
@@ -104,9 +117,11 @@ export function GuestMenuForm({ leadId, menu }: { leadId: string; menu: string }
 export function ContractForm({
   leadId,
   values,
+  templateId,
 }: {
   leadId: string;
   values: Record<string, string>;
+  templateId?: string;
 }) {
   const [state, action] = useActionState<DocumentFormState, FormData>(createContractAction, {});
   const v = state.values ?? values;
@@ -114,6 +129,7 @@ export function ContractForm({
   return (
     <form action={action} className="grid gap-5">
       <input type="hidden" name="leadId" value={leadId} />
+      {templateId ? <input type="hidden" name="tpl" value={templateId} /> : null}
       {state.error ? <Notice tone="error">{state.error}</Notice> : null}
       <Card>
         <div className="grid gap-4 sm:grid-cols-2">

@@ -31,6 +31,16 @@ const OFFER_KEYS = [
   "menu",
 ] as const;
 
+/**
+ * Шаблон письма, из которого пришли (кнопка «Szybkie działania», решение 053): после «Generuj»
+ * возвращаемся в чат с этим шаблоном и прикреплённым PDF. Принадлежность шаблона фирме
+ * проверяет страница чата; здесь — только формат.
+ */
+function chatAfter(form: FormData, leadId: string, documentId: string) {
+  const tpl = z.uuid().safeParse(form.get("tpl"));
+  return tpl.success ? `/poczta?lead=${leadId}&tpl=${tpl.data}&doc=${documentId}` : null;
+}
+
 function friendly(error: unknown) {
   if (error instanceof DocumentInputError) return error.message;
   if (sqlState(error) === "40001")
@@ -49,6 +59,7 @@ export async function createOfferAction(
     OFFER_KEYS.map((k) => [k, String(form.get(k) ?? "")]),
   ) as OfferFormValues;
   let number: string;
+  let documentId: string;
   try {
     const result = await withOrg((tx, { user, organization }) => {
       if (organization.documentEngine !== "barowo" || !organization.modules.includes("documents"))
@@ -64,11 +75,15 @@ export async function createOfferAction(
       );
     });
     number = result.number;
+    documentId = result.id;
   } catch (error) {
     return { error: friendly(error), values };
   }
   revalidatePath(`/leady/${leadId}`);
-  redirect(`/leady/${leadId}?dokument=${encodeURIComponent("Oferta " + number)}#dokumenty`);
+  redirect(
+    chatAfter(form, leadId, documentId) ??
+      `/leady/${leadId}?dokument=${encodeURIComponent("Oferta " + number)}#dokumenty`,
+  );
 }
 
 export async function createGuestMenuAction(
@@ -78,6 +93,7 @@ export async function createGuestMenuAction(
   const leadId = z.uuid().parse(form.get("leadId"));
   const menu = String(form.get("menu") ?? "");
   let number: string;
+  let documentId: string;
   try {
     const result = await withOrg((tx, { user, organization }) => {
       if (organization.documentEngine !== "barowo" || !organization.modules.includes("documents"))
@@ -85,11 +101,15 @@ export async function createGuestMenuAction(
       return generateGuestMenu(tx, { userId: user.id, orgId: organization.id }, leadId, menu);
     });
     number = result.number;
+    documentId = result.id;
   } catch (error) {
     return { error: friendly(error), values: { menu } };
   }
   revalidatePath(`/leady/${leadId}`);
-  redirect(`/leady/${leadId}?dokument=${encodeURIComponent("Menu " + number)}#dokumenty`);
+  redirect(
+    chatAfter(form, leadId, documentId) ??
+      `/leady/${leadId}?dokument=${encodeURIComponent("Menu " + number)}#dokumenty`,
+  );
 }
 
 const CONTRACT_KEYS = [
@@ -112,6 +132,7 @@ export async function createContractAction(
     CONTRACT_KEYS.map((k) => [k, String(form.get(k) ?? "")]),
   ) as Record<(typeof CONTRACT_KEYS)[number], string>;
   let number: string;
+  let documentId: string;
   try {
     const result = await withOrg((tx, { user, organization }) => {
       if (organization.documentEngine !== "barowo" || !organization.modules.includes("documents"))
@@ -119,9 +140,13 @@ export async function createContractAction(
       return generateContract(tx, { userId: user.id, orgId: organization.id }, leadId, pkg, values);
     });
     number = result.number;
+    documentId = result.id;
   } catch (error) {
     return { error: friendly(error), values: { ...values, pkg } };
   }
   revalidatePath(`/leady/${leadId}`);
-  redirect(`/leady/${leadId}?dokument=${encodeURIComponent("Umowa " + number)}#dokumenty`);
+  redirect(
+    chatAfter(form, leadId, documentId) ??
+      `/leady/${leadId}?dokument=${encodeURIComponent("Umowa " + number)}#dokumenty`,
+  );
 }

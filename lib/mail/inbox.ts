@@ -1,6 +1,7 @@
 import { one, type Queryable } from "../db/core.ts";
 import { decryptSecret } from "./secret.ts";
 import { loadMailSettings } from "./service.ts";
+import { resendApiUrl } from "./transport.ts";
 import {
   htmlToText,
   parseAddress,
@@ -56,7 +57,7 @@ export async function fetchReceivedBody(
 ): Promise<{ text: string; html: string | null; fromHeader: string | null } | null> {
   const request = deps.fetch ?? globalThis.fetch;
   const response = await request(
-    `https://api.resend.com/emails/receiving/${encodeURIComponent(emailId)}`,
+    `${resendApiUrl()}/emails/receiving/${encodeURIComponent(emailId)}`,
     { headers: { Authorization: `Bearer ${apiKey}` }, signal: AbortSignal.timeout(15_000) },
   ).catch(() => null);
   if (!response?.ok) return null;

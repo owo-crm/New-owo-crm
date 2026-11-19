@@ -27,8 +27,21 @@ const template = z.object({
   heading2: z.string().nullable(),
   button_text: z.string().nullable(),
   button_url: z.string().nullable(),
+  // Документные шаблоны (решение 053): письмо + документ, кнопка в «Szybkie działania».
+  purpose: z.enum(["mail", "document"]).default("mail"),
+  document_kind: z.enum(["offer", "contract", "menu", "file"]).nullable().default(null),
+  document_params: z.record(z.string(), z.unknown()).default({}),
+  document_mode: z.enum(["quick", "form"]).nullable().default(null),
+  attachment_id: z.uuid().nullable().default(null),
+  quick_label: z.string().nullable().default(null),
+  quick_position: z.coerce.number().default(0),
+  stage_after: z.string().nullable().default(null),
 });
 export type Template = z.infer<typeof template>;
+
+const TEMPLATE_COLUMNS = `id, name, subject, body, heading1, heading2, button_text, button_url,
+  purpose, document_kind, document_params, document_mode, attachment_id, quick_label,
+  quick_position, stage_after`;
 
 const campaign = z.object({
   id: z.uuid(),
@@ -49,12 +62,17 @@ export function listContacts() {
   });
 }
 
-export function listTemplates() {
+/**
+ * Шаблоны фирмы. «mail» — только обычные письма (для рассылок: документный шаблон без лида
+ * не имеет смысла); «all» — все, для переписки и настроек.
+ */
+export function listTemplates(scope: "mail" | "all" = "mail") {
   return withOrg(async (tx, { organization }) => {
     const { rows } = await tx.query(
-      `select id, name, subject, body, heading1, heading2, button_text, button_url
-       from public.mailing_templates where organization_id=$1 order by position, name`,
-      [organization.id],
+      `select ${TEMPLATE_COLUMNS}
+       from public.mailing_templates where organization_id=$1 and ($2 = 'all' or purpose = 'mail')
+       order by purpose desc, quick_position, position, name`,
+      [organization.id, scope],
     );
     return template.array().parse(rows);
   });
@@ -95,7 +113,7 @@ export function saveTemplate(input: {
       await tx.query(
         `update public.mailing_templates set name=$2, subject=$3, body=$4, heading1=$5,
            heading2=$6, button_text=$7, button_url=$8
-         where organization_id=$1 and id=$9`,
+         where organization_id=$1 and id=$9 and purpose='mail'`,
         [...values, input.id],
       );
     else

@@ -8,6 +8,17 @@ _(пусто — если задача прервана, описать здес
 
 ---
 
+## 2026-11-19 · Claude · Документы через чат (решение 053, TASK_2026-11-19_chat_documents)
+
+- Миграция 043: документные поля `mailing_templates`, `template_files`, `outbound_messages` (D-20), `documents.operation_key`, `mail_messages.outbound_id/document_id`, `work_queue` без «Następny kontakt».
+- `lib/mail/chat-send.ts` — отправка из чата: outbox, идемпотентность, unknown без автоповтора, фиксация (переписка, документ `sent`, история, этап); `lib/documents/stage.ts` — решатель этапа.
+- Чат: карточка документа для быстрых оферт (правка данных, «Podgląd PDF»), прикреплённый PDF из форм, вложения в переписке — ссылки на защищённые маршруты.
+- Карточка лида: кнопки из шаблонов, «Prowadzi ▾» в шапке, без «Następny kontakt» и «Przypisane do»; без e-mail кнопки неактивны.
+- Формы оферты (с выбором Simple/Standard/Premium), умовы и меню возвращают в чат (`?tpl=`).
+- «Ustawienia → Poczta → Szablony»; импорт `npm run templates:import`; стартовые шаблоны `templates/barowo.json`.
+- Проверки: `npm run check` (385 тестов), e2e — все сценарии на 1440 и 390 px (`chat-documents.spec.ts`), `documents.spec.ts` обновлён (генерация не двигает этап).
+- Для продакшена: влить PR, после деплоя миграции выполнить импорт шаблонов Barowo (см. `docs/10-templates.md`).
+
 ## 2026-11-19 · Claude · Poczta: nagłówek w odpowiedzi, rozsyłki w czacie, odświeżanie
 
 - Odpowiedź tekstem ma nagłówek (domyślnie temat bez «Re:», można wpisać własny i temat) — przycisk «Nagłówek».

@@ -25,7 +25,17 @@ const message = z.object({
   body_text: z.string(),
   body_pending: z.boolean(),
   has_html: z.boolean(),
-  attachments: z.array(z.object({ filename: z.string() }).passthrough()).catch([]),
+  attachments: z
+    .array(
+      z
+        .object({
+          filename: z.string(),
+          fileId: z.string().optional(),
+          kind: z.string().optional(),
+        })
+        .passthrough(),
+    )
+    .catch([]),
   message_id: z.string().nullable(),
   created_at: z.coerce.string(),
   sender: z.string().nullable(),

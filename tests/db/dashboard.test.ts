@@ -55,9 +55,10 @@ it("kolejka pomija zamknięte, usunięte i cudze leady; miesiąc liczy się po W
     response_minutes: 3,
     // 22:00 UTC to już 1 października w Warszawie; 21:59 UTC (Spam) — jeszcze wrzesień.
     month_leads: 3,
-    tasks_count: 1,
+    // «Następny kontakt» больше не даёт напоминаний (решение 053), хотя дата у лида есть.
+    tasks_count: 0,
     waiting: [{ client_name: "Waiting" }],
-    tasks: [{ client_name: "Responded" }],
+    tasks: [],
   });
   // Nadchodzące wydarzenia: podpisana umowa jest potwierdzona, reszta wstępna; spam i usunięte wypadają.
   expect(data.upcoming).toEqual([

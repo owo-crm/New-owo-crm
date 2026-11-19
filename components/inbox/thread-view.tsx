@@ -15,7 +15,7 @@ import { stripQuote } from "@/lib/mail/inbound";
 import { t } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { AutoRefresh } from "./auto-refresh";
-import { Composer } from "./composer";
+import { Composer, type PreparedDocument } from "./composer";
 
 const stamp = (iso: string) =>
   new Date(iso).toLocaleString("pl-PL", {
@@ -35,7 +35,13 @@ export function ThreadView({
   brand,
   templates,
   mailReady,
+  initialTemplateId,
+  preparedDocument,
 }: {
+  /** Шаблон, выбранный кнопкой из «Szybkie działania» (?tpl=). */
+  initialTemplateId?: string;
+  /** Документ, созданный формой (?doc=) — уже прикреплён. */
+  preparedDocument?: PreparedDocument | null;
   counterpart: string;
   messages: ThreadMessage[];
   lead: { id: string; client_name: string } | null;
@@ -130,12 +136,30 @@ export function ThreadView({
               </div>
               {m.attachments.length ? (
                 <span className="text-ink-soft flex flex-wrap gap-1.5 px-1 text-[12px]">
-                  {m.attachments.map((a, i) => (
-                    <span key={i} className="flex items-center gap-1">
-                      <Paperclip className="size-3" />
-                      {a.filename}
-                    </span>
-                  ))}
+                  {m.attachments.map((a, i) => {
+                    // Исходящий PDF — настоящая ссылка через защищённый маршрут (права проверяются там).
+                    const fileId = typeof a.fileId === "string" ? a.fileId : null;
+                    const href = fileId
+                      ? a.kind === "template"
+                        ? `/api/template-files/${fileId}`
+                        : `/api/documents/${fileId}`
+                      : null;
+                    return href ? (
+                      <a
+                        key={i}
+                        href={href}
+                        className="border-line bg-surface hover:bg-surface-2 flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 font-semibold"
+                      >
+                        <Paperclip className="size-3.5" />
+                        {a.filename}
+                      </a>
+                    ) : (
+                      <span key={i} className="flex items-center gap-1">
+                        <Paperclip className="size-3" />
+                        {a.filename}
+                      </span>
+                    );
+                  })}
                 </span>
               ) : null}
               <span className="text-ink-faint flex items-center gap-1 px-1 text-[11px]">
@@ -155,9 +179,12 @@ export function ThreadView({
 
       <Composer
         to={counterpart}
+        leadId={lead?.id ?? null}
         templates={templates}
         mailReady={mailReady}
         defaultSubject={defaultSubject}
+        initialTemplateId={initialTemplateId}
+        document={preparedDocument}
       />
       <AutoRefresh />
     </section>

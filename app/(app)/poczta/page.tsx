@@ -16,10 +16,13 @@ import { getThread, listThreads } from "@/lib/mail/inbox-read";
 import { listCampaigns, listContacts, listTemplates } from "@/lib/mailing/repository";
 import { t } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
+import { withOrg } from "@/lib/db/user";
+import type { PreparedDocument } from "@/components/inbox/composer";
 
 export const metadata: Metadata = { title: t("mailing.title") };
 
 const EMAIL = /^[^\s@<>",;]+@[^\s@<>",;]+\.[^\s@<>",;]+$/;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
  * Poczta: «Wiadomości» — переписка с клиентами (входящие и ответы, решение 051)
@@ -27,13 +30,20 @@ const EMAIL = /^[^\s@<>",;]+@[^\s@<>",;]+\.[^\s@<>",;]+$/;
  */
 export default async function MailingPage({ searchParams }: PageProps<"/poczta">) {
   const params = await searchParams;
-  // Из карточки лида раньше вели в рассылку с выбранным получателем — оставляем.
-  const preselect =
-    typeof params.lead === "string" && /^[0-9a-f-]{36}$/.test(params.lead)
-      ? params.lead
-      : undefined;
-  const tab = params.tab === "rozsylki" || preselect ? "rozsylki" : "wiadomosci";
-  const counterpart =
+  const uuid = (v: unknown) => (typeof v === "string" && UUID.test(v) ? v : undefined);
+  const leadParam = uuid(params.lead);
+  const tplParam = uuid(params.tpl);
+  const docParam = uuid(params.doc);
+  // Рассылка — только явно (?tab=rozsylki) или старая ссылка «?lead=» без чата/шаблона/документа
+  // (так раньше открывали рассылку с выбранным получателем). Документы из «Szybkie działania»
+  // приходят с ?lead=&tpl= / ?doc= — это всегда «Wiadomości» (решение 053).
+  const tab =
+    params.tab === "rozsylki" ||
+    (leadParam && !params.c && !tplParam && !docParam && params.tab !== "wiadomosci")
+      ? "rozsylki"
+      : "wiadomosci";
+  const preselect = tab === "rozsylki" ? leadParam : undefined;
+  let counterpart =
     typeof params.c === "string" && EMAIL.test(params.c.trim())
       ? params.c.trim().toLowerCase()
       : undefined;
@@ -115,9 +125,13 @@ export default async function MailingPage({ searchParams }: PageProps<"/poczta">
     );
   }
 
+  // Переход из карточки лида: адрес берём из лида (под RLS), а не из адресной строки.
+  const fromLead = leadParam ? await chatTarget(leadParam, docParam) : null;
+  if (fromLead?.email) counterpart = fromLead.email;
+
   const [threads, templates, thread] = await Promise.all([
     listThreads(),
-    listTemplates(),
+    listTemplates("all"),
     counterpart ? getThread(counterpart) : Promise.resolve(null),
   ]);
 
@@ -141,6 +155,10 @@ export default async function MailingPage({ searchParams }: PageProps<"/poczta">
             messages={thread.messages}
             lead={thread.lead}
             name={thread.name}
+            initialTemplateId={
+              tplParam && templates.some((x) => x.id === tplParam) ? tplParam : undefined
+            }
+            preparedDocument={fromLead?.document ?? null}
             brand={organization.name}
             templates={templates}
             mailReady={Boolean(mail)}
@@ -153,4 +171,32 @@ export default async function MailingPage({ searchParams }: PageProps<"/poczta">
       </div>
     </>
   );
+}
+
+/** Лид для чата и документ, созданный формой: только своей фирмы и этого лида. */
+async function chatTarget(leadId: string, documentId?: string) {
+  return withOrg(async (tx, { organization }) => {
+    const lead = (
+      await tx.query<{ email: string | null }>(
+        "select email from public.leads where organization_id=$1 and id=$2 and deleted_at is null",
+        [organization.id, leadId],
+      )
+    ).rows[0];
+    if (!lead) return null;
+    const email =
+      lead.email && EMAIL.test(lead.email.trim()) ? lead.email.trim().toLowerCase() : null;
+    const document = documentId
+      ? ((
+          await tx.query<PreparedDocument>(
+            `select d.id, d.number, f.id as "fileId", f.filename
+               from public.documents d
+               join public.document_files f on f.organization_id = d.organization_id
+                and f.document_id = d.id and f.format = 'pdf'
+              where d.organization_id=$1 and d.id=$2 and d.lead_id=$3 and d.status <> 'cancelled'`,
+            [organization.id, documentId, leadId],
+          )
+        ).rows[0] ?? null)
+      : null;
+    return { email, document };
+  });
 }
