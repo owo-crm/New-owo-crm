@@ -24,6 +24,15 @@ export async function runNotifications(leadId?: string) {
       console.error("[ads]", (error as Error).message),
     );
   }
+  // Рассылки едут той же минутной очередью, но НЕ зависят от OUTBOUND_NOTIFICATIONS_ENABLED:
+  // это письма клиентам через почту фирмы, а не уведомления команде. Раньше они стояли после
+  // выключателя уведомлений — и при выключенных уведомлениях кампании не уходили никогда.
+  if (!leadId) {
+    const { runMailingQueue } = await import("@/lib/mailing/sender");
+    await runMailingQueue(siteOrigin()).catch((error) =>
+      console.error("[mailing]", (error as Error).message),
+    );
+  }
   if (!config.enabled) {
     if (!leadId) await repository.prepare(); // уборка журнала и сессий всё равно нужна
     return { processed: 0, disabled: true };
@@ -32,12 +41,9 @@ export async function runNotifications(leadId?: string) {
     enabled: true,
     leadId,
   });
-  // Рассылки едут той же минутной очередью: отдельный планировщик не нужен.
-  if (!leadId) {
-    const { runMailingQueue } = await import("@/lib/mailing/sender");
-    await runMailingQueue(
-      process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || "http://localhost:3000",
-    ).catch((error) => console.error("[mailing]", (error as Error).message));
-  }
   return result;
+}
+
+export function siteOrigin() {
+  return process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || "http://localhost:3000";
 }

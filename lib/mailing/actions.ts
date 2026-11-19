@@ -98,6 +98,12 @@ export async function startCampaignAction(raw: unknown, leadIds: unknown): Promi
   const ids = z.array(z.uuid()).min(1).max(5000).safeParse(leadIds);
   if (!letter.success || !ids.success) return { error: t("mailing.invalid") };
   const { id, total } = await startCampaign(letter.data, ids.data);
+  // Первая порция уходит сразу, а не через минуту фоновой очереди.
+  const { organization } = await requireOrganization();
+  const { sendMailingBatch } = await import("./sender");
+  await sendMailingBatch(organization.id, await origin()).catch((error) =>
+    console.error("[mailing] start", (error as Error).message),
+  );
   revalidatePath("/poczta");
   return { ok: true, id, total };
 }
