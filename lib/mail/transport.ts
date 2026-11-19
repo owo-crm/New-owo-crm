@@ -27,6 +27,8 @@ export type OutgoingMail = {
   html?: string;
   replyTo?: string;
   attachments?: MailAttachment[];
+  /** Ответ на письмо клиента: Message-ID его письма — почтовик склеит переписку в цепочку. */
+  inReplyTo?: string | null;
 };
 
 export type MailErrorCode =
@@ -101,7 +103,14 @@ export function validateMail(mail: OutgoingMail) {
     throw new MailError("recipient_rejected");
   const size = (mail.attachments ?? []).reduce((n, a) => n + a.content.length, 0);
   if (size > MAX_ATTACHMENTS_BYTES) throw new MailError("attachment_too_large");
-  return { ...mail, to, subject: mail.subject.replace(/[\r\n]+/g, " ").slice(0, 300) };
+  // Message-ID попадает в заголовок письма: никаких переводов строки (подмена заголовков).
+  const inReplyTo = mail.inReplyTo?.replace(/[\r\n\s]+/g, "").slice(0, 900) || null;
+  return {
+    ...mail,
+    to,
+    inReplyTo,
+    subject: mail.subject.replace(/[\r\n]+/g, " ").slice(0, 300),
+  };
 }
 
 export type SmtpFactory = (options: Record<string, unknown>) => {
@@ -144,6 +153,8 @@ export async function deliverMail(
         subject: mail.subject,
         text: mail.text,
         html: mail.html,
+        inReplyTo: mail.inReplyTo || undefined,
+        references: mail.inReplyTo || undefined,
         attachments: mail.attachments?.map((a) => ({
           filename: a.filename,
           content: a.content,
@@ -170,6 +181,9 @@ export async function deliverMail(
         subject: mail.subject,
         text: mail.text,
         html: mail.html,
+        headers: mail.inReplyTo
+          ? { "In-Reply-To": mail.inReplyTo, References: mail.inReplyTo }
+          : undefined,
         attachments: mail.attachments?.map((a) => ({
           filename: a.filename,
           content: a.content.toString("base64"),

@@ -16,7 +16,7 @@ describe("письмо рассылки", () => {
     const letter = renderLetter(
       { subject: "Wolne terminy", body: "Cześć {imie}\n\nMamy wolne soboty." },
       { name: "Ewa Zielińska", email: "ewa@example.com" },
-      { organizationId: ORG, origin: "https://owocrm.com", brand: "Barowo", brandColor: "#e8000d" },
+      { organizationId: ORG, origin: "https://owocrm.com", brand: "Barowo" },
     );
     expect(letter.subject).toBe("Wolne terminy");
     expect(letter.html).toContain("Cześć Ewa");
@@ -30,10 +30,41 @@ describe("письмо рассылки", () => {
     const letter = renderLetter(
       { subject: "x", body: '<img src=x onerror="alert(1)">' },
       { name: "Jan", email: "jan@example.com" },
-      { organizationId: ORG, origin: "https://owocrm.com", brand: "B", brandColor: "#000000" },
+      { organizationId: ORG, origin: "https://owocrm.com", brand: "B" },
     );
     expect(letter.html).not.toContain("<img");
     expect(letter.html).toContain("&lt;img");
+  });
+
+  it("ответ в переписке — без отписки; тёмная тема и логотип фирмы", () => {
+    const letter = renderLetter(
+      {
+        subject: "Oferta",
+        body: "Dzień dobry",
+        buttonText: "Zobacz",
+        buttonUrl: "javascript:alert(1)",
+      },
+      { name: "Jan", email: "jan@example.com" },
+      {
+        organizationId: ORG,
+        origin: "https://owocrm.com",
+        brand: "Barowo",
+        unsubscribe: false,
+        look: {
+          theme: "dark",
+          accent: "#e8000d",
+          signature: "Iwan\n+48 600 100 200",
+          logoUrl: "https://crm.example.com/api/logo/x",
+        },
+      },
+    );
+    expect(letter.html).not.toContain("/wypisz?");
+    expect(letter.html).toContain("#08080a"); // тёмный фон
+    expect(letter.html).toContain("https://crm.example.com/api/logo/x");
+    expect(letter.html).toContain("Iwan<br>+48 600 100 200");
+    // кнопка с javascript: не попадает в письмо
+    expect(letter.html).not.toContain("javascript:");
+    expect(letter.text).toContain("Iwan");
   });
 
   it("токен отписки проверяется и не подделывается", () => {

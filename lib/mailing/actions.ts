@@ -8,6 +8,7 @@ import { sendBusinessMail } from "@/lib/mail/service";
 import { MailError } from "@/lib/mail/transport";
 import { t } from "@/lib/i18n";
 import { renderLetter } from "./render";
+import { loadLetterLook } from "@/lib/mail/look";
 import { saveTemplate, startCampaign } from "./repository";
 
 /** Действия панели рассылок. Ничего не уходит клиентам без явного нажатия. */
@@ -53,7 +54,7 @@ export async function previewLetterAction(raw: unknown, name: string): Promise<M
       organizationId: organization.id,
       origin: await origin(),
       brand: organization.name,
-      brandColor: organization.brandColor,
+      look: await loadLetterLook(getDb(), organization.id, await origin()),
     },
   );
   return { ok: true, html: letter.html };
@@ -72,7 +73,7 @@ export async function sendTestAction(raw: unknown): Promise<MailingResult> {
       organizationId: organization.id,
       origin: await origin(),
       brand: organization.name,
-      brandColor: organization.brandColor,
+      look: await loadLetterLook(getDb(), organization.id, await origin()),
     },
   );
   try {

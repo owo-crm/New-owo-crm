@@ -15,7 +15,14 @@ import {
  * который уже проверен через withOrg — секрет читается в обход RLS.
  */
 export type MailKind =
-  "test" | "document" | "auto_offer" | "follow_up" | "review" | "mailing" | "notification";
+  | "test"
+  | "document"
+  | "auto_offer"
+  | "follow_up"
+  | "review"
+  | "mailing"
+  | "notification"
+  | "reply";
 
 type Row = {
   transport: MailSettings["transport"];
