@@ -107,13 +107,14 @@ export async function sendReplyAction(raw: unknown): Promise<InboxResult> {
     },
   );
   const inReplyTo = last?.message_id ?? null;
+  let providerId: string | null = null;
   try {
-    await sendBusinessMail(
+    ({ providerId } = await sendBusinessMail(
       db,
       organization.id,
       { to: [to], subject: letter.subject, html: letter.html, text: letter.text, inReplyTo },
       { kind: "reply", leadId, sentBy: user.id },
-    );
+    ));
   } catch (error) {
     const code = error instanceof MailError ? error.code : "send_failed";
     return { error: t(`mail.errors.${code}` as "mail.errors.send_failed") };
@@ -133,6 +134,7 @@ export async function sendReplyAction(raw: unknown): Promise<InboxResult> {
     html: letter.html,
     inReplyTo,
     sentBy: user.id,
+    providerId,
   });
   revalidatePath("/poczta");
   return { ok: true };

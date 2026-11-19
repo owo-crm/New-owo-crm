@@ -1329,6 +1329,17 @@
     "accent": "Kolor przycisków",
     "signature": "Podpis",
     "signatureHint": "Np. imię, telefon, strona — kilka linii.",
-    "preview": "Podgląd"
+    "preview": "Podgląd",
+    "status": {
+      "sent": "Wysłano",
+      "delayed": "Opóźnione",
+      "delivered": "Dostarczono",
+      "opened": "Otwarto",
+      "openedHint": "Klient otworzył wiadomość (orientacyjnie: Apple Mail otwiera obrazki sam, część osób ma je wyłączone).",
+      "bounced": "Nie dostarczono",
+      "complained": "Oznaczono jako spam"
+    },
+    "leadBounced": "Ostatni e-mail do klienta nie dotarł — sprawdź adres.",
+    "leadComplained": "Klient oznaczył ostatni e-mail jako spam."
   }
 }

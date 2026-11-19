@@ -1,5 +1,13 @@
 import Link from "next/link";
-import { ArrowLeft, Paperclip, UserRound } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowLeft,
+  Check,
+  CheckCheck,
+  Clock,
+  Paperclip,
+  UserRound,
+} from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import type { ThreadMessage } from "@/lib/mail/inbox-read";
 import type { Template } from "@/lib/mailing/repository";
@@ -121,10 +129,16 @@ export function ThreadView({
                   ))}
                 </span>
               ) : null}
-              <span className="text-ink-faint px-1 text-[11px]">
+              <span className="text-ink-faint flex items-center gap-1 px-1 text-[11px]">
                 {mine && m.sender ? `${m.sender} · ` : ""}
                 {stamp(m.created_at)}
+                {mine ? <Status message={m} /> : null}
               </span>
+              {mine && m.status === "bounced" && m.status_detail ? (
+                <span className="text-urgent max-w-full px-1 text-[11px] break-words">
+                  {m.status_detail}
+                </span>
+              ) : null}
             </li>
           );
         })}
@@ -133,4 +147,51 @@ export function ThreadView({
       <Composer to={counterpart} templates={templates} mailReady={mailReady} />
     </section>
   );
+}
+
+/**
+ * Статус письма как в мессенджере (решение 052): ✓ отправлено, ✓✓ доставлено,
+ * синие ✓✓ — открыто, красный знак — не дошло. «Otwarto» — подсказка: Apple Mail
+ * открывает картинки сам, а у части людей они выключены.
+ */
+function Status({ message: m }: { message: ThreadMessage }) {
+  const at = m.status_at ? stamp(m.status_at) : "";
+  switch (m.status) {
+    case "delivered":
+      return (
+        <span className="flex items-center gap-0.5" title={`${t("inbox.status.delivered")} ${at}`}>
+          · <CheckCheck className="size-3.5" /> {t("inbox.status.delivered")}
+        </span>
+      );
+    case "opened":
+      return (
+        <span
+          className="text-accent flex items-center gap-0.5 font-semibold"
+          title={t("inbox.status.openedHint")}
+        >
+          · <CheckCheck className="size-3.5" /> {t("inbox.status.opened")} {at}
+        </span>
+      );
+    case "delayed":
+      return (
+        <span className="flex items-center gap-0.5">
+          · <Clock className="size-3" /> {t("inbox.status.delayed")}
+        </span>
+      );
+    case "bounced":
+    case "complained":
+      return (
+        <span className="text-urgent flex items-center gap-0.5 font-semibold">
+          · <AlertTriangle className="size-3" /> {t(`inbox.status.${m.status}`)}
+        </span>
+      );
+    case "sent":
+      return (
+        <span className="flex items-center gap-0.5">
+          · <Check className="size-3.5" /> {t("inbox.status.sent")}
+        </span>
+      );
+    default:
+      return null;
+  }
 }

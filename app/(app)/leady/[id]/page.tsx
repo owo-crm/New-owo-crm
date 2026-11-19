@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { LeadEditor } from "@/components/leads/lead-editor";
+import { leadMailProblem } from "@/lib/mail/inbox-read";
 import { DocsPaymentsBlock } from "@/components/documents/docs-payments-block";
 import { getLead, getLeadHistory, getLeadOptions, getLeads } from "@/lib/leads/queries";
 import { parseLeadFilters } from "@/lib/leads/filters";
@@ -19,7 +20,7 @@ export default async function LeadPage({ params, searchParams }: PageProps<"/lea
   if (!z.uuid().safeParse(id).success) notFound();
   const lead = await getLead(id);
   if (!lead) notFound();
-  const [options, history, docs, agencyClient, files, rail] = await Promise.all([
+  const [options, history, docs, agencyClient, files, rail, mailProblem] = await Promise.all([
     getLeadOptions(),
     getLeadHistory(id),
     withOrg(async (tx, { organization }) => ({
@@ -35,6 +36,7 @@ export default async function LeadPage({ params, searchParams }: PageProps<"/lea
     clientIdForLead(id),
     listAttachments(id),
     getLeads(parseLeadFilters({})),
+    leadMailProblem(id).catch(() => null),
   ]);
   // Агентство: на этапе «Klient» (или если клиент уже заведён) — кнопка клиента агентства.
   const showAgency = docs.agency && (lead.stage_key === "client" || agencyClient !== null);
@@ -51,6 +53,7 @@ export default async function LeadPage({ params, searchParams }: PageProps<"/lea
         <LeadEditor
           lead={lead}
           serverNow={new Date().toISOString()}
+          mailProblem={mailProblem}
           stages={options.stages}
           team={options.team}
           history={history}

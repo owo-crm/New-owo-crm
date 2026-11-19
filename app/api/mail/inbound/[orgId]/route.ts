@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { getDb } from "@/lib/db";
-import { receivedEvent, verifyWebhook } from "@/lib/mail/inbound";
-import { loadInboundSecret, storeInbound } from "@/lib/mail/inbox";
+import { receivedEvent, statusEvent, verifyWebhook } from "@/lib/mail/inbound";
+import { applyStatus, loadInboundSecret, storeInbound } from "@/lib/mail/inbox";
 
 /**
  * Приём почты фирмы (решение 051). Resend получает письмо на домен фирмы и шлёт сюда
@@ -41,7 +41,13 @@ export async function POST(
   } catch {
     return Response.json({ error: "bad_json" }, { status: 400 });
   }
-  // Другие события (доставлено, открыто…) пока не нужны — подтверждаем, чтобы не было повторов.
+  // Судьба отправленного письма: доставлено, открыто, отказ (решение 052).
+  const status = statusEvent.safeParse(json);
+  if (status.success) {
+    const result = await applyStatus(db, orgId, status.data);
+    return Response.json({ ok: true, ...result });
+  }
+  // Прочие события подтверждаем, чтобы Resend не повторял их.
   if ((json as { type?: string })?.type !== "email.received") return Response.json({ ok: true });
   const event = receivedEvent.safeParse(json);
   if (!event.success) return Response.json({ error: "bad_event" }, { status: 400 });
