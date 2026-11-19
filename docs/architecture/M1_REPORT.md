@@ -134,3 +134,40 @@ Stripe-события и заказы со `stripe_invoice_id` остаются 
 автопривязанный бизнес с оплатой Stripe → decide, оплата — «nie kryterium»; ничего не записывается);
 `npm run check` — 51 файл, 333 теста проходят. Пример на локальной тестовой базе: бизнесы,
 созданные через «Nowy biznes» → `client`; «Barowo…» → `service`; «Firma E2E» → без связи.
+
+---
+
+## 9. M1.3 — выполнено (2026-11-19)
+Классификация утверждена владельцем: **OWO Ads — agency, Barowo — service**, других организаций нет;
+строка `agency_clients` Barowo сохраняется до M1.5.
+
+**Миграция `20261119000039_platform_core.sql`:**
+- новые таблицы: `platform_managed_orgs` (источник истины связей; `relation` service/client, `agency_org_id`
+  явно), `platform_staff` (из `is_platform_admin`), `audit_log` (append-only), `organization_service_grants`
+  (задел для M4.2); RLS: клиенты их не видят и не меняют, писать — только функции/сервис;
+- заполнение: Barowo → `service` у своего агентства (агентство берётся из строки `agency_clients` Barowo,
+  иначе — единственный кабинет агентства; «первое найденное» не используется) + запись в `audit_log`;
+  любая другая не-агентская организация **не получает связь** (только NOTICE в логе миграции);
+- `manages_organization`, `agency_sync_service_access`, `memberships_sync_agency_access` читают
+  `platform_managed_orgs` вместо `agency_clients`;
+- явное создание связи в кабинете агентства («Nowy biznes», мастер «Utwórz CRM klienta», «Powiąż z
+  istniejącym biznesem» — всё, что ставит `agency_clients.client_org_id`) автоматически создаёт
+  `relation = 'client'` (D-02); существующая связь (`service` у Barowo) не переписывается;
+- `agency_clients`, заказы, выплаты, история Stripe — **не менялись**. Код приложения не менялся.
+
+**Тесты:** `tests/db/platform-core.test.ts` (6): миграция на базе «как в продакшне» (OWO Ads + Barowo +
+автопривязанная организация) → Barowo `service`, другая без связи, `agency_clients` нетронута, аудит и
+staff заполнены, доступ агентства к Barowo сохраняется, к организации без связи — нет; «Nowy biznes» →
+`client`; `service` не перезаписывается; без связи агентство не управляет; клиенты не видят и не пишут.
+`npm run check` — 52 файла, 338 тестов; golden M0 без изменений; e2e 37/37 (созданные мастером
+организации получили `client`). Миграция проверена и на PostgreSQL (локальная копия).
+
+**Проверка после деплоя (только чтение):**
+`select o.name, p.relation from platform_managed_orgs p join organizations o on o.id = p.org_id;`
+→ одна строка `Barowo | service`. В логах миграции — `✓ 20261119000039_platform_core.sql`.
+
+**Откат:** функции доступа — `create or replace` прежних версий из `0034`/`0033`/`0021`
+(новые таблицы прежний код не читает).
+
+**Дальше:** M1.5 (финансовый отчёт Barowo → корректировки по утверждению), M1.6 (отдельный воркер),
+M1.7 (интерфейс хранения файлов).

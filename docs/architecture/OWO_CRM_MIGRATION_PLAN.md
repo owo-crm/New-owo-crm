@@ -77,7 +77,7 @@ Stripe-подписка/оплата — не критерий (D-23). `agency_c
 **Шлюз:** владелец просматривает отчёт и утверждает конкретный список `client` — только после
 этого M1.3. Утверждённый список — входной файл миграции (`data/org-relations.json`).
 
-**M1.3 Миграция отношений.** `0039_platform_core.sql`: таблицы `audit_log`, `platform_staff`,
+**M1.3 Миграция отношений — ✅ выполнено 2026-11-19** (`20261119000039_platform_core.sql`, отчёт — `M1_REPORT.md` §9). `0039_platform_core.sql`: таблицы `audit_log`, `platform_staff`,
 `platform_managed_orgs (agency_org_id, org_id, relation check in ('service','client'), approved_by,
 approved_at, note, primary key (agency_org_id, org_id))`, `organization_service_grants`.
 Заполнение — **только из утверждённого списка**, не из `agency_clients`. `platform_staff` ←
