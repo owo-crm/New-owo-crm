@@ -1340,6 +1340,10 @@
       "complained": "Oznaczono jako spam"
     },
     "leadBounced": "Ostatni e-mail do klienta nie dotarł — sprawdź adres.",
-    "leadComplained": "Klient oznaczył ostatni e-mail jako spam."
+    "leadComplained": "Klient oznaczył ostatni e-mail jako spam.",
+    "subject": "Temat",
+    "heading1": "Nagłówek — linia w kolorze",
+    "heading2": "Nagłówek — druga linia",
+    "headingToggle": "Nagłówek"
   }
 }

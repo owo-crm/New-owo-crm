@@ -170,7 +170,7 @@ export async function recordOutgoing(
     text: string;
     html: string | null;
     inReplyTo: string | null;
-    sentBy: string;
+    sentBy: string | null;
     /** Номер письма в Resend — по нему приходят статусы «Dostarczono», «Otwarto». */
     providerId?: string | null;
   },

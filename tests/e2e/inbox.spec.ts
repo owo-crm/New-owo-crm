@@ -75,6 +75,11 @@ test("wiadomość klienta widać jako czat", async ({ page }, info) => {
   await expect(page.getByRole("button", { name: "Wyślij" })).toBeEnabled();
   await expect(chat.getByText(/Otwarto/)).toBeVisible();
   await expect(page.locator("section header").getByText("Anna Nowak")).toBeVisible();
+  await page.getByRole("button", { name: "Nagłówek" }).click();
+  await expect(page.getByLabel("Nagłówek — druga linia")).toHaveAttribute(
+    "placeholder",
+    "Oferta Barowo — wesele 14.06",
+  );
   await page.screenshot({ path: `tests/screenshots/${info.project.name}-poczta-czat.png` });
 });
 

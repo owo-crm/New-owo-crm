@@ -6,6 +6,7 @@ import { ModuleLocked } from "@/components/billing/module-locked";
 import { MailingPanel } from "@/components/mailing/panel";
 import { ThreadList } from "@/components/inbox/thread-list";
 import { ThreadView } from "@/components/inbox/thread-view";
+import { AutoRefresh } from "@/components/inbox/auto-refresh";
 import { buttonVariants } from "@/components/ui/button";
 import { moduleAccess } from "@/lib/billing/gate";
 import { requireOrganization } from "@/lib/auth/session";
@@ -132,6 +133,7 @@ export default async function MailingPage({ searchParams }: PageProps<"/poczta">
           )}
         >
           <ThreadList threads={threads} active={counterpart} />
+          {counterpart ? null : <AutoRefresh />}
         </aside>
         {counterpart && thread ? (
           <ThreadView
@@ -139,6 +141,7 @@ export default async function MailingPage({ searchParams }: PageProps<"/poczta">
             messages={thread.messages}
             lead={thread.lead}
             name={thread.name}
+            brand={organization.name}
             templates={templates}
             mailReady={Boolean(mail)}
           />
