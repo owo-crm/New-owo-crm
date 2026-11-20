@@ -139,7 +139,7 @@ export default async function MailingPage({ searchParams }: PageProps<"/poczta">
     <>
       {header}
       {tabs}
-      <div className="border-line bg-surface grid h-[calc(100dvh-19rem)] min-h-[24rem] overflow-hidden rounded-2xl border md:h-[calc(100dvh-13rem)] md:min-h-[28rem] md:grid-cols-[20rem_1fr]">
+      <div className="border-line bg-surface grid overflow-hidden rounded-2xl border md:h-[calc(100dvh-13rem)] md:min-h-[28rem] md:grid-cols-[20rem_1fr]">
         <aside
           className={cn(
             "border-line min-h-0 overflow-y-auto md:border-r",
