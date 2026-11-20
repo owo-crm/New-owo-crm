@@ -15,6 +15,7 @@ import { stripQuote } from "@/lib/mail/inbound";
 import { t } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { AutoRefresh } from "./auto-refresh";
+import { ScrollEnd } from "./scroll-end";
 import { Composer, type PreparedDocument } from "./composer";
 
 const stamp = (iso: string) =>
@@ -95,7 +96,7 @@ export function ThreadView({
         ) : null}
       </header>
 
-      <ol className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-4 py-5">
+      <ol className="flex h-[55dvh] min-h-60 flex-col gap-3 overflow-y-auto px-4 py-5 md:h-auto md:min-h-0 md:flex-1">
         {messages.length === 0 ? (
           <li className="text-ink-soft m-auto max-w-xs text-center text-sm">
             {t("inbox.firstMessage")}
@@ -175,6 +176,7 @@ export function ThreadView({
             </li>
           );
         })}
+        <ScrollEnd count={messages.length} />
       </ol>
 
       <Composer
