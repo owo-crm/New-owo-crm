@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
+import { TemplatesSettings } from "@/components/settings/templates-settings";
+import { listTemplates } from "@/lib/mailing/repository";
 import { LetterLookForm, MailInboundForm } from "@/components/settings/mail-inbound-form";
 import { Card, PageHeader } from "@/components/app-shell/page";
 import { MailSettingsForm, type MailSettingsView } from "@/components/settings/mail-form";
@@ -79,6 +81,18 @@ export default async function MailSettingsPage() {
     },
   );
   view.sentToday = await recipientsSentToday(getDb(), orgId);
+  const [templates, stages] = await Promise.all([
+    listTemplates("all"),
+    withOrg(
+      async (tx, { organization }) =>
+        (
+          await tx.query<{ key: string; label: string }>(
+            "select key, label_pl as label from public.pipeline_stages where organization_id=$1 and kind <> 'lost' order by position",
+            [organization.id],
+          )
+        ).rows,
+    ),
+  ]);
   const h = await headers();
   const host = h.get("x-forwarded-host") ?? h.get("host") ?? "localhost:3000";
   const site = `${h.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https")}://${host}`;
@@ -103,6 +117,11 @@ export default async function MailSettingsPage() {
       <Card className="mt-5">
         <LetterLookForm initial={look} canEdit={canEdit} />
       </Card>
+      {templates.length ? (
+        <Card className="mt-5">
+          <TemplatesSettings templates={templates} stages={stages} canEditDocuments={canEdit} />
+        </Card>
+      ) : null}
     </div>
   );
 }

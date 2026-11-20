@@ -36,6 +36,8 @@ export default defineConfig({
       DEFAULT_DOCUMENT_ENGINE: "barowo",
       // Тестовый ключ шифрования почты (32 нулевых байта) — только для e2e.
       MAIL_SECRET_KEY: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+      // Resend в e2e — локальный приёмник из tests/e2e/chat-documents.spec.ts: письма не уходят.
+      RESEND_API_URL: "http://127.0.0.1:3299",
     },
   },
 });

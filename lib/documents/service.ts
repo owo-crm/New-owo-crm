@@ -127,7 +127,15 @@ export async function offerFormDefaults(
   return values;
 }
 
-type Actor = { userId: string; orgId: string };
+type Actor = {
+  userId: string;
+  orgId: string;
+  /**
+   * Ключ операции (отправка из чата, решение 053): повтор с тем же ключом возвращает
+   * уже созданный документ, а не генерирует второй.
+   */
+  operationKey?: string;
+};
 
 async function saveDocument(
   tx: Queryable,
@@ -141,6 +149,14 @@ async function saveDocument(
     | { pdf: Uint8Array; docx: Uint8Array; base: string }
     | Promise<{ pdf: Uint8Array; docx: Uint8Array; base: string }>,
 ) {
+  if (actor.operationKey) {
+    const existing = await one<{ id: string; number: string }>(
+      tx,
+      "select id, number from public.documents where organization_id=$1 and operation_key=$2",
+      [actor.orgId, actor.operationKey],
+    );
+    if (existing) return existing;
+  }
   const number = (await one<{ n: string }>(tx, "select public.next_document_number($1,$2) as n", [
     actor.orgId,
     kind,
@@ -148,9 +164,9 @@ async function saveDocument(
   const files = await render(number);
   const doc = (await one<{ id: string }>(
     tx,
-    `insert into public.documents (organization_id, lead_id, kind, number, snapshot, created_by)
-     values ($1,$2,$3,$4,$5,$6) returning id`,
-    [actor.orgId, leadId, kind, number, snapshot, actor.userId],
+    `insert into public.documents (organization_id, lead_id, kind, number, snapshot, created_by, operation_key)
+     values ($1,$2,$3,$4,$5,$6,$7) returning id`,
+    [actor.orgId, leadId, kind, number, snapshot, actor.userId, actor.operationKey ?? null],
   ))!;
   for (const [format, bytes] of [
     ["pdf", files.pdf],
@@ -194,6 +210,54 @@ function fileBase(kind: string, brand: string, number: string) {
   return `${label}_${brand}_${number.replace(/[^\w-]/g, "_")}`.replace(/_+/g, "_");
 }
 
+/** Снимок оферты из значений формы: общий для генерации и предпросмотра. */
+function offerSnapshotFor(
+  lead: LeadForDocs,
+  pkg: PackageKey,
+  input: OfferFormValues,
+  contact: string,
+): OfferSnapshot {
+  const e = barowoEngine();
+  try {
+    const row = legacyLeadRow(lead);
+    const date = e.formatDate(e.parseDocumentDate_(input.date));
+    row[e.COL.DATE - 1] = date;
+    const snapshot = e.offerSnapshot_(row, pkg, {
+      ...input,
+      listPrice: input.listPrice?.trim() || input.price,
+    });
+    snapshot.brandLayoutVersion = 1;
+    snapshot.contact = contact;
+    return snapshot;
+  } catch (error) {
+    userError(error);
+  }
+}
+
+/**
+ * Предпросмотр оферты в чате: PDF из текущих значений, ничего не сохраняется
+ * и не меняется ни в документах, ни в лиде, ни в этапе.
+ */
+export async function previewOffer(
+  tx: Queryable,
+  orgId: string,
+  leadId: string,
+  pkg: PackageKey,
+  input: OfferFormValues,
+  contact: string,
+) {
+  const lead = await loadLeadForDocs(tx, orgId, leadId);
+  const snapshot = offerSnapshotFor(lead, pkg, input, contact);
+  const filename = `Oferta_${snapshot.packageName}_podglad.pdf`;
+  return { pdf: barowoEngine().brandedOfferPdf_(snapshot, "PODGLĄD", filename).bytes, filename };
+}
+
+/** Подсказка цены по каталогу пакета и числу гостей (та же логика, что в форме оферты). */
+export function suggestedOfferPrice(pkg: PackageKey, guests: string) {
+  const price = barowoEngine().suggestedOfferPrice_(pkg, guests);
+  return price === "" ? "" : String(price);
+}
+
 export async function generateOffer(
   tx: Queryable,
   actor: Actor,
@@ -206,20 +270,7 @@ export async function generateOffer(
   const lead = await loadLeadForDocs(tx, actor.orgId, leadId);
   if (lead.stage_kind === "lost")
     throw new DocumentInputError("Przywróć leada przed generowaniem dokumentu.");
-  let snapshot: OfferSnapshot;
-  try {
-    const row = legacyLeadRow(lead);
-    const date = e.formatDate(e.parseDocumentDate_(input.date));
-    row[e.COL.DATE - 1] = date;
-    snapshot = e.offerSnapshot_(row, pkg, {
-      ...input,
-      listPrice: input.listPrice?.trim() || input.price,
-    });
-    snapshot.brandLayoutVersion = 1;
-    snapshot.contact = contact;
-  } catch (error) {
-    userError(error);
-  }
+  const snapshot = offerSnapshotFor(lead, pkg, input, contact);
   const saved = await saveDocument(tx, actor, leadId, "offer", snapshot, (number) => {
     const base = fileBase("offer", "BAROWO", number);
     return {
@@ -324,26 +375,6 @@ export async function contractFormDefaults(
   };
 }
 
-/** Этап двигаем только вперёд (как updateDocumentLeadStage_ в боте), закрытые/спам не трогаем. */
-async function stageForward(tx: Queryable, orgId: string, leadId: string, target: string) {
-  const row = await one<{ forward: boolean; updated_at: string }>(
-    tx,
-    `select (cur.kind = 'open' and cur.position < tgt.position) as forward, l.updated_at
-     from public.leads l
-     join public.pipeline_stages cur on cur.organization_id=l.organization_id and cur.key=l.stage_key
-     join public.pipeline_stages tgt on tgt.organization_id=l.organization_id and tgt.key=$3
-     where l.organization_id=$1 and l.id=$2`,
-    [orgId, leadId, target],
-  );
-  if (row?.forward)
-    await tx.query("select public.change_lead($1,$2,$3,$4)", [
-      orgId,
-      leadId,
-      row.updated_at,
-      { stage_key: target },
-    ]);
-}
-
 // Встроенный шаблон читаем один раз; шаблон фирмы берём из базы на каждую генерацию,
 // иначе загруженный файл начал бы действовать только после перезапуска.
 let builtInTemplate: Uint8Array | null = null;
@@ -410,6 +441,7 @@ export async function generateContract(
       today: iso(snapshot.today),
     }),
   );
-  await stageForward(tx, actor.orgId, leadId, "contract_sent");
+  // Этап больше не меняется при генерации — только после подтверждённой отправки
+  // клиенту из чата (решение 053, lib/documents/stage.ts).
   return saved;
 }

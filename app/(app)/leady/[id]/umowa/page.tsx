@@ -7,8 +7,12 @@ import { contractFormDefaults } from "@/lib/documents/service";
 import { getLead } from "@/lib/leads/queries";
 import { t } from "@/lib/i18n";
 
-export default async function ContractPage({ params }: PageProps<"/leady/[id]/umowa">) {
+export default async function ContractPage({
+  params,
+  searchParams,
+}: PageProps<"/leady/[id]/umowa">) {
   const { id } = await params;
+  const tpl = z.uuid().safeParse((await searchParams).tpl);
   if (!z.uuid().safeParse(id).success) notFound();
   const lead = await getLead(id);
   if (!lead) notFound();
@@ -24,7 +28,7 @@ export default async function ContractPage({ params }: PageProps<"/leady/[id]/um
         title={t("docs.contractTitle")}
         subtitle={`${lead.client_name} · ${t("docs.contractIntro")}`}
       />
-      <ContractForm leadId={id} values={values} />
+      <ContractForm leadId={id} values={values} templateId={tpl.success ? tpl.data : undefined} />
     </div>
   );
 }

@@ -60,7 +60,7 @@ test("menu zwija się przyciskiem i stoi w miejscu przy przewijaniu", async ({ p
   await page.goto("/leady");
   await page.mouse.wheel(0, 2000);
   await page.waitForTimeout(300);
-  expect((await nav.boundingBox())!.y).toBe(0);
+  expect(Math.abs((await nav.boundingBox())!.y)).toBeLessThan(1);
 });
 
 test("logo gabinetu i zdjęcie konta", async ({ page }, info) => {

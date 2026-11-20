@@ -3,7 +3,6 @@ import Link from "next/link";
 import { useEffect, useOptimistic, useState, useTransition } from "react";
 import {
   ArrowLeftRight,
-  CalendarClock,
   CalendarDays,
   Check,
   ChevronDown,
@@ -24,6 +23,7 @@ import {
   StickyNote,
   Undo2,
   User,
+  UserRound,
   Users,
   Wallet,
   Zap,
@@ -40,6 +40,7 @@ import type { LeadEvent } from "@/lib/leads/queries";
 import { hasKnownResponse } from "@/lib/leads/response";
 import type { Lead, PipelineStage } from "@/lib/leads/types";
 import { cn } from "@/lib/utils";
+import type { QuickAction } from "@/lib/mailing/quick";
 import { stageTone } from "./lead-row";
 
 /**
@@ -130,24 +131,6 @@ const money = (grosze: number) =>
   }).format(grosze / 100);
 const plDay = (iso: string | null) => (iso ? iso.split("-").reverse().join(".") : null);
 
-/** «2026-12-03T14:00» по Варшаве из next_contact_at. */
-function warsawParts(iso: string | null) {
-  if (!iso) return { date: "", time: "" };
-  const p = Object.fromEntries(
-    new Intl.DateTimeFormat("en-GB", {
-      timeZone: "Europe/Warsaw",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      hourCycle: "h23",
-    })
-      .formatToParts(new Date(iso))
-      .map((x) => [x.type, x.value]),
-  );
-  return { date: `${p.year}-${p.month}-${p.day}`, time: `${p.hour}:${p.minute}` };
-}
 
 export function LeadEditor({
   lead,
@@ -155,7 +138,7 @@ export function LeadEditor({
   team,
   history,
   docsBlock,
-  docActions,
+  quickActions = [],
   attachmentsCard,
   agencyCard,
   serverNow,
@@ -172,7 +155,8 @@ export function LeadEditor({
   /** «Dokumenty i płatności» — блок на холсте рядом с «Wydarzenie». */
   docsBlock?: React.ReactNode;
   /** Кнопки генерации оферты, договора и меню в «Szybkie działania». */
-  docActions?: boolean;
+  /** Кнопки документов из шаблонов фирмы (решение 053). */
+  quickActions?: QuickAction[];
   attachmentsCard?: React.ReactNode;
   agencyCard?: React.ReactNode;
 }) {
@@ -347,7 +331,6 @@ export function LeadEditor({
     );
   }
 
-  const next = warsawParts(current.next_contact_at);
   const shownHistory = allHistory ? history : history.slice(0, 3);
   const lastActivity = history[0]?.created_at ?? current.updated_at;
 
@@ -443,6 +426,41 @@ export function LeadEditor({
               <span className="inline-flex items-center gap-1">
                 <Clock className="size-3.5" />
                 {t("leads.lastActivity")}: {timeAgo(lastActivity, now)}
+              </span>
+              {/* Ответственный — здесь, а не в «Szybkie działania» (решение 053). */}
+              <span className="inline-flex items-center gap-1" data-assignee>
+                <UserRound className="size-3.5" />
+                {t("chatDocs.assignee")}:{" "}
+                {team.length > 1 ? (
+                  <Picker
+                    value={current.assigned_to ?? ""}
+                    disabled={pending}
+                    onChange={(e) => save({ assigned_to: e.target.value })}
+                    aria-label={t("leads.fields.assigned_to")}
+                    className="w-auto"
+                    menuClassName="min-w-48"
+                    trigger={
+                      <span className="text-ink hover:bg-surface-2 inline-flex items-center gap-1 rounded-md px-1 font-semibold">
+                        {team.find((m) => m.id === current.assigned_to)?.name ??
+                          t("chatDocs.nobody")}
+                        <ChevronDown className="size-3" />
+                      </span>
+                    }
+                  >
+                    <option value="">{t("chatDocs.nobody")}</option>
+                    {team.map((member) => (
+                      <option key={member.id} value={member.id}>
+                        {member.name}
+                      </option>
+                    ))}
+                  </Picker>
+                ) : (
+                  <span className="text-ink font-semibold">
+                    {team.find((m) => m.id === current.assigned_to)?.name ??
+                      team[0]?.name ??
+                      t("chatDocs.nobody")}
+                  </span>
+                )}
               </span>
             </p>
           </div>
@@ -681,107 +699,41 @@ export function LeadEditor({
               </div>
             </form>
           ) : null}
-          {docActions ? (
-            <div className="grid gap-1.5">
-              <p className="text-[13px] font-semibold">{t("leads.generate")}</p>
+          {quickActions.length ? (
+            <div className="grid gap-1.5" data-quick-actions>
+              <p className="text-[13px] font-semibold">{t("chatDocs.generate")}</p>
               <div className="grid grid-cols-3 gap-1.5">
-                <Link
-                  href={`/leady/${lead.id}/oferta?pakiet=${(current.package_name ?? "standard").toLowerCase()}`}
-                  className={cn(
-                    buttonVariants({ variant: "secondary", size: "sm" }),
-                    "px-1 text-[12.5px]",
-                  )}
-                >
-                  <Star />
-                  {t("leads.genOffer")}
-                </Link>
-                <Link
-                  href={`/leady/${lead.id}/umowa`}
-                  className={cn(
-                    buttonVariants({ variant: "secondary", size: "sm" }),
-                    "px-1 text-[12.5px]",
-                  )}
-                >
-                  <FileSignature />
-                  {t("leads.genContract")}
-                </Link>
-                <Link
-                  href={`/leady/${lead.id}/menu`}
-                  className={cn(
-                    buttonVariants({ variant: "secondary", size: "sm" }),
-                    "px-1 text-[12.5px]",
-                  )}
-                >
-                  <FileText />
-                  {t("leads.genMenu")}
-                </Link>
+                {quickActions.map((action) =>
+                  current.email ? (
+                    <Link
+                      key={action.id}
+                      href={action.href}
+                      className={cn(
+                        buttonVariants({ variant: "secondary", size: "sm" }),
+                        "h-auto min-h-8 px-1 py-1.5 text-center text-[12.5px] leading-tight whitespace-normal",
+                      )}
+                    >
+                      {action.label}
+                    </Link>
+                  ) : (
+                    // Без e-mail отправить некуда — кнопки неактивны (решение владельца 2026-11-19).
+                    <span
+                      key={action.id}
+                      aria-disabled="true"
+                      title={t("chatDocs.noEmailButton")}
+                      className={cn(
+                        buttonVariants({ variant: "secondary", size: "sm" }),
+                        "pointer-events-none h-auto min-h-8 px-1 py-1.5 text-center text-[12.5px] leading-tight whitespace-normal opacity-45",
+                      )}
+                    >
+                      {action.label}
+                    </span>
+                  ),
+                )}
               </div>
-            </div>
-          ) : null}
-
-          <div className="border-line grid gap-2 border-t pt-4">
-            <p className="flex items-center gap-2 text-[14px] font-semibold">
-              <CalendarClock className="text-ink-soft size-4" />
-              {t("leads.nextContact")}
-            </p>
-            <form
-              key={current.next_contact_at ?? "none"}
-              className="grid grid-cols-[minmax(0,1fr)_6.5rem] gap-2"
-              onChange={(e) => {
-                const data = new FormData(e.currentTarget);
-                const date = String(data.get("date") ?? "");
-                const time = String(data.get("time") ?? "") || "09:00";
-                const value = date ? `${date}T${time}` : "";
-                const was = next.date ? `${next.date}T${next.time}` : "";
-                if (value !== was) save({ next_contact_at: value });
-              }}
-              onSubmit={(e) => e.preventDefault()}
-            >
-              <input
-                type="date"
-                name="date"
-                defaultValue={next.date}
-                aria-label={t("leads.nextContactDate")}
-                className="border-line-strong bg-surface h-10 min-w-0 rounded-lg border px-2.5 text-[14px]"
-              />
-              <input
-                type="time"
-                name="time"
-                defaultValue={next.time}
-                aria-label={t("leads.nextContactTime")}
-                className="border-line-strong bg-surface h-10 min-w-0 rounded-lg border px-2.5 text-[14px]"
-              />
-            </form>
-            {current.next_contact_at ? (
-              <button
-                type="button"
-                onClick={() => save({ next_contact_at: "" })}
-                className="text-ink-faint hover:text-ink justify-self-start text-[12.5px]"
-              >
-                {t("leads.nextContactClear")}
-              </button>
-            ) : null}
-          </div>
-
-          {team.length > 1 ? (
-            <div className="grid gap-1.5">
-              <p className="text-[13px] font-semibold">{t("leads.fields.assigned_to")}</p>
-              <div className="flex flex-wrap gap-1.5">
-                {team.map((member) => (
-                  <Button
-                    key={member.id}
-                    size="sm"
-                    variant={current.assigned_to === member.id ? "dark" : "secondary"}
-                    disabled={pending}
-                    aria-pressed={current.assigned_to === member.id}
-                    onClick={() =>
-                      save({ assigned_to: current.assigned_to === member.id ? "" : member.id })
-                    }
-                  >
-                    {member.name}
-                  </Button>
-                ))}
-              </div>
+              {!current.email ? (
+                <p className="text-ink-faint text-[11.5px]">{t("chatDocs.noEmailButton")}</p>
+              ) : null}
             </div>
           ) : null}
 

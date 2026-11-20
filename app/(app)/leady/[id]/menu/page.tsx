@@ -15,7 +15,10 @@ export default async function GuestMenuPage({
   searchParams,
 }: PageProps<"/leady/[id]/menu">) {
   const { id } = await params;
-  const parsed = z.enum(PACKAGE_KEYS).safeParse((await searchParams).pakiet);
+  const query = await searchParams;
+  const parsed = z.enum(PACKAGE_KEYS).safeParse(query.pakiet);
+  const tpl = z.uuid().safeParse(query.tpl);
+  const tplQuery = tpl.success ? `&tpl=${tpl.data}` : "";
   if (!z.uuid().safeParse(id).success) notFound();
   const lead = await getLead(id);
   if (!lead) notFound();
@@ -38,7 +41,7 @@ export default async function GuestMenuPage({
             {PACKAGE_KEYS.map((key) => (
               <Link
                 key={key}
-                href={`/leady/${id}/menu?pakiet=${key}`}
+                href={`/leady/${id}/menu?pakiet=${key}${tplQuery}`}
                 className={buttonVariants({ variant: "secondary" })}
               >
                 {key[0].toUpperCase() + key.slice(1)}
@@ -47,7 +50,11 @@ export default async function GuestMenuPage({
           </div>
         </Card>
       ) : (
-        <GuestMenuForm leadId={id} menu={defaults.menu} />
+        <GuestMenuForm
+          leadId={id}
+          menu={defaults.menu}
+          templateId={tpl.success ? tpl.data : undefined}
+        />
       )}
     </div>
   );

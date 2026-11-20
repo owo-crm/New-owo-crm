@@ -8,11 +8,7 @@ import { requireOrganization } from "@/lib/auth/session";
 import { t } from "@/lib/i18n";
 import { renderLetter } from "@/lib/mailing/render";
 import { loadLetterLook } from "./look";
-import { findLeadByEmail, recordOutgoing } from "./inbox";
-import { replySubject } from "./inbound";
 import { encryptSecret, mailKeyStatus } from "./secret";
-import { sendBusinessMail } from "./service";
-import { MailError } from "./transport";
 
 export type InboxResult = { ok?: true; error?: string };
 
@@ -21,132 +17,6 @@ async function origin() {
   const host = h.get("x-forwarded-host") ?? h.get("host") ?? "localhost:3000";
   const proto = h.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
   return `${proto}://${host}`;
-}
-
-const replyInput = z.object({
-  to: z.string().trim().toLowerCase().pipe(z.email()),
-  text: z.string().max(20000).default(""),
-  templateId: z.uuid().optional(),
-  /** Тема и заголовок письма для ответа текстом; пустые — подставляются сами. */
-  subject: z.string().trim().max(200).optional(),
-  heading1: z.string().trim().max(60).optional(),
-  heading2: z.string().trim().max(60).optional(),
-});
-
-/**
- * Ответ клиенту из переписки: свободный текст или шаблон. Оформление — как у всех писем
- * фирмы (тема, цвет, логотип, подпись), без ссылки отписки: это личная переписка, не рассылка.
- */
-export async function sendReplyAction(raw: unknown): Promise<InboxResult> {
-  const parsed = replyInput.safeParse(raw);
-  if (!parsed.success) return { error: t("inbox.invalid") };
-  const { to, text, templateId, heading1 } = parsed.data;
-  if (!templateId && !text.trim()) return { error: t("inbox.empty") };
-  const { user, organization } = await requireOrganization();
-  const db = getDb();
-
-  // Шаблон и последнее письмо клиента читаем под RLS: только своей фирмы.
-  const { template, last } = await withOrg(async (tx, { organization: org }) => {
-    const template = templateId
-      ? (
-          await tx.query<{
-            subject: string;
-            body: string;
-            heading1: string | null;
-            heading2: string | null;
-            button_text: string | null;
-            button_url: string | null;
-          }>(
-            `select subject, body, heading1, heading2, button_text, button_url
-               from public.mailing_templates where organization_id = $1 and id = $2`,
-            [org.id, templateId],
-          )
-        ).rows[0]
-      : undefined;
-    const last = (
-      await tx.query<{ subject: string; message_id: string | null }>(
-        `select subject, message_id from public.mail_messages
-          where organization_id = $1 and counterpart = $2
-          order by created_at desc limit 1`,
-        [org.id, to],
-      )
-    ).rows[0];
-    return { template, last };
-  });
-  if (templateId && !template) return { error: t("inbox.invalid") };
-
-  const leadId = await findLeadByEmail(db, organization.id, to);
-  const leadName = leadId
-    ? ((
-        await db.query<{ client_name: string }>(
-          "select client_name from public.leads where organization_id=$1 and id=$2",
-          [organization.id, leadId],
-        )
-      ).rows[0]?.client_name ?? "")
-    : "";
-  const site = await origin();
-  const letter = renderLetter(
-    template
-      ? {
-          subject: template.subject,
-          body: template.body,
-          heading1: template.heading1,
-          heading2: template.heading2,
-          buttonText: template.button_text,
-          buttonUrl: template.button_url,
-        }
-      : (() => {
-          const subject =
-            parsed.data.subject ||
-            (last
-              ? replySubject(last.subject)
-              : t("inbox.defaultSubject", { firm: organization.name }));
-          // Заголовок письма: свой или тема без «Re:», чтобы ответ не выглядел голым текстом.
-          const heading2 =
-            parsed.data.heading2 || subject.replace(/^\s*((re|odp|aw|fwd?)\s*:\s*)+/i, "").trim();
-          return { subject, body: text, heading1: heading1 || null, heading2: heading2 || null };
-        })(),
-    { name: leadName, email: to },
-    {
-      organizationId: organization.id,
-      origin: site,
-      brand: organization.name,
-      look: await loadLetterLook(db, organization.id, site),
-      unsubscribe: false,
-    },
-  );
-  const inReplyTo = last?.message_id ?? null;
-  let providerId: string | null = null;
-  try {
-    ({ providerId } = await sendBusinessMail(
-      db,
-      organization.id,
-      { to: [to], subject: letter.subject, html: letter.html, text: letter.text, inReplyTo },
-      { kind: "reply", leadId, sentBy: user.id },
-    ));
-  } catch (error) {
-    const code = error instanceof MailError ? error.code : "send_failed";
-    return { error: t(`mail.errors.${code}` as "mail.errors.send_failed") };
-  }
-  await recordOutgoing(db, {
-    organizationId: organization.id,
-    leadId,
-    to,
-    subject: letter.subject,
-    // В чате показываем то, что человек написал (или текст шаблона), без технической обвязки.
-    text: template
-      ? [template.heading1, template.heading2, template.body]
-          .filter(Boolean)
-          .join("\n\n")
-          .replace(/\{imie\}/g, leadName.split(/\s+/)[0] ?? "")
-      : text,
-    html: letter.html,
-    inReplyTo,
-    sentBy: user.id,
-    providerId,
-  });
-  revalidatePath("/poczta");
-  return { ok: true };
 }
 
 /** Секрет подписи вебхука Resend (whsec_…). Только owner/admin; хранится зашифрованным. */
@@ -239,4 +109,86 @@ export async function previewLookAction(raw: unknown): Promise<{ html?: string }
     },
   );
   return { html: letter.html };
+}
+
+const templateEdit = z.object({
+  id: z.uuid(),
+  subject: z.string().trim().min(1).max(200),
+  body: z.string().max(8000),
+  heading1: z.string().trim().max(60),
+  heading2: z.string().trim().max(60),
+  buttonText: z.string().trim().max(60),
+  buttonUrl: z
+    .string()
+    .trim()
+    .max(500)
+    .refine((v) => !v || /^(https?:|mailto:|tel:)/i.test(v)),
+  quickLabel: z.string().trim().max(40),
+  quickPosition: z.coerce.number().int().min(0).max(999),
+  stageAfter: z
+    .string()
+    .trim()
+    .regex(/^([a-z][a-z0-9_]{0,49})?$/),
+});
+
+/**
+ * «Ustawienia → Poczta → Szablony» (решение 053): текст письма, кнопка в «Szybkie działania»,
+ * этап после отправки. Что прикладывать (document_kind/params) задаёт OWO импортом — не здесь.
+ * Документные шаблоны правят только owner/admin (RLS); этап — только из воронки фирмы.
+ */
+export async function saveTemplateSettingsAction(
+  _prev: InboxResult,
+  form: FormData,
+): Promise<InboxResult> {
+  const parsed = templateEdit.safeParse(Object.fromEntries(form));
+  if (!parsed.success) return { error: t("chatDocs.errors.invalid") };
+  const d = parsed.data;
+  try {
+    await withOrg(async (tx, { organization }) => {
+      const row = (
+        await tx.query<{ purpose: string }>(
+          "select purpose from public.mailing_templates where organization_id=$1 and id=$2",
+          [organization.id, d.id],
+        )
+      ).rows[0];
+      if (!row) throw new Error("not_found");
+      if (row.purpose === "document" && !["owner", "admin"].includes(organization.role))
+        throw new Error("forbidden");
+      if (d.stageAfter) {
+        const stage = (
+          await tx.query(
+            "select 1 from public.pipeline_stages where organization_id=$1 and key=$2",
+            [organization.id, d.stageAfter],
+          )
+        ).rows[0];
+        if (!stage || row.purpose !== "document") throw new Error("bad_stage");
+      }
+      await tx.query(
+        `update public.mailing_templates
+            set subject=$3, body=$4, heading1=nullif($5,''), heading2=nullif($6,''),
+                button_text=nullif($7,''), button_url=nullif($8,''),
+                quick_label=nullif($9,''), quick_position=$10,
+                stage_after=case when purpose='document' then nullif($11,'') else null end
+          where organization_id=$1 and id=$2`,
+        [
+          organization.id,
+          d.id,
+          d.subject,
+          d.body,
+          d.heading1,
+          d.heading2,
+          d.buttonText,
+          d.buttonUrl,
+          d.quickLabel,
+          d.quickPosition,
+          d.stageAfter,
+        ],
+      );
+    });
+  } catch (error) {
+    if ((error as Error).message === "forbidden") return { error: t("chatDocs.forbidden") };
+    return { error: t("chatDocs.errors.invalid") };
+  }
+  revalidatePath("/ustawienia/poczta");
+  return { ok: true };
 }

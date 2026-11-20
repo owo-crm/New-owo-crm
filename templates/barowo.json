@@ -1,0 +1,85 @@
+{
+  "templates": [
+    {
+      "name": "Oferta Simple",
+      "subject": "Oferta Barowo — pakiet Simple",
+      "heading1": "Mobilny bar",
+      "heading2": "pakiet Simple",
+      "body": "Dzień dobry,\n\ndziękujemy za zapytanie. W załączniku przesyłamy ofertę pakietu Simple: mobilny bar MODERN, barman i klasyczne drinki, które zawsze się sprawdzają.\n\nTermin rezerwujemy po podpisaniu umowy i wpłacie zadatku. Jeśli chcą Państwo coś zmienić w menu albo w liczbie godzin, wystarczy odpisać na tę wiadomość.\n\nPozdrawiamy serdecznie",
+      "purpose": "document",
+      "document_kind": "offer",
+      "document_params": { "package": "simple" },
+      "document_mode": "quick",
+      "quick_label": "Simple",
+      "quick_position": 10,
+      "stage_after": "offer_sent"
+    },
+    {
+      "name": "Oferta Standard",
+      "subject": "Oferta Barowo — pakiet Standard",
+      "heading1": "Mobilny bar",
+      "heading2": "pakiet Standard",
+      "body": "Dzień dobry,\n\ndziękujemy za zapytanie. W załączniku przesyłamy ofertę pakietu Standard: bar MODERN lub BOHO, dwóch barmanów i jedenaście koktajli, także w wersji 0%.\n\nTermin rezerwujemy po podpisaniu umowy i wpłacie zadatku. Jeśli chcą Państwo coś zmienić w menu albo w liczbie godzin, wystarczy odpisać na tę wiadomość.\n\nPozdrawiamy serdecznie",
+      "purpose": "document",
+      "document_kind": "offer",
+      "document_params": { "package": "standard" },
+      "document_mode": "quick",
+      "quick_label": "Standard",
+      "quick_position": 20,
+      "stage_after": "offer_sent"
+    },
+    {
+      "name": "Oferta Premium",
+      "subject": "Oferta Barowo — pakiet Premium",
+      "heading1": "Mobilny bar",
+      "heading2": "pakiet Premium",
+      "body": "Dzień dobry,\n\ndziękujemy za zapytanie. W załączniku przesyłamy ofertę pakietu Premium: alkohole premium, welcome drink, wieża z kieliszków i pełne menu autorskich koktajli.\n\nTermin rezerwujemy po podpisaniu umowy i wpłacie zadatku. Jeśli chcą Państwo coś zmienić w menu albo w liczbie godzin, wystarczy odpisać na tę wiadomość.\n\nPozdrawiamy serdecznie",
+      "purpose": "document",
+      "document_kind": "offer",
+      "document_params": { "package": "premium" },
+      "document_mode": "quick",
+      "quick_label": "Premium",
+      "quick_position": 30,
+      "stage_after": "offer_sent"
+    },
+    {
+      "name": "Oferta personalna",
+      "subject": "Oferta Barowo przygotowana dla Państwa",
+      "heading1": "Oferta",
+      "heading2": "przygotowana dla Państwa",
+      "body": "Dzień dobry,\n\nw załączniku przesyłamy ofertę przygotowaną specjalnie na Państwa wydarzenie: menu, alkohole i dodatki dobraliśmy do rozmowy i liczby gości.\n\nChętnie wprowadzimy poprawki. Wystarczy odpisać na tę wiadomość.\n\nPozdrawiamy serdecznie",
+      "purpose": "document",
+      "document_kind": "offer",
+      "document_params": { "personal": true },
+      "document_mode": "form",
+      "quick_label": "Oferta personalna",
+      "quick_position": 40,
+      "stage_after": "offer_sent"
+    },
+    {
+      "name": "Umowa",
+      "subject": "Umowa — Barowo",
+      "heading1": "Umowa",
+      "heading2": "do podpisu",
+      "body": "Dzień dobry,\n\nw załączniku przesyłamy umowę na obsługę baru. Prosimy o sprawdzenie danych, podpisanie i odesłanie skanu lub zdjęcia w odpowiedzi na tę wiadomość.\n\nTermin jest potwierdzony po wpłacie zadatku. Numer konta i termin płatności znajdą Państwo w umowie.\n\nPozdrawiamy serdecznie",
+      "purpose": "document",
+      "document_kind": "contract",
+      "document_mode": "form",
+      "quick_label": "Umowa",
+      "quick_position": 50,
+      "stage_after": "contract_sent"
+    },
+    {
+      "name": "Menu dla gości",
+      "subject": "Menu dla gości — Barowo",
+      "heading1": "Menu",
+      "heading2": "dla Państwa gości",
+      "body": "Dzień dobry,\n\nw załączniku przesyłamy menu koktajli dla gości. Można je wydrukować albo pokazać na ekranie podczas wydarzenia.\n\nJeśli coś w menu warto zmienić, prosimy o odpowiedź. Przygotujemy nową wersję.\n\nPozdrawiamy serdecznie",
+      "purpose": "document",
+      "document_kind": "menu",
+      "document_mode": "form",
+      "quick_label": "Menu",
+      "quick_position": 60
+    }
+  ]
+}
