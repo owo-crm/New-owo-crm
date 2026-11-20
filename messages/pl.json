@@ -1407,6 +1407,10 @@
     "buttonUrl": "Adres przycisku",
     "assignee": "Prowadzi",
     "nobody": "nikt",
-    "generate": "Dokumenty"
+    "generate": "Dokumenty",
+    "starterTitle": "Szablony dokumentów",
+    "starterText": "Dodaj gotowy zestaw: oferty Simple, Standard i Premium, oferta personalna, umowa i menu. Pojawią się jako przyciski w „Szybkie działania” w karcie leada. Teksty możesz potem zmienić tutaj.",
+    "starterButton": "Dodaj zestaw startowy",
+    "starterFailed": "Nie udało się dodać szablonów. Spróbuj ponownie."
   }
 }

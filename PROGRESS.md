@@ -8,6 +8,12 @@ _(пусто — если задача прервана, описать здес
 
 ---
 
+## 2026-11-20 · Claude · Zestaw startowy szablonów i poprawki telefonu
+
+- «Ustawienia → Poczta → Szablony»: przycisk «Dodaj zestaw startowy» (firma z generatorem Barowo, bez szablonów dokumentów, owner/admin) — ten sam import co `templates:import`, bez nadpisywania.
+- Telefon: siatki z obciętym tekstem (adres webhooka, lista szablonów) nie rozpychają już ekranu (`grid-cols-1`); import CSV i przycisk «Powtórz abonamenty» mieszczą się w 360 px. Sprawdzone wszystkie ekrany aplikacji na 360 px.
+- e2e: `starter-templates.spec.ts` (instalacja + brak elementów poza ekranem).
+
 ## 2026-11-19 · Claude · Документы через чат (решение 053, TASK_2026-11-19_chat_documents)
 
 - Миграция 043: документные поля `mailing_templates`, `template_files`, `outbound_messages` (D-20), `documents.operation_key`, `mail_messages.outbound_id/document_id`, `work_queue` без «Następny kontakt».

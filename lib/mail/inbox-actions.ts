@@ -192,3 +192,31 @@ export async function saveTemplateSettingsAction(
   revalidatePath("/ustawienia/poczta");
   return { ok: true };
 }
+
+/**
+ * «Dodaj zestaw startowy» (решение 053): стартовые шаблоны документов Barowo — только для
+ * фирмы с генератором Barowo, только owner/admin, по нажатию (не автоматически). Тот же импорт,
+ * что и в скрипте: существующие шаблоны с тем же именем не трогаются.
+ */
+export async function installStarterTemplatesAction(
+  _prev: InboxResult,
+  _form: FormData,
+): Promise<InboxResult> {
+  const { organization } = await requireOrganization();
+  if (!["owner", "admin"].includes(organization.role)) return { error: t("chatDocs.forbidden") };
+  if (organization.documentEngine !== "barowo")
+    return { error: t("chatDocs.errors.engine_missing") };
+  const { importFile, applyImport } = await import("@/lib/mailing/import-templates");
+  const starter = (await import("@/templates/barowo.json")).default;
+  try {
+    await applyImport(getDb(), organization.id, importFile.parse(starter).templates, {
+      engine: organization.documentEngine,
+    });
+  } catch (error) {
+    console.error("[templates] starter", (error as Error).message);
+    return { error: t("chatDocs.starterFailed") };
+  }
+  revalidatePath("/ustawienia/poczta");
+  revalidatePath("/leady", "layout");
+  return { ok: true };
+}
