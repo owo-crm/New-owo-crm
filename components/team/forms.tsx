@@ -232,7 +232,7 @@ export function ImportForm() {
           name="file"
           accept=".csv,text/csv"
           required
-          className="border-line-strong bg-surface rounded-lg border p-2 text-sm"
+          className="border-line-strong bg-surface w-full min-w-0 rounded-lg border p-2 text-sm"
         />
       </label>
       <div className="flex flex-wrap gap-2">

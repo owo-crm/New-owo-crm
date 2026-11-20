@@ -3,7 +3,11 @@ import { useActionState, useState } from "react";
 import { ChevronDown, FileText, Mail, Paperclip } from "lucide-react";
 import { Notice } from "@/components/ui/notice";
 import { SubmitButton } from "@/components/ui/submit-button";
-import { saveTemplateSettingsAction, type InboxResult } from "@/lib/mail/inbox-actions";
+import {
+  installStarterTemplatesAction,
+  saveTemplateSettingsAction,
+  type InboxResult,
+} from "@/lib/mail/inbox-actions";
 import type { Template } from "@/lib/mailing/repository";
 import { t, type MessageKey } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
@@ -168,22 +172,40 @@ function TemplateRow({
   );
 }
 
+/** Кнопка стартового набора: только у фирмы с генератором Barowo и без шаблонов документов. */
+function StarterTemplates() {
+  const [state, install] = useActionState<InboxResult, FormData>(installStarterTemplatesAction, {});
+  return (
+    <form action={install} className="border-line bg-surface-2 grid gap-2 rounded-xl border p-4">
+      <p className="text-[14px] font-semibold">{t("chatDocs.starterTitle")}</p>
+      <p className="text-ink-soft text-[13px]">{t("chatDocs.starterText")}</p>
+      {state.error ? <Notice tone="error">{state.error}</Notice> : null}
+      <div>
+        <SubmitButton>{t("chatDocs.starterButton")}</SubmitButton>
+      </div>
+    </form>
+  );
+}
+
 export function TemplatesSettings({
   templates,
   stages,
   canEditDocuments,
+  canInstallStarter = false,
 }: {
   templates: Template[];
   stages: { key: string; label: string }[];
   canEditDocuments: boolean;
+  canInstallStarter?: boolean;
 }) {
   return (
-    <section className="grid gap-3" id="szablony">
+    <section className="grid grid-cols-1 gap-3" id="szablony">
       <div>
         <h2 className="text-[16px] font-bold">{t("chatDocs.templates")}</h2>
         <p className="text-ink-soft mt-1 text-sm">{t("chatDocs.templatesIntro")}</p>
       </div>
-      <ul className="grid gap-2">
+      {canInstallStarter ? <StarterTemplates /> : null}
+      <ul className="grid grid-cols-1 gap-2">
         {templates.map((x) => (
           <TemplateRow
             key={x.id}
