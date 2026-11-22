@@ -7,6 +7,10 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   output: process.env.BUILD_STANDALONE === "1" ? "standalone" : undefined,
   poweredByHeader: false,
+  // Макет лендинга клиента Адама — статичная страница из public/adam/.
+  async rewrites() {
+    return [{ source: "/adam", destination: "/adam/index.html" }];
+  },
   async headers() {
     return [
       {

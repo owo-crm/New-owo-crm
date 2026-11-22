@@ -10,6 +10,7 @@ const PUBLIC_PREFIXES = [
   "/api/",
   "/sw.js",
   "/embed/",
+  "/adam", // макет лендинга клиента (статичный файл public/adam/index.html)
 ];
 /** Страницы входа: вошедшего пользователя с них уводим в приложение. */
 export const AUTH_PAGES = ["/logowanie", "/rejestracja", "/reset-hasla"];
