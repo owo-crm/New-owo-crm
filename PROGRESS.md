@@ -8,6 +8,35 @@ _(пусто — если задача прервана, описать здес
 
 ---
 
+## 2026-11-20 · Claude · Zestaw startowy szablonów i poprawki telefonu
+
+- «Ustawienia → Poczta → Szablony»: przycisk «Dodaj zestaw startowy» (firma z generatorem Barowo, bez szablonów dokumentów, owner/admin) — ten sam import co `templates:import`, bez nadpisywania.
+- Telefon: siatki z obciętym tekstem (adres webhooka, lista szablonów) nie rozpychają już ekranu (`grid-cols-1`); import CSV i przycisk «Powtórz abonamenty» mieszczą się w 360 px. Sprawdzone wszystkie ekrany aplikacji na 360 px.
+- e2e: `starter-templates.spec.ts` (instalacja + brak elementów poza ekranem).
+
+## 2026-11-19 · Claude · Документы через чат (решение 053, TASK_2026-11-19_chat_documents)
+
+- Миграция 043: документные поля `mailing_templates`, `template_files`, `outbound_messages` (D-20), `documents.operation_key`, `mail_messages.outbound_id/document_id`, `work_queue` без «Następny kontakt».
+- `lib/mail/chat-send.ts` — отправка из чата: outbox, идемпотентность, unknown без автоповтора, фиксация (переписка, документ `sent`, история, этап); `lib/documents/stage.ts` — решатель этапа.
+- Чат: карточка документа для быстрых оферт (правка данных, «Podgląd PDF»), прикреплённый PDF из форм, вложения в переписке — ссылки на защищённые маршруты.
+- Карточка лида: кнопки из шаблонов, «Prowadzi ▾» в шапке, без «Następny kontakt» и «Przypisane do»; без e-mail кнопки неактивны.
+- Формы оферты (с выбором Simple/Standard/Premium), умовы и меню возвращают в чат (`?tpl=`).
+- «Ustawienia → Poczta → Szablony»; импорт `npm run templates:import`; стартовые шаблоны `templates/barowo.json`.
+- Проверки: `npm run check` (385 тестов), e2e — все сценарии на 1440 и 390 px (`chat-documents.spec.ts`), `documents.spec.ts` обновлён (генерация не двигает этап).
+- Для продакшена: влить PR, после деплоя миграции выполнить импорт шаблонов Barowo (см. `docs/10-templates.md`).
+
+## 2026-11-19 · Claude · Poczta: nagłówek w odpowiedzi, rozsyłki w czacie, odświeżanie
+
+- Odpowiedź tekstem ma nagłówek (domyślnie temat bez «Re:», można wpisać własny i temat) — przycisk «Nagłówek».
+- Każdy list z rozsyłki trafia do czatu z klientem (z id Resend → statusy).
+- Czat i lista rozmów odświeżają się co 10 s (nowe odpowiedzi i statusy bez przeładowania).
+
+## 2026-11-19 · Claude · Статусы писем (решение 052)
+
+- Миграция 042: `status`, `status_at`, `opened_at`, `status_detail` у `mail_messages`; Resend id отправленного письма сохраняется.
+- Вебхук принимает `email.delivered/opened/bounced/complained/delivery_delayed`; в чате ✓ / ✓✓ / «Otwarto» / «Nie dostarczono», предупреждение в карточке лида.
+- Проверки: `npm run check`, e2e `inbox.spec.ts`.
+
 ## 2026-11-19 · Claude · Переписка в «Poczta» и новый вид писем (решение 051)
 
 - Приём почты через Resend Inbound: вебхук с проверкой подписи, догрузка тела, привязка к лиду (миграция 041, `lib/mail/inbound.ts`, `lib/mail/inbox*.ts`).

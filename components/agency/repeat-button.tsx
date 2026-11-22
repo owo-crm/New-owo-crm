@@ -11,9 +11,10 @@ export function RepeatRetainersButton({ month }: { month: string }) {
   const [pending, start] = useTransition();
   const [message, setMessage] = useState<string>();
   return (
-    <div className="grid gap-1">
+    <div className="grid min-w-0 gap-1">
       <Button
         variant="secondary"
+        className="h-auto min-h-9 whitespace-normal"
         disabled={pending}
         onClick={() =>
           start(async () => {

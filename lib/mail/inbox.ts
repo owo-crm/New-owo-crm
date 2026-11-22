@@ -1,7 +1,15 @@
 import { one, type Queryable } from "../db/core.ts";
 import { decryptSecret } from "./secret.ts";
 import { loadMailSettings } from "./service.ts";
-import { htmlToText, parseAddress, type ReceivedEvent } from "./inbound.ts";
+import { resendApiUrl } from "./transport.ts";
+import {
+  htmlToText,
+  parseAddress,
+  STATUS_EVENTS,
+  STATUS_RANK,
+  type ReceivedEvent,
+  type StatusEvent,
+} from "./inbound.ts";
 
 /**
  * Переписка с клиентами (решение 051): запись входящих от Resend, догрузка тела письма,
@@ -49,7 +57,7 @@ export async function fetchReceivedBody(
 ): Promise<{ text: string; html: string | null; fromHeader: string | null } | null> {
   const request = deps.fetch ?? globalThis.fetch;
   const response = await request(
-    `https://api.resend.com/emails/receiving/${encodeURIComponent(emailId)}`,
+    `${resendApiUrl()}/emails/receiving/${encodeURIComponent(emailId)}`,
     { headers: { Authorization: `Bearer ${apiKey}` }, signal: AbortSignal.timeout(15_000) },
   ).catch(() => null);
   if (!response?.ok) return null;
@@ -163,14 +171,16 @@ export async function recordOutgoing(
     text: string;
     html: string | null;
     inReplyTo: string | null;
-    sentBy: string;
+    sentBy: string | null;
+    /** Номер письма в Resend — по нему приходят статусы «Dostarczono», «Otwarto». */
+    providerId?: string | null;
   },
 ) {
   await db.query(
     `insert into public.mail_messages
        (organization_id, lead_id, direction, counterpart, subject, body_text, body_html,
-        in_reply_to, read_at, sent_by)
-     values ($1, $2, 'out', $3, $4, $5, $6, $7, now(), $8)`,
+        in_reply_to, read_at, sent_by, provider_id, status, status_at)
+     values ($1, $2, 'out', $3, $4, $5, $6, $7, now(), $8, $9, 'sent', now())`,
     [
       input.organizationId,
       input.leadId,
@@ -180,6 +190,38 @@ export async function recordOutgoing(
       input.html?.slice(0, MAX_HTML) ?? null,
       input.inReplyTo,
       input.sentBy,
+      input.providerId ?? null,
     ],
   );
+}
+
+/**
+ * Статус отправленного письма из вебхука Resend (решение 052). Статус только растёт:
+ * поздно пришедшее «delivered» не затрёт «opened». Письма не из переписки (рассылки,
+ * уведомления) в mail_messages не записаны — такие события просто пропускаются.
+ */
+export async function applyStatus(db: Queryable, organizationId: string, event: StatusEvent) {
+  const status = STATUS_EVENTS[event.type];
+  const rank = STATUS_RANK[status];
+  const at =
+    event.created_at && !Number.isNaN(Date.parse(event.created_at)) ? event.created_at : null;
+  const detail =
+    status === "bounced"
+      ? ((event.data.bounce?.message ?? event.data.bounce?.type ?? null)?.slice(0, 500) ?? null)
+      : null;
+  const ranks = Object.entries(STATUS_RANK)
+    .filter(([, r]) => r < rank)
+    .map(([s]) => s);
+  const res = await db.query<{ id: string }>(
+    `update public.mail_messages
+        set status = $3,
+            status_at = coalesce($4::timestamptz, now()),
+            opened_at = case when $3 = 'opened' then coalesce(opened_at, $4::timestamptz, now()) else opened_at end,
+            status_detail = coalesce($5, status_detail)
+      where organization_id = $1 and provider_id = $2 and direction = 'out'
+        and (status is null or status = any($6::text[]))
+      returning id`,
+    [organizationId, event.data.email_id, status, at, detail, ranks],
+  );
+  return { updated: res.rows.length };
 }

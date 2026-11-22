@@ -355,3 +355,31 @@ Barowo одновременно, а Barowo зарегистрировано кл
 Вид всех писем фирмы задаётся в «Ustawienia → Poczta»: тема (jasny/ciemny), цвет кнопок,
 подпись; логотип — из логотипа кабинета по публичному `/api/logo/<id>`. Поле `brand_color`
 больше не используется письмами.
+
+**052 · 2026-11-19 · Статусы писем в переписке, как в мессенджере.**
+Ответ из «Poczta» запоминает номер письма в Resend (`provider_id`). Resend шлёт события на тот же
+вебхук, что и входящие: `email.delivered` → «Dostarczono», `email.opened` → «Otwarto» (нужно
+включить Open tracking у домена), `email.bounced` → «Nie dostarczono» с причиной,
+`email.complained` → «Oznaczono jako spam», `email.delivery_delayed` → «Opóźnione».
+Статус только растёт; отказ перекрывает всё. Не дошедшее письмо помечается в списке переписок
+и в карточке лида. «Otwarto» — подсказка: Apple Mail открывает картинки сам, у части людей они
+выключены. Через SMTP статусов нет — остаётся «Wysłano». Рассылки статусы не пишут.
+
+**053 · 2026-11-19 · Вся работа с клиентом через чат: документы, быстрые действия, шаблоны.**
+Карточка лида → «Szybkie działania» → чат «Poczta → Wiadomości» с выбранным шаблоном → проверка
+данных → PDF → «Wyślij» → переписка с вложением → этап. Шаблоны документов живут в
+`mailing_templates` (`purpose`, `document_kind`, `document_params`, `document_mode`,
+`attachment_id`, `quick_label`, `quick_position`, `stage_after`); кнопки карточки строятся из них.
+Быстрые оферты (Simple/Standard/Premium) правятся прямо в чате, «Podgląd PDF» ничего не
+сохраняет. Oferta personalna (с выбором пакета), Umowa и Menu — через формы, после «Generuj»
+чат открывается с прикреплённым PDF. Отправка по D-20: `outbound_messages` (минимальная часть
+спецификации §4.3), `documents.operation_key`, Resend `Idempotency-Key`, `unknown` без
+автоповтора, фиксация отдельной повторяемой транзакцией. Этап меняется только после
+подтверждённой отправки (не при генерации — из `generateContract` сдвиг убран), только вперёд,
+не на won/lost; цели нет — отправка всё равно успешна. Решатель этапа (`lib/documents/stage.ts`)
+совместим с D-14: явный `stage_after` → смысловой тег (когда появятся `semantic_tags`) → ключ.
+«Następny kontakt» и «Przypisane do» убраны из «Szybkie działania»; ответственный — «Prowadzi ▾»
+в шапке; напоминания по `next_contact_at` больше не строятся (данные колонки сохранены).
+Лид без e-mail — кнопки документов неактивны (решение владельца). Шаблоны другим фирмам —
+`scripts/templates-import.ts` (отчёт по умолчанию, `--apply`, без перезаписи без `--overwrite`).
+Документация: `docs/10-templates.md`. Миграция 043.

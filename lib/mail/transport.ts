@@ -29,6 +29,11 @@ export type OutgoingMail = {
   attachments?: MailAttachment[];
   /** Ответ на письмо клиента: Message-ID его письма — почтовик склеит переписку в цепочку. */
   inReplyTo?: string | null;
+  /**
+   * Ключ операции (D-20). Resend по нему не отправит то же письмо дважды в течение суток;
+   * SMTP ключей не понимает — защита от дублей там только наша (outbound_messages).
+   */
+  idempotencyKey?: string | null;
 };
 
 export type MailErrorCode =
@@ -48,10 +53,16 @@ export class MailError extends Error {
   readonly code: MailErrorCode;
   /** Текст сервера как есть — показываем при тестовом письме, чтобы было видно реальную причину. */
   readonly detail?: string;
-  constructor(code: MailErrorCode, detail?: string) {
+  /**
+   * Запрос мог дойти до провайдера, но ответа нет (таймаут, обрыв посреди передачи).
+   * Письмо, возможно, ушло — по D-20 такое не повторяется автоматически (статус unknown).
+   */
+  readonly uncertain: boolean;
+  constructor(code: MailErrorCode, detail?: string, uncertain = false) {
     super(code);
     this.code = code;
     this.detail = detail;
+    this.uncertain = uncertain;
   }
 }
 
@@ -79,12 +90,12 @@ export function classifySmtpError(error: unknown): MailError {
     return new MailError("attachment_too_large", detail);
   if (e.code === "EENVELOPE" || e.responseCode === 550 || e.responseCode === 553)
     return new MailError("recipient_rejected", detail);
-  if (
-    ["ECONNECTION", "ETIMEDOUT", "ESOCKET", "EDNS", "ECONNREFUSED", "ENOTFOUND"].includes(
-      e.code ?? "",
-    )
-  )
+  // До соединения (адрес не найден, отказ в подключении) письмо точно не ушло.
+  if (["ECONNECTION", "EDNS", "ECONNREFUSED", "ENOTFOUND"].includes(e.code ?? ""))
     return new MailError("connection_failed", detail);
+  // Обрыв или таймаут по ходу разговора с сервером — письмо могло уйти.
+  if (["ETIMEDOUT", "ESOCKET", "ECONNRESET"].includes(e.code ?? ""))
+    return new MailError("connection_failed", detail, true);
   return new MailError("send_failed", detail);
 }
 
@@ -124,7 +135,7 @@ export async function deliverMail(
   settings: MailSettings,
   input: OutgoingMail,
   deps: { smtp?: SmtpFactory; fetch?: typeof fetch } = {},
-): Promise<void> {
+): Promise<{ providerId: string | null }> {
   if (settings.transport === "none") throw new MailError("not_configured");
   if (!settings.secret) throw new MailError("not_configured");
   const mail = validateMail(input);
@@ -164,16 +175,21 @@ export async function deliverMail(
     } catch (error) {
       throw classifySmtpError(error);
     }
-    return;
+    // SMTP не сообщает, дошло ли письмо: статус останется «Wysłano».
+    return { providerId: null };
   }
 
   // Resend — для фирм со своим доменом (клиенты агентства).
   const request = deps.fetch ?? globalThis.fetch;
   let response: Response;
   try {
-    response = await request("https://api.resend.com/emails", {
+    response = await request(`${resendApiUrl()}/emails`, {
       method: "POST",
-      headers: { Authorization: `Bearer ${settings.secret}`, "Content-Type": "application/json" },
+      headers: {
+        Authorization: `Bearer ${settings.secret}`,
+        "Content-Type": "application/json",
+        ...(mail.idempotencyKey ? { "Idempotency-Key": mail.idempotencyKey } : {}),
+      },
       body: JSON.stringify({
         from: fromHeader(settings),
         to: mail.to,
@@ -192,13 +208,52 @@ export async function deliverMail(
       signal: AbortSignal.timeout(15_000),
     });
   } catch (error) {
-    throw new MailError("connection_failed", (error as Error).message);
+    // Отказ в соединении / адрес не найден — запрос не ушёл; таймаут и прочее — могло уйти.
+    const cause = (error as { cause?: { code?: string } }).cause?.code ?? "";
+    const before = ["ECONNREFUSED", "ENOTFOUND", "EAI_AGAIN", "UND_ERR_CONNECT_TIMEOUT"].includes(
+      cause,
+    );
+    throw new MailError("connection_failed", (error as Error).message, !before);
   }
-  if (response.ok) return;
+  if (response.ok) {
+    const data = (await response.json().catch(() => null)) as { id?: string } | null;
+    return { providerId: typeof data?.id === "string" ? data.id : null };
+  }
   const detail = (await response.text().catch(() => "")).slice(0, 300);
   if (response.status === 401 || response.status === 403)
     throw new MailError("auth_failed", detail);
   if (response.status === 429) throw new MailError("quota_exceeded", detail);
   if (response.status === 422) throw new MailError("recipient_rejected", detail);
   throw new MailError("send_failed", detail);
+}
+
+/**
+ * Адрес API Resend. В продакшене не задаётся; e2e направляет его на локальный приёмник,
+ * чтобы проверить настоящие запросы (вложения, ключ операции) без отправки писем.
+ */
+export function resendApiUrl() {
+  return (process.env.RESEND_API_URL || "https://api.resend.com").replace(/\/$/, "");
+}
+
+export const MAX_PDF_BYTES = 15 * 1024 * 1024;
+
+/** Имя файла вложения без путей и управляющих символов. */
+export function safeFilename(name: string, fallback = "dokument.pdf") {
+  const clean = name
+    .replace(/[\\/\u0000-\u001f"<>|:*?]+/g, "_")
+    .replace(/^\.+/, "")
+    .trim()
+    .slice(0, 150);
+  return clean || fallback;
+}
+
+/** PDF ли это на самом деле (по первым байтам), а не по имени. */
+export function isPdf(bytes: Uint8Array) {
+  return (
+    bytes.length > 4 &&
+    bytes[0] === 0x25 &&
+    bytes[1] === 0x50 &&
+    bytes[2] === 0x44 &&
+    bytes[3] === 0x46
+  );
 }

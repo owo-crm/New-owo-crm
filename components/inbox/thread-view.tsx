@@ -1,12 +1,22 @@
 import Link from "next/link";
-import { ArrowLeft, Paperclip, UserRound } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowLeft,
+  Check,
+  CheckCheck,
+  Clock,
+  Paperclip,
+  UserRound,
+} from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import type { ThreadMessage } from "@/lib/mail/inbox-read";
 import type { Template } from "@/lib/mailing/repository";
 import { stripQuote } from "@/lib/mail/inbound";
 import { t } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
-import { Composer } from "./composer";
+import { AutoRefresh } from "./auto-refresh";
+import { ScrollEnd } from "./scroll-end";
+import { Composer, type PreparedDocument } from "./composer";
 
 const stamp = (iso: string) =>
   new Date(iso).toLocaleString("pl-PL", {
@@ -23,14 +33,23 @@ export function ThreadView({
   messages,
   lead,
   name,
+  brand,
   templates,
   mailReady,
+  initialTemplateId,
+  preparedDocument,
 }: {
+  /** Шаблон, выбранный кнопкой из «Szybkie działania» (?tpl=). */
+  initialTemplateId?: string;
+  /** Документ, созданный формой (?doc=) — уже прикреплён. */
+  preparedDocument?: PreparedDocument | null;
   counterpart: string;
   messages: ThreadMessage[];
   lead: { id: string; client_name: string } | null;
   /** Имя из заголовка From, если лида нет. */
   name: string | null;
+  /** Название фирмы — для темы первого письма. */
+  brand: string;
   templates: Template[];
   mailReady: boolean;
 }) {
@@ -46,6 +65,11 @@ export function ThreadView({
       .at(-1);
     return subject && subject !== before ? subject : "";
   });
+  const lastWithSubject = [...messages].reverse().find((m) => m.subject.trim());
+  const defaultSubject = lastWithSubject
+    ? `Re: ${clean(lastWithSubject.subject)}`
+    : t("inbox.defaultSubject", { firm: brand });
+
   return (
     <section className="flex min-h-0 flex-1 flex-col">
       <header className="border-line flex items-center gap-3 border-b px-4 py-3">
@@ -72,7 +96,7 @@ export function ThreadView({
         ) : null}
       </header>
 
-      <ol className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-4 py-5">
+      <ol className="flex h-[55dvh] min-h-60 flex-col gap-3 overflow-y-auto px-4 py-5 md:h-auto md:min-h-0 md:flex-1">
         {messages.length === 0 ? (
           <li className="text-ink-soft m-auto max-w-xs text-center text-sm">
             {t("inbox.firstMessage")}
@@ -113,24 +137,105 @@ export function ThreadView({
               </div>
               {m.attachments.length ? (
                 <span className="text-ink-soft flex flex-wrap gap-1.5 px-1 text-[12px]">
-                  {m.attachments.map((a, i) => (
-                    <span key={i} className="flex items-center gap-1">
-                      <Paperclip className="size-3" />
-                      {a.filename}
-                    </span>
-                  ))}
+                  {m.attachments.map((a, i) => {
+                    // Исходящий PDF — настоящая ссылка через защищённый маршрут (права проверяются там).
+                    const fileId = typeof a.fileId === "string" ? a.fileId : null;
+                    const href = fileId
+                      ? a.kind === "template"
+                        ? `/api/template-files/${fileId}`
+                        : `/api/documents/${fileId}`
+                      : null;
+                    return href ? (
+                      <a
+                        key={i}
+                        href={href}
+                        className="border-line bg-surface hover:bg-surface-2 flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 font-semibold"
+                      >
+                        <Paperclip className="size-3.5" />
+                        {a.filename}
+                      </a>
+                    ) : (
+                      <span key={i} className="flex items-center gap-1">
+                        <Paperclip className="size-3" />
+                        {a.filename}
+                      </span>
+                    );
+                  })}
                 </span>
               ) : null}
-              <span className="text-ink-faint px-1 text-[11px]">
+              <span className="text-ink-faint flex items-center gap-1 px-1 text-[11px]">
                 {mine && m.sender ? `${m.sender} · ` : ""}
                 {stamp(m.created_at)}
+                {mine ? <Status message={m} /> : null}
               </span>
+              {mine && m.status === "bounced" && m.status_detail ? (
+                <span className="text-urgent max-w-full px-1 text-[11px] break-words">
+                  {m.status_detail}
+                </span>
+              ) : null}
             </li>
           );
         })}
+        <ScrollEnd count={messages.length} />
       </ol>
 
-      <Composer to={counterpart} templates={templates} mailReady={mailReady} />
+      <Composer
+        to={counterpart}
+        leadId={lead?.id ?? null}
+        templates={templates}
+        mailReady={mailReady}
+        defaultSubject={defaultSubject}
+        initialTemplateId={initialTemplateId}
+        document={preparedDocument}
+      />
+      <AutoRefresh />
     </section>
   );
+}
+
+/**
+ * Статус письма как в мессенджере (решение 052): ✓ отправлено, ✓✓ доставлено,
+ * синие ✓✓ — открыто, красный знак — не дошло. «Otwarto» — подсказка: Apple Mail
+ * открывает картинки сам, а у части людей они выключены.
+ */
+function Status({ message: m }: { message: ThreadMessage }) {
+  const at = m.status_at ? stamp(m.status_at) : "";
+  switch (m.status) {
+    case "delivered":
+      return (
+        <span className="flex items-center gap-0.5" title={`${t("inbox.status.delivered")} ${at}`}>
+          · <CheckCheck className="size-3.5" /> {t("inbox.status.delivered")}
+        </span>
+      );
+    case "opened":
+      return (
+        <span
+          className="text-accent flex items-center gap-0.5 font-semibold"
+          title={t("inbox.status.openedHint")}
+        >
+          · <CheckCheck className="size-3.5" /> {t("inbox.status.opened")} {at}
+        </span>
+      );
+    case "delayed":
+      return (
+        <span className="flex items-center gap-0.5">
+          · <Clock className="size-3" /> {t("inbox.status.delayed")}
+        </span>
+      );
+    case "bounced":
+    case "complained":
+      return (
+        <span className="text-urgent flex items-center gap-0.5 font-semibold">
+          · <AlertTriangle className="size-3" /> {t(`inbox.status.${m.status}`)}
+        </span>
+      );
+    case "sent":
+      return (
+        <span className="flex items-center gap-0.5">
+          · <Check className="size-3.5" /> {t("inbox.status.sent")}
+        </span>
+      );
+    default:
+      return null;
+  }
 }

@@ -1,6 +1,9 @@
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { LeadEditor } from "@/components/leads/lead-editor";
+import { leadMailProblem } from "@/lib/mail/inbox-read";
+import { listTemplates } from "@/lib/mailing/repository";
+import { quickActions } from "@/lib/mailing/quick";
 import { DocsPaymentsBlock } from "@/components/documents/docs-payments-block";
 import { getLead, getLeadHistory, getLeadOptions, getLeads } from "@/lib/leads/queries";
 import { parseLeadFilters } from "@/lib/leads/filters";
@@ -19,23 +22,27 @@ export default async function LeadPage({ params, searchParams }: PageProps<"/lea
   if (!z.uuid().safeParse(id).success) notFound();
   const lead = await getLead(id);
   if (!lead) notFound();
-  const [options, history, docs, agencyClient, files, rail] = await Promise.all([
-    getLeadOptions(),
-    getLeadHistory(id),
-    withOrg(async (tx, { organization }) => ({
-      enabled: organization.documentEngine === "barowo",
-      list: await listDocuments(tx, organization.id, id),
-      payments: await leadPayments(tx, organization.id, id),
-      plan: await loadPaymentPlan(tx, organization.id),
-      agency: organization.industryPreset === "agency",
-      // Карточки модулей показываем, только если модуль включён в абонементе.
-      paymentsModule: organization.modules.includes("payments"),
-      documentsModule: organization.modules.includes("documents"),
-    })),
-    clientIdForLead(id),
-    listAttachments(id),
-    getLeads(parseLeadFilters({})),
-  ]);
+  const [options, history, docs, agencyClient, files, rail, mailProblem, templates] =
+    await Promise.all([
+      getLeadOptions(),
+      getLeadHistory(id),
+      withOrg(async (tx, { organization }) => ({
+        enabled: organization.documentEngine === "barowo",
+        list: await listDocuments(tx, organization.id, id),
+        payments: await leadPayments(tx, organization.id, id),
+        plan: await loadPaymentPlan(tx, organization.id),
+        agency: organization.industryPreset === "agency",
+        // Карточки модулей показываем, только если модуль включён в абонементе.
+        paymentsModule: organization.modules.includes("payments"),
+        documentsModule: organization.modules.includes("documents"),
+        org: { documentEngine: organization.documentEngine, modules: organization.modules },
+      })),
+      clientIdForLead(id),
+      listAttachments(id),
+      getLeads(parseLeadFilters({})),
+      leadMailProblem(id).catch(() => null),
+      listTemplates("all"),
+    ]);
   // Агентство: на этапе «Klient» (или если клиент уже заведён) — кнопка клиента агентства.
   const showAgency = docs.agency && (lead.stage_key === "client" || agencyClient !== null);
   return (
@@ -51,12 +58,13 @@ export default async function LeadPage({ params, searchParams }: PageProps<"/lea
         <LeadEditor
           lead={lead}
           serverNow={new Date().toISOString()}
+          mailProblem={mailProblem}
           stages={options.stages}
           team={options.team}
           history={history}
           agencyCard={showAgency ? <LeadClientCard leadId={id} clientId={agencyClient} /> : null}
           // Генерация оферты, договора и меню — кнопками в «Szybkie działania».
-          docActions={docs.documentsModule && docs.enabled}
+          quickActions={quickActions(templates, id, docs.org)}
           docsBlock={
             <DocsPaymentsBlock
               leadId={id}
