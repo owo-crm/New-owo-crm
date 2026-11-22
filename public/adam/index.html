@@ -1,9 +1,9 @@
-<!doctype html><html lang="pl"><head><meta charset="utf-8"><title>Adam — Agent nieruchomości w Trójmieście | Zakup i finansowanie</title><meta name="viewport" content="width=1440"><meta name="description" content="Szukasz mieszkania w Gdańsku, Sopocie lub Gdyni? Porozmawiaj z Adamem o zakupie nieruchomości i możliwościach finansowania we współpracy z ekspertami Expander."><meta name="robots" content="noindex">
+<!doctype html><html lang="pl"><head><meta charset="utf-8"><title>Adam — Agent nieruchomości w Trójmieście | Zakup i finansowanie</title><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Szukasz mieszkania w Gdańsku, Sopocie lub Gdyni? Porozmawiaj z Adamem o zakupie nieruchomości i możliwościach finansowania we współpracy z ekspertami Expander."><meta name="robots" content="noindex">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300&family=Work+Sans:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{--ivory:#F4EFE6;--cream:#ECE4D7;--sand:#DCCFBC;--taupe:#9A8875;--olive:#3F4A39;--forest:#25352B;--clay:#B98C6A;--text:#2A2A24;--muted:#77726A;--line:#D9CFC1}
 *{box-sizing:border-box;margin:0;padding:0}
-body{width:1440px;color:var(--text);font:400 16px/1.75 'Work Sans',sans-serif;background:var(--ivory) radial-gradient(circle at 20% 10%,rgba(185,140,106,.08),transparent 40%),radial-gradient(circle at 80% 60%,rgba(63,74,57,.06),transparent 40%)}
+body{max-width:1440px;margin:0 auto;overflow-x:hidden;color:var(--text);font:400 16px/1.75 'Work Sans',sans-serif;background:var(--ivory) radial-gradient(circle at 20% 10%,rgba(185,140,106,.08),transparent 40%),radial-gradient(circle at 80% 60%,rgba(63,74,57,.06),transparent 40%)}
 h1,h2,h3{font-family:Fraunces,serif;font-weight:300}
 .ph{position:relative;background:linear-gradient(160deg,#d3c3ab,#ad9b82 55%,#8a7862);overflow:hidden}
 .ph{background-size:cover!important;background-position:center!important}.ph[style*=url]{filter:sepia(.18) saturate(.85) brightness(1.02)}.ph[data-l=""]:after{display:none}.ph:after{content:attr(data-l);position:absolute;left:50%;bottom:22px;transform:translateX(-50%);white-space:nowrap;font:500 11px 'Work Sans';letter-spacing:.14em;text-transform:lowercase;color:#fff;background:rgba(37,53,43,.5);padding:6px 12px;border-radius:30px}
@@ -90,6 +90,55 @@ a{color:inherit;text-decoration:none}nav ul a:hover{color:var(--clay)}
 .cs input{width:18px;height:18px;accent-color:var(--forest);flex:none;margin-top:2px}
 button.btn{border:0;cursor:pointer;font:inherit;font-size:15px}button.btn:disabled{opacity:.6}
 .msg{margin-top:16px;font-size:14px;min-height:20px}.msg.err{color:#9a3b2f}.ok{text-align:center;padding:40px 0}.ok h3{font-size:40px;margin-bottom:14px}
+
+@media (max-width:900px){
+body{font-size:15px;line-height:1.65}
+section,.duo{padding:64px 20px!important}
+h1{font-size:44px!important;width:auto!important;padding-top:24px!important;line-height:1.02!important}
+h2{font-size:36px!important;line-height:1.08!important;margin-bottom:28px!important}
+h3{font-size:24px!important}
+nav{flex-wrap:wrap;padding:16px 20px;gap:12px}
+nav .logo small{display:none}
+nav ul{order:3;width:100%;margin:0;overflow-x:auto;gap:20px;white-space:nowrap;padding-bottom:4px;font-size:13px;scrollbar-width:none}
+nav .r{margin-left:auto}nav .r .btn{padding:10px 16px!important;font-size:13px}
+.hero{height:auto;padding:8px 20px 40px;display:flex;flex-direction:column}
+.hero .ph1,.hero .ph2,.hero .t{position:static!important;width:auto!important}
+.hero .ph1{height:420px;order:3;margin-top:28px}.hero .ph2{display:none}
+.hero .t{order:2;margin-top:20px}.hero .t .btn{display:block;text-align:center;margin-bottom:10px}
+.fact{padding:24px 20px 56px}.fact p{font-size:24px}
+.duo-g,.flow .top,.three,.stones,.who,.quiet,.notes{grid-template-columns:1fr!important;gap:20px!important}
+.svc{border-radius:28px}.svc .ph{height:220px}.svc .b{padding:28px 24px 32px}.svc .num{font-size:44px}
+.flow,.end,.about{border-radius:32px 32px 0 0!important}
+.diagram{grid-template-columns:1fr;gap:12px;margin:48px 0 10px}
+.node .c{width:150px;height:150px;font-size:24px;margin-bottom:14px}
+.arrow{width:1px;height:48px;margin:0 auto}.arrow:after{right:-4px;top:auto;bottom:0;border:4px solid transparent;border-top:8px solid var(--taupe)}.arrow span{top:14px;left:14px;width:auto;white-space:nowrap}
+.three{margin-top:48px}.three div{padding:28px;border-radius:24px}
+.stones{margin-top:56px}.stones .s span{padding:16px 22px;font-size:17px}
+.offset{display:flex!important;flex-direction:column;gap:24px;margin-top:40px!important}
+.offset>*{width:100%}.offset .ph{height:320px!important;order:-1}
+div[style*="height:560px"]{margin:0 12px 40px!important;height:320px!important;border-radius:28px!important}
+div[style*="height:560px"] span{left:20px!important;bottom:20px!important;font-size:28px!important}
+.who{margin-top:32px}.who div:nth-child(even){margin-top:0}.who .ph{height:240px}
+.path{margin-top:30px}.path svg{display:none}
+.st{width:auto!important;margin:0!important;padding:22px 0;border-top:1px solid var(--line)}.st b{font-size:56px}
+#oferty>div:first-child{flex-direction:column;align-items:flex-start!important;gap:16px}
+.masonry{display:flex;flex-direction:column;gap:40px;margin-top:32px}
+.lc .row{flex-direction:column;gap:2px}.lc{margin:0!important}.lc .ph{height:300px!important;border-radius:24px!important}.lc h3{font-size:24px!important}.lc .p{font-size:18px}
+.quiet{margin-top:20px}.quiet div{padding:16px 0!important;border-left:0!important;border-top:1px solid var(--line)}
+section#o-mnie{padding:0!important}
+.about{display:flex!important;flex-direction:column;padding:56px 20px!important;gap:28px}
+.about .ph{height:420px!important;width:100%}.about .n{gap:32px}.about .n b{font-size:44px}
+.notes{margin-top:32px}.notes div{transform:none!important;padding:28px}
+.refi{display:flex!important;flex-direction:column;gap:28px}.refi .ph{height:280px!important;width:100%}
+.faq{display:block}.faq>div{margin-bottom:12px}.q h3{font-size:19px!important;gap:12px}
+.end{display:block!important;padding:72px 20px 48px!important}
+.end h2{font-size:48px!important}
+.end form{margin-top:32px;padding:28px 22px;border-radius:24px}
+.pills span{padding:10px 14px;font-size:13px}
+.fl input,.fl textarea{font-size:16px}
+.btn{padding:15px 24px}
+footer{flex-direction:column;gap:8px;padding:28px 20px 40px!important}
+}
 </style></head><body>
 <nav><span class="logo">Adam<small>agent nieruchomości · trójmiasto</small></span><ul><li><a href="#oferty">Mieszkania</a></li><li><a href="#refinansowanie">Refinansowanie</a></li><li><a href="#jak">Jak działam</a></li><li><a href="#o-mnie">O mnie</a></li><li><a href="#faq">FAQ</a></li><li><a href="#kontakt">Kontakt</a></li></ul><div class="r"><a href="#kontakt" class="btn" style="padding:13px 24px">Umów konsultację</a></div></nav>
 
