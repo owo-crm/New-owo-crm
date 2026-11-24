@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Statyczna strona Adama (osobny projekt, zbudowane pliki):
+    "sites/*/dist/**",
   ]),
 ]);
 
