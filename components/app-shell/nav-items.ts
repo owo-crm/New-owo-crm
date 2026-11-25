@@ -35,6 +35,8 @@ export type NavItem = {
   agency?: boolean;
   /** Только владелец/админ бизнеса. */
   admin?: boolean;
+  /** Пресеты, в которых пункт не нужен (например, договоры мероприятий у агента недвижимости). */
+  hideFor?: string[];
 };
 
 export type NavGroup = { label: MessageKey; items: NavItem[] };
@@ -50,6 +52,7 @@ export const CONTRACTS: NavItem = {
   label: "nav.contracts",
   icon: FileSignature,
   module: "documents",
+  hideFor: ["real-estate"],
 };
 export const CALENDAR: NavItem = {
   href: "/kalendarz",
@@ -128,12 +131,13 @@ export const SETTINGS_ONLY: NavItem[] = [CHANNELS, NOTIFICATIONS, IMPORT, SUBSCR
 
 export const NAV_ALL = [...NAV_GROUPS.flatMap((g) => g.items), ...SETTINGS_ONLY];
 
-export type NavContext = { agency: boolean; modules: string[]; admin: boolean };
+export type NavContext = { agency: boolean; modules: string[]; admin: boolean; preset?: string };
 
 export function visible(item: NavItem, ctx: NavContext) {
   if (item.agency && !ctx.agency) return false;
   if (item.module && !ctx.modules.includes(item.module)) return false;
   if (item.admin && !ctx.admin) return false;
+  if (item.hideFor && ctx.preset && item.hideFor.includes(ctx.preset)) return false;
   return true;
 }
 

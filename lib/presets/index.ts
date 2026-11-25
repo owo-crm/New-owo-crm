@@ -48,6 +48,23 @@ export const PRESETS = {
       { key: "spam", labelPl: "Spam", kind: "lost" },
     ],
   },
+  // Agent nieruchomości (pierwszy klient — Adam). Typ zgłoszenia (zakup/sprzedaż/refinansowanie)
+  // to temat leada, nie etap. docs/architecture/ADAM_REAL_ESTATE_PHASE0.md.
+  "real-estate": {
+    key: "real-estate",
+    labelKey: "presets.real-estate",
+    stages: [
+      { key: "new", labelPl: "Nowe zapytanie", kind: "open" },
+      { key: "contacted", labelPl: "Skontaktowano", kind: "open" },
+      { key: "consultation", labelPl: "Konsultacja", kind: "open" },
+      { key: "viewing", labelPl: "Prezentacja nieruchomości", kind: "open" },
+      { key: "negotiation", labelPl: "Negocjacje", kind: "open" },
+      { key: "contract", labelPl: "Umowa / formalności", kind: "open" },
+      { key: "won", labelPl: "Zakończone sukcesem", kind: "won" },
+      { key: "lost", labelPl: "Utracone", kind: "lost" },
+      { key: "spam", labelPl: "Spam", kind: "lost" },
+    ],
+  },
 } as const satisfies Record<string, IndustryPreset>;
 
 export type PresetKey = keyof typeof PRESETS;
@@ -61,4 +78,9 @@ export function isPresetKey(value: string): value is PresetKey {
 /** Экраны /agencja видны только в организации с этим пресетом. */
 export function isAgency(preset: string) {
   return preset === "agency";
+}
+
+/** Kabinet agenta nieruchomości. */
+export function isRealEstate(preset: string) {
+  return preset === "real-estate";
 }

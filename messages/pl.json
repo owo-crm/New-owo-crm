@@ -359,7 +359,8 @@
   "presets": {
     "label": "Rodzaj biznesu",
     "event-services": "Usługi na wydarzenia (wesela, urodziny, eventy firmowe)",
-    "agency": "Agencja marketingowa (OWO Ads)"
+    "agency": "Agencja marketingowa (OWO Ads)",
+    "real-estate": "Nieruchomości (agent nieruchomości)"
   },
   "notifications": {
     "newLead": "🔔 Nowy lead",
@@ -965,6 +966,19 @@
       "connect": "Podłącz",
       "disconnect": "Odłącz",
       "hint": "Budżet to pieniądze klienta. Nie wchodzą do podziału 10/25/65 i rozliczane są osobno."
+    },
+    "owner": {
+      "title": "Właściciel kabinetu",
+      "intro": "Wygeneruj jednorazowy link, przez który klient zostanie właścicielem swojego CRM. Link działa 7 dni.",
+      "pending": "Aktywny link do {date}. Nowy link unieważni poprzedni.",
+      "once": "Skopiuj link teraz — nie pokażemy go ponownie. Wyślij go klientowi bezpośrednio.",
+      "create": "Utwórz link dla właściciela",
+      "reissue": "Wygeneruj nowy link",
+      "revoke": "Unieważnij link",
+      "copy": "Kopiuj",
+      "hasOwner": "Klient ma już dostęp jako właściciel.",
+      "exists": "Ten CRM ma już właściciela.",
+      "notClient": "Ten CRM nie jest połączony z agencją jako klient."
     }
   },
   "billing": {

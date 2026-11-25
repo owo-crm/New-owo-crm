@@ -10,7 +10,10 @@ import {
   SetupChecklist,
 } from "@/components/agency/client-actions";
 import { ClientStatusBadge, OrderStatusBadge, monthLabel } from "@/components/agency/labels";
-import { getClientCard } from "@/lib/agency/repository";
+import { getClientCard, requireAgency } from "@/lib/agency/repository";
+import { clientOwnerStatus } from "@/lib/agency/owner-invite";
+import { OwnerInvite } from "@/components/agency/owner-invite";
+import { getDb } from "@/lib/db";
 import { listAdAccounts } from "@/lib/agency/ads";
 import { listClientServices, listServices } from "@/lib/agency/services";
 import { AdBudgetCard } from "@/components/agency/ad-budget";
@@ -43,6 +46,15 @@ export default async function ClientPage({ params }: PageProps<"/agencja/klienci
     listClientServices(client.id),
     listAdAccounts(client.id),
   ]);
+  // Właściciel kabinetu klienta: tylko admin platformy i tylko dla organizacji połączonej jako client.
+  const ownerStatus =
+    user?.isPlatformAdmin && client.client_org_id
+      ? await requireAgency()
+          .then(({ organization }) =>
+            clientOwnerStatus(getDb(), user.id, organization.id, client.client_org_id!),
+          )
+          .catch(() => null)
+      : null;
   const nameOf = (uid: string | null) =>
     uid ? (members.find((m) => m.userId === uid)?.name ?? "—") : t("agency.split.unassigned");
   const done = steps.filter((s) => s.doneAt).length;
@@ -241,6 +253,18 @@ export default async function ClientPage({ params }: PageProps<"/agencja/klienci
               steps={steps.map((s) => ({ key: s.key, auto: s.auto, doneAt: s.doneAt }))}
             />
           </Card>
+
+          {ownerStatus ? (
+            <Card title={t("agency.owner.title")}>
+              <OwnerInvite
+                clientId={client.id}
+                hasOwner={ownerStatus.hasOwner}
+                pendingUntil={
+                  ownerStatus.pendingUntil ? new Date(ownerStatus.pendingUntil).toISOString() : null
+                }
+              />
+            </Card>
+          ) : null}
 
           <Card title={t("billing.agency.title")}>
             {billing ? (

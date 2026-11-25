@@ -25,14 +25,12 @@ import { isAgency } from "@/lib/presets";
 export default async function AppLayout({ children }: LayoutProps<"/">) {
   const { user, organization } = await requireOrganization();
   const organizations = await getOrganizations();
-  const [queue, unreadMail] = await Promise.all([
-    getWorkQueue(),
-    unreadCount().catch(() => 0),
-  ]);
+  const [queue, unreadMail] = await Promise.all([getWorkQueue(), unreadCount().catch(() => 0)]);
   const ctx = {
     agency: isAgency(organization.industryPreset),
     modules: organization.modules,
     admin: organization.role !== "member",
+    preset: organization.industryPreset,
   };
   const links = navItems(ctx).map(({ href, label }) => ({ href, label }));
   const name = user.fullName || user.email;
