@@ -46,6 +46,7 @@ const knownFields = new Set([
   "budget_grosze",
   "message",
   "topic",
+  "property_slug",
   "consent",
   "website",
   "custom_fields",

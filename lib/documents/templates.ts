@@ -1,4 +1,5 @@
 import "server-only";
+import { fileContent } from "../platform/files/service.ts";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { withOrg } from "@/lib/db/user";
@@ -27,7 +28,14 @@ export async function contractTemplate(db: Queryable, organizationId: string) {
     "select content from public.organization_templates where organization_id=$1 and kind='contract'",
     [organizationId],
   );
-  return rows[0]?.content ?? builtInContractTemplate();
+  if (!rows[0]) return builtInContractTemplate();
+  const content = await fileContent(
+    db,
+    organizationId,
+    { table: "organization_templates", id: organizationId },
+    rows[0].content,
+  );
+  return Buffer.from(content!);
 }
 
 export function templateInfo() {

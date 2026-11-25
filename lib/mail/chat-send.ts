@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { fileContent } from "../platform/files/service.ts";
 import { one, type Queryable } from "../db/core.ts";
 import { renderLetter, type LetterLook } from "../mailing/render.ts";
 import { applyStageAfter, MEANING_BY_KIND } from "../documents/stage.ts";
@@ -282,6 +283,9 @@ export async function sendChatMessage(
             [orgId, template!.attachment_id],
           );
           if (!file) throw new Error("file_not_found");
+          file.content = Buffer.from(
+            (await fileContent(tx, orgId, { table: "document_files", id: file.id }, file.content))!,
+          );
           return {
             documentId: null,
             fileId: file.id,

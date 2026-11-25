@@ -1,4 +1,5 @@
 import "server-only";
+import { linkLeadToPropertySlug } from "@/lib/realestate/properties";
 import { after } from "next/server";
 import { createHmac } from "node:crypto";
 import { createIntakeHandler, type WebsiteChannel } from "@/lib/channels/website";
@@ -65,6 +66,12 @@ export function websiteHandler() {
       await Promise.allSettled([
         kickNotifications(result.id),
         forwardToLegacy(channel.config.forwardUrl, raw),
+        // Formularz ze strony konkretnej nieruchomości: typowana relacja lead ↔ obiekt.
+        typeof raw.property_slug === "string"
+          ? linkLeadToPropertySlug(db, channel.organization_id, result.id, raw.property_slug).then(
+              (ok) => ok || console.warn(`[intake] property_slug not linked for lead ${result.id}`),
+            )
+          : null,
       ]);
     },
     waitUntil: (promise) => after(() => promise),

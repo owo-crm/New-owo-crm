@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { fileContent } from "@/lib/platform/files/service";
 import { withOrg } from "@/lib/db/user";
 import { one } from "@/lib/db";
 
@@ -12,13 +13,21 @@ const MIME = {
 export async function GET(request: Request, { params }: RouteContext<"/api/documents/[fileId]">) {
   const { fileId } = await params;
   if (!z.uuid().safeParse(fileId).success) return new Response(null, { status: 404 });
-  const file = await withOrg((tx, { organization }) =>
-    one<{ filename: string; format: keyof typeof MIME; content: Buffer }>(
+  const file = await withOrg(async (tx, { organization }) => {
+    const row = await one<{ filename: string; format: keyof typeof MIME; content: Buffer }>(
       tx,
       "select filename, format, content from public.document_files where organization_id=$1 and id=$2",
       [organization.id, fileId],
-    ),
-  );
+    );
+    if (!row) return null;
+    const content = await fileContent(
+      tx,
+      organization.id,
+      { table: "document_files", id: fileId },
+      row.content,
+    );
+    return { ...row, content: Buffer.from(content!) };
+  });
   if (!file) return new Response(null, { status: 404 });
   const inline = new URL(request.url).searchParams.get("podglad") === "1" && file.format === "pdf";
   return new Response(new Uint8Array(file.content), {

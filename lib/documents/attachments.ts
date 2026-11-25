@@ -1,4 +1,5 @@
 import "server-only";
+import { fileContent } from "../platform/files/service.ts";
 import { z } from "zod";
 import { withOrg } from "@/lib/db/user";
 
@@ -81,6 +82,14 @@ export function readAttachment(id: string) {
       "select filename, content_type, content from public.lead_attachments where organization_id=$1 and id=$2",
       [organization.id, id],
     );
-    return rows[0] ?? null;
+    const row = rows[0];
+    if (!row) return null;
+    const content = await fileContent(
+      tx,
+      organization.id,
+      { table: "lead_attachments", id },
+      row.content,
+    );
+    return { ...row, content: Buffer.from(content!) };
   });
 }

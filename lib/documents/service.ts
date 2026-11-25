@@ -1,4 +1,5 @@
 import "server-only";
+import { fileContent } from "../platform/files/service.ts";
 import { one, type Queryable } from "@/lib/db";
 import { readFileSync } from "node:fs";
 import path from "node:path";
@@ -412,7 +413,16 @@ export async function generateContract(
   builtInTemplate ??= new Uint8Array(
     readFileSync(path.join(process.cwd(), "lib/documents/barowo/umowa-template.docx")),
   );
-  const template = own[0] ? new Uint8Array(own[0].content) : builtInTemplate;
+  const template = own[0]
+    ? new Uint8Array(
+        (await fileContent(
+          tx,
+          actor.orgId,
+          { table: "organization_templates", id: actor.orgId },
+          own[0].content,
+        ))!,
+      )
+    : builtInTemplate;
   const saved = await saveDocument(tx, actor, leadId, "contract", snapshot, async (number) => {
     const base = fileBase("contract", "BAROWO", number);
     const docx = fillDocxTemplate(template, contractTemplateValues(e, snapshot, number));
