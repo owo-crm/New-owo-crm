@@ -63,19 +63,22 @@ export function capacity({ income, obligations = 0, people = 1, livingCost = 150
 }
 
 /**
- * Refinansowanie: porównanie tej samej kwoty i tego samego okresu przy dwóch stopach.
- * currentPayment (opcjonalnie) — rata z harmonogramu banku; gdy brak, liczona z danych.
+ * Refinansowanie — symulacja: ten sam kapitał i okres, oprocentowanie niższe o podane punkty procentowe.
+ * Bez kosztów zmiany, okresu zwrotu i oceny „opłaca się” (TZ 6.3). Scenariusze z ujemną stopą są pomijane.
+ * currentPayment (opcjonalnie) — rata z harmonogramu banku; gdy brak, liczona z kapitału, okresu i stopy.
  */
-export function refinance({ balance, currentRatePct, newRatePct, months, costs = 0, currentPayment }) {
-  const B = num(balance), cr = num(currentRatePct), nr = num(newRatePct), n = Math.round(num(months)), c = num(costs) || 0;
-  if (!valid(B, cr, nr, n) || B <= 0 || n <= 0 || cr < 0 || nr < 0 || c < 0) return null;
-  const calcCurrent = annuity(B, cr, n);
+export function refinanceScenarios({ balance, ratePct, months, currentPayment, cuts = [0.5, 1, 1.5] }) {
+  const B = num(balance), r = num(ratePct), n = Math.round(num(months));
+  if (!valid(B, r, n) || B <= 0 || n <= 0 || n > 600 || r < 0 || r > 50) return null;
+  const calcCurrent = annuity(B, r, n);
   const given = num(currentPayment);
-  const cur = Number.isFinite(given) && given > 0 ? given : calcCurrent;
-  const next = annuity(B, nr, n);
-  const monthly = cur - next;
-  const totalDiff = monthly * n;
-  const net = totalDiff - c;
-  const payback = monthly > 0 ? Math.ceil(c / monthly) : null;
-  return { current: cur, calcCurrent, next, monthly, totalDiff, costs: c, net, payback, worth: net > 0 && payback !== null && payback < n };
+  const current = Number.isFinite(given) && given > 0 ? given : calcCurrent;
+  const scenarios = cuts
+    .map((cut) => Math.round((r - cut) * 100) / 100)
+    .filter((rate) => rate >= 0)
+    .map((rate) => {
+      const payment = annuity(B, rate, n);
+      return { rate, payment, monthly: current - payment, year: (current - payment) * Math.min(12, n) };
+    });
+  return { current, calcCurrent, usedGiven: current !== calcCurrent, scenarios };
 }

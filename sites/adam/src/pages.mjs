@@ -101,7 +101,7 @@ ${faq([
     ["Czy mogę kupić mieszkanie, mieszkając w innym mieście?", "Tak. Wstępny wybór robimy zdalnie, prezentacje planujemy tak, by zmieścić je w jednym lub dwóch przyjazdach."],
     ["Czy pomożesz z kredytem?", "Połączę Cię z ekspertami Expander, którzy zajmują się analizą i procesem kredytowym. Ja dbam o koordynację z zakupem."],
   ], "Pytania kupujących")}
-${contact({ topic: "Zakup mieszkania", heading: "Porozmawiajmy o zakupie.", source: "zakup" })}`,
+${contact({ topic: "Zakup mieszkania", heading: "Porozmawiajmy o zakupie.", source: "zakup", button: "Umów konsultację" })}`,
 };
 
 // ───────────────────────── Sprzedaż ─────────────────────────
@@ -129,7 +129,7 @@ ${faq([
     ["Czy pomożesz ustalić cenę?", "Omówimy cenę ofertową na podstawie rozmowy i ofert podobnych mieszkań. Profesjonalną wycenę wykonuje rzeczoznawca majątkowy."],
     ["Czy kupujący może skorzystać z kredytu?", "Tak — zainteresowanych kupujących mogę skontaktować z ekspertami Expander, co często porządkuje proces po stronie finansowania."],
   ], "Pytania sprzedających")}
-${contact({ topic: "Sprzedaż nieruchomości", heading: "Porozmawiajmy o sprzedaży.", source: "sprzedaż" })}`,
+${contact({ topic: "Sprzedaż nieruchomości", heading: "Porozmawiajmy o sprzedaży.", source: "sprzedaż", button: "Porozmawiaj o sprzedaży" })}`,
 };
 
 // ───────────────────────── Refinansowanie ─────────────────────────
@@ -141,10 +141,11 @@ const refi = {
   crumbs: [["/uslugi/", "Usługi"], ["/refinansowanie-kredytu-hipotecznego/", "Refinansowanie kredytu"]],
   ogImage: "/img/salon-bez.webp",
   html: () => `${crumbs(refi.crumbs)}
-<section class="split">${intro("refinansowanie kredytu", "Masz kredyt hipoteczny? <em>Sprawdź, czy obecne warunki są dla Ciebie korzystne.</em>", "Refinansowanie to przeniesienie kredytu do innego banku albo zmiana jego warunków. Czy się opłaca — zależy od Twojej sytuacji i kosztów zmiany. Ocenę przygotowują eksperci Expander.")}${img("salon-bez", "Spokojny, beżowy salon", "arch", false)}</section>
+<section class="split">${intro("refinansowanie kredytu", "Masz kredyt hipoteczny? <em>Sprawdź, czy obecne warunki są dla Ciebie korzystne.</em>", "Refinansowanie to przeniesienie kredytu do innego banku albo zmiana jego warunków. Czy to ma sens — zależy od Twojej sytuacji. Ocenę przygotowują eksperci Expander, a moja pomoc jest bezpłatna.")}${img("salon-bez", "Spokojny, beżowy salon", "arch", false)}</section>
 <section class="cols"><div><h2>Kiedy warto sprawdzić</h2><ul class="list"><li>Od uruchomienia kredytu minęło co najmniej kilka miesięcy.</li><li>Przed Tobą jeszcze długi okres spłaty lub znaczny kapitał.</li><li>Marża lub oprocentowanie wyraźnie odbiegają od obecnych ofert.</li><li>Twoja sytuacja dochodowa jest stabilna.</li></ul><p class="muted small">To nie są warunki kwalifikacji — ostateczną ocenę przygotowuje specjalista, a decyzję podejmuje bank.</p></div>
-<div><h2>Co jest analizowane</h2><ul class="list"><li>pozostały kapitał i okres spłaty,</li><li>obecna marża, oprocentowanie i rata,</li><li>prowizje, ubezpieczenia i produkty dodatkowe,</li><li>koszty zmiany: wycena, opłaty sądowe i notarialne,</li><li>dochody i inne zobowiązania.</li></ul><p class="muted small">Tych danych nie podajesz w formularzu na stronie — omówisz je bezpośrednio z ekspertem.</p></div></section>
+<div><h2>Co jest analizowane</h2><ul class="list"><li>pozostały kapitał i okres spłaty,</li><li>obecna marża, oprocentowanie i rata,</li><li>ubezpieczenia i produkty dodatkowe,</li><li>dochody i inne zobowiązania.</li></ul><p class="muted small">Tych danych nie podajesz w formularzu na stronie — omówisz je bezpośrednio z ekspertem.</p></div></section>
 <section class="aside-note"><div><p class="lbl">współpraca</p><h3>Kto analizuje kredyt?</h3></div><div><p>W sprawach refinansowania współpracuję z Expander. Eksperci tej firmy analizują obecne warunki kredytu, porównują dostępne oferty banków i pomagają przejść przez proces.</p></div></section>
+<section class="aside-note"><div><p class="lbl">koszty</p><h3>Ile to kosztuje?</h3></div><div><p>Pomoc Adama w kontakcie i organizacji procesu refinansowania jest bezpłatna. W niektórych przypadkach potrzebna jest osobna wycena nieruchomości — jej orientacyjny koszt to około 800 zł. Opłatę klient przekazuje bezpośrednio osobie wykonującej wycenę, nie Adamowi. Dokładny koszt i konieczność wyceny są potwierdzane indywidualnie.</p></div></section>
 ${journey({ id: "droga-refinansowania", label: "jak to wygląda", title: "Sprawdźmy, czy Twój kredyt można poprawić", steps: [
     { title: "Zostawiasz kontakt", text: "Wystarczy imię i telefon. Na tym etapie nie potrzebuję dokumentów ani danych o kredycie." },
     { title: "Rozmowa z Adamem", text: "Poznaję Twoją sytuację, wyjaśniam, jak wygląda dalszy proces, i organizuję kontakt ze specjalistami." },
@@ -152,16 +153,16 @@ ${journey({ id: "droga-refinansowania", label: "jak to wygląda", title: "Sprawd
     { title: "Możliwe rozwiązania", text: "Dowiadujesz się o możliwych warunkach, kosztach i korzyściach — i decydujesz, czy chcesz iść dalej.", note: "Ostateczną decyzję kredytową podejmuje bank." },
   ] })}
 ${related([
-    ["/kalkulator-refinansowania-kredytu/", "Kalkulator refinansowania", "Policz różnicę w racie i zwrot kosztów zmiany."],
+    ["/kalkulator-refinansowania-kredytu/", "Kalkulator refinansowania", "Zobacz, jak zmieniłaby się rata przy niższym oprocentowaniu."],
     ["/kalkulator-raty-kredytu-hipotecznego/", "Kalkulator raty", "Sprawdź ratę przy innym oprocentowaniu."],
   ])}
 ${faq([
-    ["Czy refinansowanie zawsze się opłaca?", "Nie. Korzyść zależy od różnicy w oprocentowaniu, pozostałego kapitału i okresu oraz kosztów zmiany. Bywa, że zmiana się nie opłaca — i to też warto wiedzieć."],
-    ["Ile kosztuje analiza?", "Moja pomoc jest bezpłatna. Przy samej zmianie kredytu mogą wystąpić koszty zewnętrzne, np. wycena nieruchomości czy opłaty sądowe — potwierdza je specjalista dla Twojej sytuacji."],
+    ["Czy refinansowanie zawsze się opłaca?", "Nie. Wszystko zależy od różnicy w oprocentowaniu, pozostałego kapitału i okresu oraz indywidualnej oceny banku. Bywa, że zmiana nie ma sensu — i to też warto wiedzieć."],
+    ["Ile to kosztuje?", "Pomoc Adama w kontakcie i organizacji procesu refinansowania jest bezpłatna. W niektórych przypadkach potrzebna jest osobna wycena nieruchomości — jej orientacyjny koszt to około 800 zł. Opłatę klient przekazuje bezpośrednio osobie wykonującej wycenę, nie Adamowi. Dokładny koszt i konieczność wyceny są potwierdzane indywidualnie."],
     ["Czy muszę zmieniać bank?", "Niekoniecznie. Czasem wystarczy renegocjacja warunków w obecnym banku. Eksperci pomogą porównać obie drogi."],
     ["Kto podejmuje decyzję?", "Decyzję kredytową podejmuje bank. Eksperci Expander przygotowują analizę i prowadzą proces, Ty decydujesz, czy z niego skorzystać."],
   ], "Pytania o refinansowanie")}
-${contact({ topic: "Refinansowanie kredytu hipotecznego", heading: "Porozmawiajmy o Twoim kredycie.", lead: "Zostaw imię i telefon — oddzwonię, poznam Twoją sytuację i wyjaśnię kolejne kroki. Nie podawaj teraz danych o kredycie.", source: "refinansowanie" })}`,
+${contact({ topic: "Refinansowanie kredytu hipotecznego", heading: "Porozmawiajmy o Twoim kredycie.", lead: "Zostaw imię i telefon — oddzwonię, poznam Twoją sytuację i wyjaśnię kolejne kroki. Nie podawaj teraz danych o kredycie.", source: "refinansowanie", button: "Porozmawiaj z Adamem o refinansowaniu" })}`,
 };
 
 // ───────────────────────── Katalog ─────────────────────────
@@ -207,14 +208,14 @@ const calcCta = (topic, text) =>
 const kalkulatory = {
   path: "/kalkulatory/",
   title: "Kalkulatory kredytu hipotecznego — rata, zdolność, refinansowanie",
-  description: "Bezpłatne kalkulatory: rata kredytu hipotecznego, orientacyjna zdolność kredytowa i opłacalność refinansowania. Wyniki od razu, bez podawania telefonu.",
+  description: "Bezpłatne kalkulatory: rata kredytu hipotecznego, orientacyjna zdolność kredytowa i symulacja refinansowania. Wyniki od razu, bez podawania telefonu.",
   nav: "/kalkulatory/",
   crumbs: [["/kalkulatory/", "Kalkulatory"]],
   html: () => `${crumbs(kalkulatory.crumbs)}
 ${intro("kalkulatory", "Policz, zanim podejmiesz decyzję", "Proste narzędzia do pierwszych wyliczeń. Wynik zobaczysz od razu — bez zostawiania danych kontaktowych.")}
 <section><ul class="tools big"><li><a href="/kalkulator-raty-kredytu-hipotecznego/"><strong>Kalkulator raty kredytu hipotecznego</strong><span>Raty równe i malejące, suma odsetek, harmonogram roczny.</span></a></li>
 <li><a href="/kalkulator-zdolnosci-kredytowej/"><strong>Kalkulator zdolności kredytowej</strong><span>Orientacyjny zakres kwoty kredytu przy Twoich dochodach i kosztach.</span></a></li>
-<li><a href="/kalkulator-refinansowania-kredytu/"><strong>Kalkulator refinansowania kredytu</strong><span>Różnica w racie, koszty zmiany i czas ich zwrotu.</span></a></li></ul></section>
+<li><a href="/kalkulator-refinansowania-kredytu/"><strong>Kalkulator refinansowania kredytu</strong><span>Jak zmieniłaby się rata przy niższym oprocentowaniu.</span></a></li></ul></section>
 ${contact({ topic: "Finansowanie zakupu", heading: "Wolisz porozmawiać?", source: "kalkulatory" })}`,
 };
 
@@ -268,24 +269,24 @@ ${contact({ topic: "Finansowanie zakupu", heading: "Porozmawiajmy o finansowaniu
 
 const kRefi = {
   path: "/kalkulator-refinansowania-kredytu/",
-  title: "Kalkulator refinansowania kredytu hipotecznego — czy się opłaca?",
-  description: "Porównaj obecną i nową ratę kredytu przy tym samym kapitale i okresie, uwzględnij koszty zmiany i sprawdź, po ilu miesiącach się zwrócą.",
+  title: "Kalkulator refinansowania kredytu hipotecznego — symulacja raty",
+  description: "Zobacz, jak zmieniłaby się rata kredytu hipotecznego przy oprocentowaniu niższym o 0,5, 1 i 1,5 punktu procentowego. Ten sam kapitał i okres, obliczenia w przeglądarce.",
   nav: "/kalkulatory/",
   crumbs: [["/kalkulatory/", "Kalkulatory"], ["/kalkulator-refinansowania-kredytu/", "Refinansowanie"]],
   html: () => `${crumbs(kRefi.crumbs)}
-${intro("kalkulator", "Kalkulator refinansowania kredytu", "Porównaj ratę przy obecnym i nowym oprocentowaniu — dla tego samego kapitału i okresu — i sprawdź, czy koszty zmiany mają szansę się zwrócić.")}
+${intro("kalkulator", "Kalkulator refinansowania kredytu", "Podaj pozostały kapitał, okres i obecne oprocentowanie — pokażemy, jak zmieniłaby się rata przy trzech przykładowych obniżkach oprocentowania.")}
 <section class="calc" data-calc="refi"><form class="calc-in" novalidate>
 ${field("balance", "Pozostały kapitał", "400 000", "", "zł")}${field("months", "Pozostały okres", "300", 'inputmode="numeric"', "mies.")}
-${field("cur", "Obecne oprocentowanie", "8", "", "%")}${field("next", "Zakładane nowe oprocentowanie", "7", "", "%")}
-${field("costs", "Koszty zmiany (wycena, opłaty, prowizja)", "3 000", "", "zł")}${field("pay", "Obecna rata z harmonogramu (opcjonalnie)", "", "", "zł")}</form>
-<div class="calc-out" aria-live="polite"><p class="big" data-out="monthly">—</p><p class="muted">różnica w racie miesięcznie</p>
-<dl><dt>Obecna rata</dt><dd data-out="current">—</dd><dt>Nowa rata</dt><dd data-out="next">—</dd><dt>Różnica w całym okresie</dt><dd data-out="total">—</dd><dt>Koszty zmiany</dt><dd data-out="costs">—</dd><dt>Zwrot kosztów po</dt><dd data-out="payback">—</dd><dt>Wynik scenariusza</dt><dd data-out="net">—</dd></dl>
-<p data-out="verdict" class="verdict"></p><p class="err" data-out="error"></p></div>
-${calcNote}${calcCta("Refinansowanie kredytu hipotecznego", "Eksperci Expander sprawdzą realne oferty i wszystkie koszty zmiany w Twojej sytuacji.")}</section>
-<section class="prose"><h2>Założenia</h2><p>Porównujemy dwa kredyty o <strong>tym samym kapitale i okresie</strong>, w ratach równych, przy oprocentowaniu stałym przez cały okres. Jeśli podasz obecną ratę z harmonogramu, użyjemy jej zamiast wyliczonej. Wynik nie uwzględnia różnic w ubezpieczeniach i produktach dodatkowych, chyba że doliczysz je do kosztów.</p>
-<h2>Kiedy wynik bywa mylący</h2><p>Gdy nowa oferta zmienia okres kredytowania, ma inną strukturę oprocentowania (np. stopa okresowo stała) lub wymaga dodatkowych produktów. Takie oferty porównuje się indywidualnie.</p></section>
+${field("cur", "Obecne oprocentowanie", "8", "", "%")}${field("pay", "Obecna rata z harmonogramu (opcjonalnie)", "", "", "zł")}</form>
+<div class="calc-out" aria-live="polite"><p class="big" data-out="current">—</p><p class="muted" data-out="currentLabel">obecna rata</p>
+<table class="scen"><thead><tr><th>Oprocentowanie</th><th>Rata</th><th>Różnica / mies.</th><th>Różnica / 12 mies.</th></tr></thead><tbody data-out="rows"></tbody></table>
+<p class="err" data-out="error"></p></div>
+<p class="note">To symulacja matematyczna, a nie oferta banku. Rzeczywista rata i dostępne warunki zależą od indywidualnej oceny ekspertów oraz decyzji banku. Symulacja zakłada niezmienne oprocentowanie i ten sam pozostały okres spłaty. Przedstawione obniżki oprocentowania są wyłącznie przykładowymi scenariuszami. Obliczenia wykonują się w Twojej przeglądarce. Aktualizacja: ${site.calcUpdated}.</p>
+${calcCta("Refinansowanie kredytu hipotecznego", "Chcesz wiedzieć, jakie warunki są realne w Twojej sytuacji? Porozmawiaj z Adamem — analizę przygotują eksperci Expander.")}</section>
+<section class="prose"><h2>Jak liczymy</h2><p>Obecną ratę bierzemy z harmonogramu (jeśli ją podasz) albo wyliczamy dla rat równych z pozostałego kapitału, okresu i oprocentowania. Dla każdego scenariusza liczymy ratę przy oprocentowaniu niższym o 0,5, 1 i 1,5 punktu procentowego — dla <strong>tego samego kapitału i okresu</strong>. Różnica za 12 miesięcy zakłada, że oprocentowanie się nie zmienia.</p>
+<h2>Czego symulacja nie pokazuje</h2><p>Nie zna ofert banków ani Twojej sytuacji, nie uwzględnia ubezpieczeń, produktów dodatkowych ani ewentualnych kosztów zmiany. To nie jest prognoza rynku — tylko przykład, jak oprocentowanie wpływa na ratę.</p></section>
 ${related([["/refinansowanie-kredytu-hipotecznego/", "Refinansowanie z Expander", "Jak wygląda analiza i kto ją prowadzi."], ["/kalkulator-raty-kredytu-hipotecznego/", "Kalkulator raty", "Rata przy dowolnym oprocentowaniu."]])}
-${contact({ topic: "Refinansowanie kredytu hipotecznego", heading: "Poproś o analizę możliwości.", source: "kalkulator refinansowania" })}`,
+${contact({ topic: "Refinansowanie kredytu hipotecznego", heading: "Porozmawiajmy o Twoim kredycie.", source: "kalkulator refinansowania", button: "Porozmawiaj z Adamem o refinansowaniu" })}`,
 };
 
 const polityka = {

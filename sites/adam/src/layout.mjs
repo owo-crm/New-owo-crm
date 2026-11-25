@@ -64,7 +64,7 @@ export function crumbs(list) {
 const TOPICS = ["Zakup mieszkania", "Sprzedaż nieruchomości", "Refinansowanie kredytu hipotecznego", "Finansowanie zakupu", "Chcę omówić swoją sytuację"];
 
 /** Formularz kontaktowy. topic — temat zaznaczony domyślnie; heading/lead — teksty strony. */
-export function contact({ topic = TOPICS[0], heading = "Porozmawiajmy o Twoich planach.", lead, source }) {
+export function contact({ topic = TOPICS[0], heading = "Porozmawiajmy o Twoich planach.", lead, source, button = "Poproś o kontakt" }) {
   const ready = Boolean(crm.intakeKey);
   return `<section class="end" id="kontakt"><div class="end-t"><p class="lbl lbl-light">kontakt</p>
 <h2>${heading}</h2><p>${lead || "Zostaw kontakt — oddzwonię i ustalimy, jaki powinien być następny krok. Konsultacja jest bezpłatna."}</p>
@@ -78,7 +78,7 @@ ${adam.email ? `<p><a href="mailto:${esc(adam.email)}">${esc(adam.email)}</a></p
 <fieldset class="pills"><legend>W czym mogę pomóc?</legend>${TOPICS.map((t) => `<label><input type="radio" name="temat" value="${t}"${t === topic ? " checked" : ""}><span>${t}</span></label>`).join("")}</fieldset>
 <div class="fl"><label for="f-msg">Dodatkowa wiadomość (opcjonalnie)</label><textarea id="f-msg" name="message" rows="2"></textarea></div>
 <label class="cs"><input type="checkbox" name="consent" required><span>Wyrażam zgodę na kontakt telefoniczny lub mailowy w sprawie mojego zapytania. Szczegóły w <a href="/polityka-prywatnosci/">polityce prywatności</a>.</span></label>
-<button class="btn full" type="submit">Poproś o kontakt</button><p class="msg" role="status" aria-live="polite">${ready ? "" : "Formularz jest w przygotowaniu."}</p>
+<button class="btn full" type="submit">${button}</button><p class="msg" role="status" aria-live="polite">${ready ? "" : "Formularz jest w przygotowaniu."}</p>
 <p class="small">Nie podawaj w formularzu danych finansowych ani numerów dokumentów — omówimy je w rozmowie.</p></div></form></section>`;
 }
 

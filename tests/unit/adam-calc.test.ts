@@ -3,7 +3,7 @@ import * as calcModule from "../../sites/adam/src/calc.mjs";
 
 // Moduł JS strony Adama (sites/adam) — bez deklaracji typów.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const { annuity, principalFor, schedule, capacity, refinance } = calcModule as any;
+const { annuity, principalFor, schedule, capacity, refinanceScenarios } = calcModule as any;
 
 /** Kalkulatory strony Adama: kontrolne przykłady liczone niezależnie. */
 
@@ -53,20 +53,33 @@ describe("zdolność kredytowa (scenariusz)", () => {
   });
 });
 
-describe("refinansowanie", () => {
-  it("niższa stopa → niższa rata, zwrot kosztów w miesiącach", () => {
-    const r = refinance({ balance: 400000, currentRatePct: 8, newRatePct: 7, months: 300, costs: 3000 });
-    expect(r.monthly).toBeCloseTo(annuity(400000, 8, 300) - annuity(400000, 7, 300), 6);
-    expect(r.payback).toBe(Math.ceil(3000 / r.monthly));
-    expect(r.worth).toBe(true);
+describe("refinansowanie — scenariusze obniżki oprocentowania", () => {
+  it("trzy scenariusze: −0,5 / −1 / −1,5 p.p., ten sam kapitał i okres", () => {
+    const r = refinanceScenarios({ balance: 400000, ratePct: 8, months: 300 });
+    expect(r.current).toBeCloseTo(annuity(400000, 8, 300), 6);
+    expect(r.scenarios.map((x: { rate: number }) => x.rate)).toEqual([7.5, 7, 6.5]);
+    const s1 = r.scenarios[1];
+    expect(s1.payment).toBeCloseTo(annuity(400000, 7, 300), 6);
+    expect(s1.monthly).toBeCloseTo(r.current - s1.payment, 6);
+    expect(s1.year).toBeCloseTo(s1.monthly * 12, 6);
   });
-  it("wyższa nowa stopa → brak zwrotu, scenariusz nieopłacalny", () => {
-    const r = refinance({ balance: 400000, currentRatePct: 6, newRatePct: 7, months: 300, costs: 0 });
-    expect(r.payback).toBeNull();
-    expect(r.worth).toBe(false);
+  it("rata z harmonogramu zastępuje wyliczoną", () => {
+    const r = refinanceScenarios({ balance: 400000, ratePct: 8, months: 300, currentPayment: "3 200" });
+    expect(r.current).toBe(3200);
+    expect(r.usedGiven).toBe(true);
+    expect(r.scenarios[0].monthly).toBeCloseTo(3200 - annuity(400000, 7.5, 300), 6);
   });
-  it("koszty większe niż oszczędność w całym okresie → nieopłacalne", () => {
-    const r = refinance({ balance: 50000, currentRatePct: 7.1, newRatePct: 7, months: 12, costs: 5000 });
-    expect(r.worth).toBe(false);
+  it("pomija scenariusze z ujemną stopą", () => {
+    const r = refinanceScenarios({ balance: 100000, ratePct: 0.8, months: 120 });
+    expect(r.scenarios.map((x: { rate: number }) => x.rate)).toEqual([0.3]);
+  });
+  it("krótki okres: różnica „12 miesięcy” liczona tylko za pozostałe raty", () => {
+    const r = refinanceScenarios({ balance: 10000, ratePct: 8, months: 6 });
+    expect(r.scenarios[0].year).toBeCloseTo(r.scenarios[0].monthly * 6, 6);
+  });
+  it("odrzuca błędne dane", () => {
+    expect(refinanceScenarios({ balance: 0, ratePct: 8, months: 300 })).toBeNull();
+    expect(refinanceScenarios({ balance: 1000, ratePct: -1, months: 300 })).toBeNull();
+    expect(refinanceScenarios({ balance: 1000, ratePct: 8, months: "" })).toBeNull();
   });
 });

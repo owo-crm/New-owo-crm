@@ -1,5 +1,5 @@
 // Formularz kontaktowy, kalkulatory i warstwa zdarzeń (dataLayer — bez identyfikatorów narzędzi).
-import { schedule, capacity, refinance } from "./calc.mjs";
+import { schedule, capacity, refinanceScenarios } from "./calc.mjs";
 
 window.dataLayer = window.dataLayer || [];
 const track = (event, data = {}) => window.dataLayer.push({ event, ...data });
@@ -39,6 +39,7 @@ for (const form of document.querySelectorAll("form.lead")) {
     if (!d.get("consent")) { msg.className = "msg err"; msg.textContent = "Zaznacz zgodę na kontakt."; return; }
     if (!form.dataset.endpoint) { msg.className = "msg err"; msg.textContent = "Formularz jest w przygotowaniu — spróbuj później."; return; }
     const btn = form.querySelector("button");
+    const label = btn.textContent;
     btn.disabled = true; btn.textContent = "Wysyłanie…";
     const temat = String(d.get("temat"));
     const u = utm();
@@ -56,7 +57,7 @@ for (const form of document.querySelectorAll("form.lead")) {
       track("lead_form_submit", { source: form.dataset.source, topic: temat });
       form.querySelector(".fields").innerHTML = '<div class="ok"><h3>Dziękuję!</h3><p>Zapytanie dotarło. Skontaktuję się z Tobą najszybciej, jak to możliwe.</p></div>';
     } catch {
-      btn.disabled = false; btn.textContent = "Poproś o kontakt";
+      btn.disabled = false; btn.textContent = label;
       msg.className = "msg err"; msg.textContent = "Nie udało się wysłać. Sprawdź połączenie i spróbuj ponownie.";
     }
   });
@@ -84,17 +85,20 @@ const calcs = {
     out({ range: `${zl(r.low)} – ${zl(r.high)}`, payment: zl2(r.maxPayment), price: `${zl(r.priceLow)} – ${zl(r.priceHigh)}` });
   },
   refi(v, out) {
-    const r = refinance({ balance: n(v.balance), currentRatePct: n(v.cur), newRatePct: n(v.next), months: n(v.months), costs: n(v.costs) || 0, currentPayment: v.pay ? n(v.pay) : undefined });
-    if (!r) return "Uzupełnij kapitał, okres i oba oprocentowania.";
-    out({ monthly: (r.monthly >= 0 ? "−" : "+") + zl2(Math.abs(r.monthly)), current: zl2(r.current), next: zl2(r.next), total: zl(r.totalDiff), costs: zl(r.costs),
-      payback: r.payback ? `${r.payback} mies.` : "brak zwrotu", net: (r.net >= 0 ? "+" : "−") + zl(Math.abs(r.net)),
-      verdict: r.worth ? "Przy tych założeniach zmiana może się opłacić. Realne oferty i koszty sprawdzi specjalista." : "Przy tych założeniach zmiana się nie opłaca — koszty nie zwracają się w okresie kredytu." });
+    const r = refinanceScenarios({ balance: n(v.balance), ratePct: n(v.cur), months: n(v.months), currentPayment: v.pay ? n(v.pay) : undefined });
+    if (!r) return "Uzupełnij pozostały kapitał, okres (w miesiącach) i obecne oprocentowanie.";
+    const pct = (x) => x.toFixed(2).replace(".", ",").replace(/,?0+$/, "") + "%";
+    const sign = (x) => (x >= 0 ? "−" : "+") + zl2(Math.abs(x));
+    out({ current: zl2(r.current), currentLabel: r.usedGiven ? "obecna rata (z harmonogramu)" : "obecna rata (wyliczona)",
+      rows: r.scenarios.length
+        ? r.scenarios.map((x) => `<tr><td data-l="Oprocentowanie">${pct(x.rate)}</td><td data-l="Rata">${zl2(x.payment)}</td><td data-l="Różnica / mies.">${sign(x.monthly)}</td><td data-l="Różnica / 12 mies.">${sign(x.year)}</td></tr>`).join("")
+        : '<tr><td colspan="4">Przy tak niskim oprocentowaniu nie pokazujemy scenariuszy obniżki.</td></tr>' });
   },
 };
 
 for (const box of document.querySelectorAll("[data-calc]")) {
   const kind = box.dataset.calc, form = box.querySelector("form");
-  const set = (k, html) => { const el = box.querySelector(`[data-out="${k}"]`); if (el) el[k === "years" ? "innerHTML" : "textContent"] = html; };
+  const set = (k, html) => { const el = box.querySelector(`[data-out="${k}"]`); if (el) el[k === "years" || k === "rows" ? "innerHTML" : "textContent"] = html; };
   let started = false, done = false;
   const run = () => {
     const values = Object.fromEntries(new FormData(form));
