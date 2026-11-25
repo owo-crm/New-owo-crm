@@ -134,11 +134,7 @@ function initJourneys() {
       const a = pts[i - 1], b = pts[i];
       d += vertical
         ? ` C ${a.x + 22} ${a.y + (b.y - a.y) * 0.35}, ${b.x - 22} ${a.y + (b.y - a.y) * 0.65}, ${b.x} ${b.y}`
-        // Desktop: linia biegnie na wysokości kropek i zmienia poziom w pustym miejscu nad niższym krokiem,
-        // żeby nie przecinać tekstów.
-        : b.y >= a.y
-          ? ` C ${a.x + (b.x - a.x) * 0.55} ${a.y}, ${b.x - (b.x - a.x) * 0.12} ${a.y}, ${b.x} ${b.y}`
-          : ` C ${a.x + (b.x - a.x) * 0.12} ${b.y}, ${b.x - (b.x - a.x) * 0.55} ${b.y}, ${b.x} ${b.y}`;
+        : ` C ${a.x + (b.x - a.x) * 0.5} ${a.y}, ${b.x - (b.x - a.x) * 0.5} ${b.y}, ${b.x} ${b.y}`; // łagodna fala przez kroki
       prefixes.push(d);
     }
     j.svg.setAttribute("viewBox", `0 0 ${box.width} ${box.height}`);

@@ -6,7 +6,9 @@ import { site, crm } from "./src/config.mjs";
 import { pages, notFound, render } from "./src/pages.mjs";
 
 const root = dirname(fileURLToPath(import.meta.url));
-const out = join(root, "dist");
+const out = process.env.OUT_DIR ? join(process.cwd(), process.env.OUT_DIR) : join(root, "dist");
+// W podkatalogu (BASE_PATH=/adam) przepisujemy linki i zasoby z „/…” na „/adam/…”.
+const withBase = (html) => (site.basePath ? html.replace(/(href|src)="\/(?!\/)/g, `$1="${site.basePath}/`) : html);
 await rm(out, { recursive: true, force: true });
 await mkdir(join(out, "assets"), { recursive: true });
 await cp(join(root, "static"), out, { recursive: true });
@@ -18,7 +20,7 @@ for (const p of [...pages, notFound]) {
   paths.add(p.path);
   const file = p.path.endsWith(".html") ? join(out, p.path) : join(out, p.path, "index.html");
   await mkdir(dirname(file), { recursive: true });
-  await writeFile(file, render(p));
+  await writeFile(file, withBase(render(p)));
 }
 
 const indexable = site.env === "production" ? pages.filter((p) => !p.noindex) : [];
@@ -30,5 +32,5 @@ await writeFile(join(out, "robots.txt"), site.env === "production"
   : "User-agent: *\nDisallow: /\n");
 
 console.log(`Zbudowano ${pages.length} stron → dist/ (env: ${site.env}, url: ${site.url}, w sitemap: ${indexable.length})`);
-if (!crm.url || !crm.intakeKey) console.warn("UWAGA: brak CRM_URL/INTAKE_KEY — formularz nie wysyła zgłoszeń.");
-if (site.env === "production" && (!crm.url || !crm.intakeKey)) process.exitCode = 1;
+if (!crm.intakeKey) console.warn("UWAGA: brak CRM_URL/INTAKE_KEY — formularz nie wysyła zgłoszeń.");
+if (site.env === "production" && !crm.intakeKey) process.exitCode = 1;

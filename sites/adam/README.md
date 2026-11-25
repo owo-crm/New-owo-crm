@@ -39,3 +39,7 @@ calculator_start, calculator_complete, calculator_consultation_click, refinance_
 ## Następne etapy
 Strony ofert z prawdziwymi danymi; kalkulatory: nadpłata, koszty zakupu, wkład własny, rentowność najmu;
 poradnik (6 artykułów z TZ); strony lokalne tylko z oryginalną treścią; Search Console po uruchomieniu domeny.
+
+## Podgląd w OWO CRM (owocrm.com/adam)
+Zbudowana strona jest trzymana w `public/adam/` i podawana przez CRM pod `/adam` (rewrites w `next.config.ts`, ścieżka publiczna w `lib/auth/paths.ts`).
+Po każdej zmianie w `sites/adam` odśwież kopię: `cd sites/adam && npm run build:crm` (z `INTAKE_KEY=<klucz kanału>`, żeby formularz wysyłał zgłoszenia do tego samego CRM). Wersja ma noindex.

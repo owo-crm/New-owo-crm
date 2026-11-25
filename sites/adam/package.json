@@ -7,6 +7,7 @@
   "scripts": {
     "build": "node build.mjs",
     "start": "node server.mjs",
-    "dev": "node build.mjs && node server.mjs"
+    "dev": "node build.mjs && node server.mjs",
+    "build:crm": "BASE_PATH=/adam SITE_URL=https://owocrm.com/adam OUT_DIR=../../public/adam node build.mjs"
   }
 }

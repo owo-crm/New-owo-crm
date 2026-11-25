@@ -7,13 +7,16 @@ export const site = {
   /** "production" → indeksowanie włączone; wszystko inne (staging, dev) → noindex. */
   env: env.SITE_ENV === "production" ? "production" : "staging",
   url: (env.SITE_URL || "http://localhost:4300").replace(/\/+$/, ""),
+  /** Prefiks ścieżek, gdy strona działa w podkatalogu (np. "/adam" w OWO CRM). Na własnej domenie — pusty. */
+  basePath: (env.BASE_PATH || "").replace(/\/+$/, ""),
   name: "Adam — agent nieruchomości",
   locale: "pl_PL",
   /** Data ostatniej weryfikacji założeń kalkulatorów. */
   calcUpdated: "2026-11-24",
 };
 
-/** Formularz → publiczny endpoint OWO CRM (kanał „Strona WWW”, domena strony na liście dozwolonych). */
+/** Formularz → publiczny endpoint OWO CRM (kanał „Strona WWW”, domena strony na liście dozwolonych).
+ *  CRM_URL puste + INTAKE_KEY → ten sam serwer (strona podana z OWO CRM pod /adam). */
 export const crm = {
   url: (env.CRM_URL || "").replace(/\/+$/, ""),
   intakeKey: env.INTAKE_KEY || "",

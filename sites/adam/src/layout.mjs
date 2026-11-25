@@ -65,7 +65,7 @@ const TOPICS = ["Zakup mieszkania", "Sprzedaż nieruchomości", "Refinansowanie 
 
 /** Formularz kontaktowy. topic — temat zaznaczony domyślnie; heading/lead — teksty strony. */
 export function contact({ topic = TOPICS[0], heading = "Porozmawiajmy o Twoich planach.", lead, source }) {
-  const ready = Boolean(crm.url && crm.intakeKey);
+  const ready = Boolean(crm.intakeKey);
   return `<section class="end" id="kontakt"><div class="end-t"><p class="lbl lbl-light">kontakt</p>
 <h2>${heading}</h2><p>${lead || "Zostaw kontakt — oddzwonię i ustalimy, jaki powinien być następny krok. Konsultacja jest bezpłatna."}</p>
 ${adam.phone ? `<p class="end-phone"><a href="tel:${adam.phone.replace(/\s/g, "")}" data-ev="phone_click">${esc(adam.phone)}</a></p>` : ""}
