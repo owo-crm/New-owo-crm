@@ -284,7 +284,7 @@ export async function sendChatMessage(
           );
           if (!file) throw new Error("file_not_found");
           file.content = Buffer.from(
-            (await fileContent(tx, orgId, { table: "document_files", id: file.id }, file.content))!,
+            (await fileContent(tx, orgId, { table: "template_files", id: file.id }, file.content))!,
           );
           return {
             documentId: null,
@@ -322,6 +322,9 @@ export async function sendChatMessage(
           [orgId, docId],
         );
         if (!file) throw new Error("file_not_found");
+        file.content = Buffer.from(
+          (await fileContent(tx, orgId, { table: "document_files", id: file.id }, file.content))!,
+        );
         return {
           documentId: docId,
           fileId: file.id,

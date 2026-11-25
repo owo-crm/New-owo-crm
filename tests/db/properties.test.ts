@@ -12,6 +12,7 @@ import {
   createProperty,
   detectImage,
   linkLeadToPropertySlug,
+  reorderPhotos,
   listProperties,
   setPublication,
   updateProperty,
@@ -64,6 +65,8 @@ describe("реестр сущностей, файлы, объекты недви
   let adamOrg: string;
   let otherOrg: string;
   let oldAttachment: string;
+  let oldTemplateFile: string;
+  const TPL_PDF = Buffer.from("%PDF-1.4 cennik");
 
   beforeAll(async () => {
     db = new PGlite();
@@ -102,6 +105,14 @@ describe("реестр сущностей, файлы, объекты недви
         `insert into public.lead_attachments (organization_id, lead_id, filename, content_type, size_bytes, content)
          values ($1,$2,'umowa.pdf','application/pdf',5,'\\x2550444631'::bytea) returning id`,
         [events, lead],
+      )
+    ).rows[0].id;
+    // PDF szablonu czatu (0043), zapisany przed 0049 — ma trafić do files przy migracji.
+    oldTemplateFile = (
+      await db.query<{ id: string }>(
+        `insert into public.template_files (organization_id, filename, content_type, size_bytes, content)
+         values ($1,'cennik.pdf','application/pdf',$2,$3) returning id`,
+        [events, TPL_PDF.byteLength, TPL_PDF],
       )
     ).rows[0].id;
     for (const f of files)
@@ -186,8 +197,8 @@ describe("реестр сущностей, файлы, объекты недви
     expect(s3.objects.size).toBe(0);
     const run = await migrateFilesToS3(db, s3, { organizationId: events, dryRun: false });
     expect(run.failed).toEqual([]);
-    expect(run).toMatchObject({ moved: 2 });
-    expect(run.byOrganization[0]).toMatchObject({ total: 2, in_s3: 2, in_postgres: 0 });
+    expect(run).toMatchObject({ moved: 3 });
+    expect(run.byOrganization[0]).toMatchObject({ total: 3, in_s3: 3, in_postgres: 0 });
     expect(run.byOrganization[0].checksum).toBe(before.byOrganization[0].checksum); // те же файлы
     const content = await db.query<{ n: number }>(
       "select octet_length(content) as n from public.lead_attachments where id=$1",
@@ -219,6 +230,51 @@ describe("реестр сущностей, файлы, объекты недви
     expect(
       await new PostgresStorage(db).get(`pg:lead_attachments:${oldAttachment}`),
     ).not.toBeNull();
+  });
+
+  it("template_files: старый файл в реестре с SHA-256, перенос в bucket, чтение и fallback", async () => {
+    const f = await db.query<{ sha256: string; storage: string; storage_key: string }>(
+      "select sha256, storage, storage_key from public.files where source_table='template_files' and source_id=$1",
+      [oldTemplateFile],
+    );
+    // Перенесён в bucket тестом M3.x выше; ключ строится по правилу org/<org>/<id>.
+    expect(f.rows[0]).toEqual({
+      sha256: sha256Hex(TPL_PDF),
+      storage: "s3",
+      storage_key: `org/${events}/${oldTemplateFile}`,
+    });
+    const s3 = memoryStorage();
+    await s3.put(f.rows[0].storage_key, new Uint8Array(TPL_PDF), {
+      contentType: "application/pdf",
+    });
+    const src = { table: "template_files" as const, id: oldTemplateFile };
+    expect(
+      Buffer.from((await fileContent(db, events, src, null, { storage: s3 }))!).equals(TPL_PDF),
+    ).toBe(true);
+    const legacy = new Uint8Array(TPL_PDF);
+    expect(
+      await fileContent(db, events, src, legacy, {
+        storage: memoryStorage({ failGet: true }),
+        fallback: true,
+      }),
+    ).toBe(legacy);
+    expect(
+      await new PostgresStorage(db).get(`pg:template_files:${oldTemplateFile}`),
+    ).not.toBeNull();
+    // Новый template_file — триггером, с верным SHA-256.
+    const fresh = Buffer.from("%PDF-1.4 nowy");
+    const id = (
+      await db.query<{ id: string }>(
+        `insert into public.template_files (organization_id, filename, content_type, size_bytes, content)
+         values ($1,'nowy.pdf','application/pdf',$2,$3) returning id`,
+        [events, fresh.byteLength, fresh],
+      )
+    ).rows[0].id;
+    const nf = await db.query<{ sha256: string; storage: string }>(
+      "select sha256, storage from public.files where source_table='template_files' and source_id=$1",
+      [id],
+    );
+    expect(nf.rows[0]).toEqual({ sha256: sha256Hex(fresh), storage: "postgres" });
   });
 
   it("file_mark_s3 не принимает чужой ключ и несовпадающий sha256", async () => {
@@ -345,6 +401,67 @@ describe("реестр сущностей, файлы, объекты недви
       "property.publication",
       "property.price",
       "property.listing_status",
+    ]);
+  });
+
+  it("аудит изменений фото: позиция, обложка, публичность — только изменившиеся поля", async () => {
+    const s3 = memoryStorage();
+    const second = await asUser(db, ADAM, () =>
+      addPropertyPhoto(db, s3, adamOrg, propertyId, {
+        filename: "kuchnia.jpg",
+        bytes: JPEG,
+        alt: "Kuchnia",
+      }),
+    );
+    const first = (
+      await db.query<{ id: string }>(
+        "select id from public.property_media where property_id=$1 and id<>$2",
+        [propertyId, second],
+      )
+    ).rows[0].id;
+    const mark = (
+      await db.query<{ id: number }>("select coalesce(max(id),0)::int as id from public.audit_log")
+    ).rows[0].id;
+    await asUser(db, ADAM, () => reorderPhotos(db, adamOrg, propertyId, [second, first], second));
+    await asUser(db, ADAM, () =>
+      db.query(
+        "update public.property_media set is_public=false where organization_id=$1 and id=$2",
+        [adamOrg, first],
+      ),
+    );
+    // Bez zmian wartości — bez wpisu.
+    await asUser(db, ADAM, () =>
+      db.query(
+        "update public.property_media set alt_text=alt_text where organization_id=$1 and id=$2",
+        [adamOrg, first],
+      ),
+    );
+    const rows = (
+      await db.query<{
+        action: string;
+        before: Record<string, unknown>;
+        after: Record<string, unknown>;
+        actor_id: string;
+      }>("select action, before, after, actor_id from public.audit_log where id>$1 order by id", [
+        mark,
+      ])
+    ).rows;
+    expect(rows.every((r) => r.action === "property.media_update" && r.actor_id === ADAM)).toBe(
+      true,
+    );
+    expect(rows.map((r) => r.after)).toEqual([
+      { position: 0, media_id: second },
+      { position: 1, media_id: first },
+      { is_cover: false, media_id: first },
+      { is_cover: true, media_id: second },
+      { is_public: false, media_id: first },
+    ]);
+    expect(rows.map((r) => r.before)).toEqual([
+      { position: 1, media_id: second },
+      { position: 0, media_id: first },
+      { is_cover: true, media_id: first },
+      { is_cover: false, media_id: second },
+      { is_public: true, media_id: first },
     ]);
   });
 

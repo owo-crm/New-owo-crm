@@ -53,7 +53,7 @@
 
 Утверждено: (1) ADR модели объектов (выше), с уточнениями — `lead_property_interests` сразу, без ожидания M4.2; история только в `audit_log`; (2) файловое хранилище — Cloudflare R2, приватный bucket `owo-files-prod`, переменные `FILES_S3_*`, ключ ограничен одним bucket (Object Read & Write); публичная выдача фото — только allow-list маршрут CRM; (3) production-кабинет Адама — через мастер CRM (`real-estate`, связь `client`, отдельный владелец), без связи с Barowo и кабинетом OWO Ads.
 
-**Фактическая нумерация миграций (main + этот пакет):** 0044 real_estate, 0045 lead_topic (применена в production 2026-11-25, лог деплоя «Zastosowano migracji: 1»), **0046 entities (M4.1), 0047 files (M3, часть «файлы»), 0048 properties**. Номера из старого плана (0041 entities, 0044 files, 0045 records) не используются.
+**Фактическая нумерация миграций (main + этот пакет):** 0044 real_estate, 0045 lead_topic (применена в production 2026-11-25, лог деплоя «Zastosowano migracji: 1»), **0046 entities (M4.1), 0047 files (M3, часть «файлы»), 0048 properties, 0049 template_files_media_audit** (ревью: `template_files` в реестре files, аудит изменений фото). Номера из старого плана (0041 entities, 0044 files, 0045 records) не используются.
 
 **Сделано в пакете фазы 2:**
 - M4.1: `entity_types`, `entity_fields`, `record_counters`; регистрация `leads` (у всех) и `properties` (только real-estate) с `storage='table'`; триггер для новых организаций; запись в реестр — только миграциями/функциями (D-07). Не сделано: `roles/role_permissions/can()` (D-16) — отдельная миграция.

@@ -10,7 +10,7 @@ import { S3Storage, s3ConfigFromEnv, type FileStorage } from "./storage.ts";
  * отдаём bytea и пишем предупреждение (без ключей и содержимого).
  */
 export type LegacySource = {
-  table: "lead_attachments" | "document_files" | "organization_templates";
+  table: "lead_attachments" | "document_files" | "organization_templates" | "template_files";
   id: string;
 };
 

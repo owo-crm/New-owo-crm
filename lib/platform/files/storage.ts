@@ -41,6 +41,7 @@ const PG_SOURCES = {
   lead_attachments: { contentType: "content_type" },
   document_files: { contentType: null },
   organization_templates: { contentType: null },
+  template_files: { contentType: "content_type" },
 } as const;
 type PgTable = keyof typeof PG_SOURCES;
 

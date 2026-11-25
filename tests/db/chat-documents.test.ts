@@ -10,6 +10,9 @@ import { DEFAULT_LOOK } from "@/lib/mailing/render";
 import { applyImport, importFile, planImport } from "@/lib/mailing/import-templates";
 import { generateGuestMenu, generateOffer, offerFormDefaults } from "@/lib/documents/service";
 import type { PackageKey } from "@/lib/documents/barowo/engine";
+import { sha256Hex, type FileStorage } from "@/lib/platform/files/storage";
+import { resetObjectStorage } from "@/lib/platform/files/service";
+import { migrateFilesToS3 } from "@/lib/platform/files/migrate-to-s3";
 
 /**
  * Работа с клиентом через чат (решение 053): шаблоны-документы, отправка PDF из чата
@@ -588,5 +591,131 @@ describe("отправка документа из чата", () => {
       "update public.organization_mail_settings set transport='resend' where organization_id=$1",
       [org],
     );
+  });
+});
+
+describe("PDF z szablonu czatu (template_files) w rejestrze files — bytea, bucket, fallback", () => {
+  const pdf = new Uint8Array(Buffer.from("%PDF-1.4\n%cennik-org\n"));
+  let templateId: string;
+  let fileId: string;
+  const memory = new Map<string, Uint8Array>();
+  const store = (failGet = false): FileStorage => ({
+    kind: "s3",
+    put: async (k, b) => (memory.set(k, b), { sha256: sha256Hex(b) }),
+    get: async (k) => {
+      if (failGet) throw new Error("network");
+      return memory.get(k) ?? null;
+    },
+    head: async (k) =>
+      memory.has(k)
+        ? {
+            size: memory.get(k)!.byteLength,
+            sha256: sha256Hex(memory.get(k)!),
+            contentType: "application/pdf",
+          }
+        : null,
+    delete: async (k) => void memory.delete(k),
+    signedUrl: async () => null,
+  });
+  const send = async () => {
+    const mail = resend();
+    const result = await sendChatMessage(
+      {
+        operationId: randomUUID(),
+        leadId: await newLead(),
+        templateId,
+        values: quickValues,
+        text: "",
+      },
+      deps(OWNER, { fetch: mail.fetch }),
+    );
+    expect(result).toMatchObject({ status: "sent" });
+    return Buffer.from(mail.calls[0].body.attachments![0].content, "base64");
+  };
+  afterAll(() => resetObjectStorage());
+
+  it("nowy template_file rejestruje się w files z SHA-256 zawartości", async () => {
+    const file = importFile.parse({
+      templates: [
+        {
+          name: "Cennik firmy",
+          subject: "Cennik",
+          body: "W załączniku cennik.",
+          purpose: "document",
+          document_kind: "file",
+          file: "cennik.pdf",
+        },
+      ],
+    });
+    await applyImport(db, org, file.templates, { files: { "cennik.pdf": pdf } });
+    const row = (
+      await pg.query<{ id: string; attachment_id: string }>(
+        "select id, attachment_id from public.mailing_templates where organization_id=$1 and name='Cennik firmy'",
+        [org],
+      )
+    ).rows[0];
+    templateId = row.id;
+    fileId = row.attachment_id;
+    const f = await pg.query<{
+      sha256: string;
+      storage: string;
+      storage_key: string;
+      content_type: string;
+    }>(
+      "select sha256, storage, storage_key, content_type from public.files where source_table='template_files' and source_id=$1",
+      [fileId],
+    );
+    expect(f.rows[0]).toEqual({
+      sha256: sha256Hex(pdf),
+      storage: "postgres",
+      storage_key: `pg:template_files:${fileId}`,
+      content_type: "application/pdf",
+    });
+  });
+
+  it("wysyłka z czatu: najpierw z bazy, po przeniesieniu — z bucketu, przy awarii bucketu — fallback", async () => {
+    resetObjectStorage(null);
+    expect((await send()).equals(Buffer.from(pdf))).toBe(true);
+
+    const report = await migrateFilesToS3(wrap(pg) as Queryable, store(), {
+      organizationId: org,
+      dryRun: false,
+    });
+    expect(report.failed).toEqual([]);
+    const f = await pg.query<{ storage: string; storage_key: string }>(
+      "select storage, storage_key from public.files where source_table='template_files' and source_id=$1",
+      [fileId],
+    );
+    expect(f.rows[0]).toEqual({ storage: "s3", storage_key: `org/${org}/${fileId}` });
+
+    // Treść w bucket celowo inna niż bytea (ta sama długość) — dowód, że czytamy z bucketu.
+    const marker = new Uint8Array(Buffer.from("%PDF-1.4\n%cennik-s3!\n"));
+    expect(marker.byteLength).toBe(pdf.byteLength);
+    memory.set(`org/${org}/${fileId}`, marker);
+    resetObjectStorage(store());
+    expect((await send()).equals(Buffer.from(marker))).toBe(true);
+
+    resetObjectStorage(store(true));
+    expect((await send()).equals(Buffer.from(pdf))).toBe(true);
+  });
+
+  it("usunięcie template_file oznacza wpis w files jako usunięty", async () => {
+    await pg
+      .query("update public.mailing_templates set attachment_id=null where id=$1", [templateId])
+      .catch(() => undefined);
+    await pg
+      .query("delete from public.template_files where id=$1", [fileId])
+      .catch(() => undefined);
+    const gone = (
+      await pg.query<{ n: number }>(
+        "select count(*)::int as n from public.template_files where id=$1",
+        [fileId],
+      )
+    ).rows[0].n;
+    const f = await pg.query<{ deleted: boolean }>(
+      "select deleted_at is not null as deleted from public.files where source_table='template_files' and source_id=$1",
+      [fileId],
+    );
+    expect(f.rows[0].deleted).toBe(gone === 0);
   });
 });
