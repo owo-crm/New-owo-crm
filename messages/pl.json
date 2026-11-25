@@ -128,7 +128,15 @@
     "chartAhead": "Obłożenie najbliższych miesięcy",
     "chartConfirmed": "Potwierdzone",
     "chartTentative": "Wstępne",
-    "chartEmpty": "Za mało danych, żeby było co pokazać."
+    "chartEmpty": "Za mało danych, żeby było co pokazać.",
+    "reWaiting": "Czekają na odpowiedź",
+    "reWaitingEmpty": "Wszystkie nowe zapytania mają odpowiedź.",
+    "reTasks": "Zadania na dziś",
+    "reTasksEmpty": "Na dziś nie ma zaplanowanych zadań.",
+    "reTopics": "Tematy zapytań — ten miesiąc",
+    "reNoTopic": "Bez tematu",
+    "reFlowWon": "Zakończone sukcesem",
+    "reFlowRest": "Pozostałe"
   },
   "leads": {
     "emptyTitle": "Jeszcze nie ma leadów",
@@ -207,7 +215,8 @@
       "client_full_name": "Klient do umowy (imię i nazwisko / firma)",
       "client_address": "Adres klienta (do umowy)",
       "next_contact_at": "Następny kontakt",
-      "deposit_paid_at": "Zadatek otrzymany"
+      "deposit_paid_at": "Zadatek otrzymany",
+      "topic": "Temat zapytania"
     },
     "history": {
       "created": "Zapytanie dodane",
@@ -289,7 +298,9 @@
     "guestsShort": "{count} os.",
     "tabDocs": "Dokumenty",
     "tabMoney": "Płatności",
-    "tabHistory": "Historia"
+    "tabHistory": "Historia",
+    "groupInquiry": "Zapytanie",
+    "groupBudget": "Budżet"
   },
   "calendar": {
     "title": "Kalendarz",

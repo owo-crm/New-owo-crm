@@ -19,12 +19,14 @@ export const editableFields = [
   "client_full_name",
   "client_address",
   "next_contact_at",
+  "topic",
 ] as const;
 const PLAIN_TEXT: Partial<Record<string, number>> = {
   package_name: 60,
   service_hours: 80,
   client_full_name: 500,
   client_address: 500,
+  topic: 80,
 };
 export type EditableField = (typeof editableFields)[number];
 export const editFieldSchema = z.enum(editableFields);

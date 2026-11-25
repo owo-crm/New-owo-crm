@@ -254,4 +254,64 @@ describe("real-estate: кабинет клиента агентства", () => 
     );
     expect(clients.rows[0].n).toBe(0);
   });
+
+  it("тема обращения: приём, правка и «Cofnij»; другие организации не затронуты", async () => {
+    const res = await asUser(db, ADMIN, () =>
+      db.query<{ r: { id: string } }>(
+        "select public.ingest_lead($1,null,'strona Adama',now(),$2) as r",
+        [
+          adamOrg,
+          {
+            client_name: "Kupujący",
+            phone_e164: "+48600100200",
+            topic: "Zakup mieszkania",
+            custom_fields: {},
+            utm: { utm_source: "meta" },
+          },
+        ],
+      ),
+    );
+    const id = res.rows[0].r.id;
+    const lead = await db.query<{ topic: string; stage_key: string; utm: unknown }>(
+      "select topic, stage_key, utm from public.leads where id=$1",
+      [id],
+    );
+    expect(lead.rows[0]).toEqual({
+      topic: "Zakup mieszkania",
+      stage_key: "new",
+      utm: { utm_source: "meta" },
+    });
+    const v = (
+      await db.query<{ u: string }>("select updated_at::text as u from public.leads where id=$1", [
+        id,
+      ])
+    ).rows[0].u;
+    const ch = await asUser(db, ADAM, () =>
+      db.query<{ r: { event_id: string } }>("select public.change_lead($1,$2,$3,$4) as r", [
+        adamOrg,
+        id,
+        v,
+        { topic: "Refinansowanie kredytu hipotecznego" },
+      ]),
+    );
+    expect((await db.query("select topic from public.leads where id=$1", [id])).rows).toEqual([
+      { topic: "Refinansowanie kredytu hipotecznego" },
+    ]);
+    await asUser(db, ADAM, () =>
+      db.query("select public.undo_lead_change($1,$2)", [adamOrg, ch.rows[0].r.event_id]),
+    );
+    expect((await db.query("select topic from public.leads where id=$1", [id])).rows).toEqual([
+      { topic: "Zakup mieszkania" },
+    ]);
+    // Тема не обязательна: старый формат без поля — null.
+    const old = await asUser(db, ADMIN, () =>
+      db.query<{ r: { id: string } }>(
+        "select public.ingest_lead($1,null,'stary formularz',now(),$2) as r",
+        [otherOrg, { client_name: "Ktoś", phone_e164: "+48600100201" }],
+      ),
+    );
+    expect(
+      (await db.query("select topic from public.leads where id=$1", [old.rows[0].r.id])).rows,
+    ).toEqual([{ topic: null }]);
+  });
 });

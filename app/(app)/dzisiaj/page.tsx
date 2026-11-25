@@ -6,10 +6,11 @@ import { Card, PageHeader } from "@/components/app-shell/page";
 import { LiveUpdates } from "@/components/leads/live-updates";
 import { buttonVariants } from "@/components/ui/button";
 import { RankedBars, StackedBars } from "@/components/charts/bars";
-import { getWorkQueue } from "@/lib/leads/dashboard";
+import { getTopicStats, getWorkQueue } from "@/lib/leads/dashboard";
+import { isRealEstate } from "@/lib/presets";
 import { getDashboardCharts } from "@/lib/leads/charts";
 import { requireOrganization } from "@/lib/auth/session";
-import { plDate } from "@/lib/format";
+import { plDate, plDateTime } from "@/lib/format";
 import { t } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
@@ -17,7 +18,12 @@ export const metadata: Metadata = { title: t("nav.dashboard") };
 
 export default async function TodayPage() {
   const { organization } = await requireOrganization();
-  const [q, charts] = await Promise.all([getWorkQueue(), getDashboardCharts()]);
+  const realEstate = isRealEstate(organization.industryPreset);
+  const [q, charts, topics] = await Promise.all([
+    getWorkQueue(),
+    getDashboardCharts(),
+    realEstate ? getTopicStats() : Promise.resolve([]),
+  ]);
   // Месяц в подписи столбика: «11.26» короче любого названия и не ломает вёрстку.
   const shortMonth = (m: string) => `${m.slice(5)}.${m.slice(2, 4)}`;
 
@@ -51,10 +57,14 @@ export default async function TodayPage() {
               values: { won: m.won, rest: m.leads - m.won },
             }))}
             series={[
-              { key: "won", label: t("today.chartFlowWon"), color: "var(--accent)" },
+              {
+                key: "won",
+                label: t(realEstate ? "today.reFlowWon" : "today.chartFlowWon"),
+                color: "var(--accent)",
+              },
               {
                 key: "rest",
-                label: t("today.chartFlowLeads"),
+                label: t(realEstate ? "today.reFlowRest" : "today.chartFlowLeads"),
                 color: "color-mix(in oklab, var(--accent) 22%, var(--surface))",
               },
             ]}
@@ -62,67 +72,135 @@ export default async function TodayPage() {
           />
         </Card>
 
-        <Card>
-          <div className="mb-3 flex items-baseline justify-between gap-3">
-            <h2 className="text-[15px] font-semibold">{t("today.upcomingTitle")}</h2>
-            {organization.modules.includes("calendar") ? (
-              <Link
-                href="/kalendarz"
-                className="text-ink-soft hover:text-ink text-xs font-semibold"
-              >
-                {t("today.upcomingAll")}
-              </Link>
-            ) : null}
-          </div>
-          {q.upcoming.length === 0 ? (
-            <p className="text-ink-soft text-sm">{t("today.upcomingEmpty")}</p>
-          ) : (
-            <ul className="divide-line divide-y">
-              {q.upcoming.map((e) => (
-                <li key={e.id} className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">
-                  <CalendarDays
-                    className={cn("size-4 shrink-0", e.confirmed ? "text-ok" : "text-ink-faint")}
-                  />
-                  <div className="min-w-0 flex-1">
-                    <Link
-                      href={`/leady/${e.id}`}
-                      className="truncate font-semibold hover:underline"
-                    >
-                      {e.client_name}
-                    </Link>
-                    <p className="text-ink-soft truncate text-[13px]">
-                      {plDate(e.event_date)}
-                      {[e.event_type, e.event_city].filter(Boolean).length
-                        ? ` · ${[e.event_type, e.event_city].filter(Boolean).join(" · ")}`
-                        : ""}
-                    </p>
-                  </div>
-                  <span className={e.confirmed ? "badge badge-won" : "badge badge-open"}>
-                    {t(e.confirmed ? "today.confirmed" : "today.planned")}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Card>
+        {realEstate ? (
+          <>
+            <Card title={t("today.reWaiting")}>
+              {q.waiting.length === 0 ? (
+                <p className="text-ink-soft text-sm">{t("today.reWaitingEmpty")}</p>
+              ) : (
+                <ul className="divide-line divide-y">
+                  {q.waiting.slice(0, 8).map((l) => (
+                    <li key={l.id} className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">
+                      <Hourglass className="text-urgent size-4 shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <Link
+                          href={`/leady/${l.id}`}
+                          className="truncate font-semibold hover:underline"
+                        >
+                          {l.client_name}
+                        </Link>
+                        <p className="text-ink-soft truncate text-[13px]">
+                          {plDateTime(l.created_at)} · {l.source_label}
+                        </p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Card>
 
-        <Card title={t("today.chartAhead")}>
-          <StackedBars
-            rows={charts.ahead.map((m) => ({
-              label: shortMonth(m.month),
-              values: { confirmed: m.confirmed, tentative: m.tentative },
-            }))}
-            series={[
-              { key: "confirmed", label: t("today.chartConfirmed"), color: "var(--ok)" },
-              {
-                key: "tentative",
-                label: t("today.chartTentative"),
-                color: "color-mix(in oklab, var(--ok) 24%, var(--surface))",
-              },
-            ]}
-            empty={t("today.chartEmpty")}
-          />
-        </Card>
+            <Card title={t("today.reTasks")}>
+              {q.tasks.length === 0 ? (
+                <p className="text-ink-soft text-sm">{t("today.reTasksEmpty")}</p>
+              ) : (
+                <ul className="divide-line divide-y">
+                  {q.tasks.map((task) => (
+                    <li
+                      key={task.id}
+                      className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0"
+                    >
+                      <CalendarDays className="text-ink-faint size-4 shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate font-semibold">{task.title || task.client_name}</p>
+                        <p className="text-ink-soft truncate text-[13px]">
+                          {plDateTime(task.due_at)} · {task.client_name}
+                        </p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Card>
+
+            <Card title={t("today.reTopics")}>
+              <RankedBars
+                rows={topics.map((x) => ({
+                  label: x.topic ?? t("today.reNoTopic"),
+                  value: x.leads,
+                }))}
+                color="var(--accent)"
+                empty={t("today.chartEmpty")}
+              />
+            </Card>
+          </>
+        ) : (
+          <>
+            <Card>
+              <div className="mb-3 flex items-baseline justify-between gap-3">
+                <h2 className="text-[15px] font-semibold">{t("today.upcomingTitle")}</h2>
+                {organization.modules.includes("calendar") ? (
+                  <Link
+                    href="/kalendarz"
+                    className="text-ink-soft hover:text-ink text-xs font-semibold"
+                  >
+                    {t("today.upcomingAll")}
+                  </Link>
+                ) : null}
+              </div>
+              {q.upcoming.length === 0 ? (
+                <p className="text-ink-soft text-sm">{t("today.upcomingEmpty")}</p>
+              ) : (
+                <ul className="divide-line divide-y">
+                  {q.upcoming.map((e) => (
+                    <li key={e.id} className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">
+                      <CalendarDays
+                        className={cn(
+                          "size-4 shrink-0",
+                          e.confirmed ? "text-ok" : "text-ink-faint",
+                        )}
+                      />
+                      <div className="min-w-0 flex-1">
+                        <Link
+                          href={`/leady/${e.id}`}
+                          className="truncate font-semibold hover:underline"
+                        >
+                          {e.client_name}
+                        </Link>
+                        <p className="text-ink-soft truncate text-[13px]">
+                          {plDate(e.event_date)}
+                          {[e.event_type, e.event_city].filter(Boolean).length
+                            ? ` · ${[e.event_type, e.event_city].filter(Boolean).join(" · ")}`
+                            : ""}
+                        </p>
+                      </div>
+                      <span className={e.confirmed ? "badge badge-won" : "badge badge-open"}>
+                        {t(e.confirmed ? "today.confirmed" : "today.planned")}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Card>
+
+            <Card title={t("today.chartAhead")}>
+              <StackedBars
+                rows={charts.ahead.map((m) => ({
+                  label: shortMonth(m.month),
+                  values: { confirmed: m.confirmed, tentative: m.tentative },
+                }))}
+                series={[
+                  { key: "confirmed", label: t("today.chartConfirmed"), color: "var(--ok)" },
+                  {
+                    key: "tentative",
+                    label: t("today.chartTentative"),
+                    color: "color-mix(in oklab, var(--ok) 24%, var(--surface))",
+                  },
+                ]}
+                empty={t("today.chartEmpty")}
+              />
+            </Card>
+          </>
+        )}
 
         <Card title={t("today.chartSources")}>
           <RankedBars

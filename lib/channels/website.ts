@@ -45,6 +45,7 @@ const knownFields = new Set([
   "guests",
   "budget_grosze",
   "message",
+  "topic",
   "consent",
   "website",
   "custom_fields",

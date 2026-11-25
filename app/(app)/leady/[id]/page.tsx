@@ -32,6 +32,7 @@ export default async function LeadPage({ params, searchParams }: PageProps<"/lea
         payments: await leadPayments(tx, organization.id, id),
         plan: await loadPaymentPlan(tx, organization.id),
         agency: organization.industryPreset === "agency",
+        preset: organization.industryPreset,
         // Карточки модулей показываем, только если модуль включён в абонементе.
         paymentsModule: organization.modules.includes("payments"),
         documentsModule: organization.modules.includes("documents"),
@@ -59,6 +60,7 @@ export default async function LeadPage({ params, searchParams }: PageProps<"/lea
           lead={lead}
           serverNow={new Date().toISOString()}
           mailProblem={mailProblem}
+          preset={docs.preset}
           stages={options.stages}
           team={options.team}
           history={history}

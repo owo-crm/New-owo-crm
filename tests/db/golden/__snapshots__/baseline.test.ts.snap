@@ -905,6 +905,7 @@ exports[`M0 golden — кабинет мероприятий > work_queue (Pulpi
       "source_channel_id": null,
       "source_label": "Strona",
       "stage_key": "new",
+      "topic": null,
       "updated_at": "M+0",
       "utm": {
         "campaign": "Wesela jesień",

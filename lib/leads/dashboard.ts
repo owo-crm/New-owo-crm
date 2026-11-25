@@ -81,3 +81,17 @@ export function getCalendarEvents(from: string, to: string) {
     return rows;
   });
 }
+
+/** Agent nieruchomości: tematy zapytań z bieżącego miesiąca (czas Warszawy), bez spamu. */
+export function getTopicStats() {
+  return withOrg(async (tx, { organization }) => {
+    const { rows } = await tx.query<{ topic: string | null; leads: number }>(
+      `select topic, count(*)::int as leads from public.leads
+        where organization_id=$1 and deleted_at is null and stage_key <> 'spam'
+          and created_at >= date_trunc('month', now() at time zone 'Europe/Warsaw') at time zone 'Europe/Warsaw'
+        group by topic order by leads desc, topic nulls last limit 8`,
+      [organization.id],
+    );
+    return rows;
+  });
+}

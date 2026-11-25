@@ -46,7 +46,7 @@ for (const form of document.querySelectorAll("form.lead")) {
     const body = {
       name, phone, email: String(d.get("email") || "").trim() || undefined, website: d.get("website"),
       message: [`Temat: ${temat}`, String(d.get("message") || "").trim()].filter(Boolean).join("\n"),
-      consent: true, page_url: location.href, referrer: document.referrer || undefined,
+      topic: temat, consent: true, page_url: location.href, referrer: document.referrer || undefined,
       submission_id: crypto.randomUUID?.(),
       custom_fields: { temat, zrodlo: `strona Adama — ${form.dataset.source}`, strona_wejscia: u.landing },
       utm: Object.fromEntries(Object.entries(u).filter(([k]) => k.startsWith("utm_"))),

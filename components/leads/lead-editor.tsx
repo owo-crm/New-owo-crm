@@ -95,6 +95,18 @@ const BLOCKS: Block[] = [
     fields: ["message"],
   },
 ];
+/** Agent nieruchomości: zamiast pól wydarzenia — temat zapytania i budżet; bez oferty/umowy eventowej. */
+const REAL_ESTATE_BLOCKS: Block[] = [
+  BLOCKS[0],
+  {
+    key: "inquiry",
+    title: "leads.groupInquiry",
+    icon: Star,
+    tone: "#5b7cfa",
+    fields: ["topic", "event_city", "budget_grosze"],
+  },
+  BLOCKS[BLOCKS.length - 1],
+];
 const inputTypes: Partial<Record<EditableField, string>> = {
   event_date: "date",
   guests: "number",
@@ -131,7 +143,6 @@ const money = (grosze: number) =>
   }).format(grosze / 100);
 const plDay = (iso: string | null) => (iso ? iso.split("-").reverse().join(".") : null);
 
-
 export function LeadEditor({
   lead,
   stages,
@@ -143,7 +154,10 @@ export function LeadEditor({
   agencyCard,
   serverNow,
   mailProblem,
+  preset,
 }: {
+  /** Pakiet branżowy organizacji — real-estate pokazuje inne bloki niż wydarzenia. */
+  preset?: string;
   /** Последнее письмо клиенту не дошло или помечено как спам (решение 052). */
   mailProblem?: { status: "bounced" | "complained"; detail: string | null } | null;
   /** Время отрисовки на сервере — «2 godz. temu» без расхождения при гидратации. */
@@ -252,6 +266,18 @@ export function LeadEditor({
               current.guests ? t("leads.guestsCount", { count: current.guests }) : empty,
             )}
             {current.service_hours ? line(Clock, current.service_hours) : null}
+          </div>
+        );
+      case "inquiry":
+        return (
+          <div className="grid gap-1.5">
+            <p className="truncate text-[19px] font-bold tracking-tight">
+              {current.topic || t("leads.fields.topic")}
+            </p>
+            {line(MapPin, current.event_city ?? empty)}
+            <p className="text-[18px] font-bold tracking-tight tabular-nums">
+              {current.budget_grosze !== null ? money(current.budget_grosze) : empty}
+            </p>
           </div>
         );
       case "offer":
@@ -503,7 +529,7 @@ export function LeadEditor({
             className="border-line rounded-2xl border bg-[radial-gradient(var(--line-strong)_1px,transparent_1px)] [background-size:18px_18px] p-3 sm:p-4"
           >
             <div className="grid gap-3 md:grid-cols-2 2xl:grid-cols-3">
-              {BLOCKS.flatMap((block) => [
+              {(preset === "real-estate" ? REAL_ESTATE_BLOCKS : BLOCKS).flatMap((block) => [
                 <article
                   key={block.key}
                   className={cn(

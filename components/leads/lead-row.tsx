@@ -49,7 +49,12 @@ export function StagePill({
 
 export function eventLine(lead: Lead) {
   const date = lead.event_date ? lead.event_date.split("-").reverse().join(".") : null;
-  return [lead.event_type, date].filter(Boolean).join(" · ") || t("leads.noDetails");
+  // Bez danych wydarzenia (np. agent nieruchomości) — temat zapytania i miejscowość.
+  return (
+    [lead.event_type, date].filter(Boolean).join(" · ") ||
+    [lead.topic, lead.event_city].filter(Boolean).join(" · ") ||
+    t("leads.noDetails")
+  );
 }
 
 const waiting = (lead: Lead, stage?: PipelineStage) =>

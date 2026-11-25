@@ -54,6 +54,7 @@ export const leadInputSchema = z
     guests: nullableInteger(100000),
     budget_grosze: nullableInteger(2147483647),
     message: optionalText(10000),
+    topic: optionalText(80),
     custom_fields: z.record(z.string().max(100), z.json()).default({}),
     utm: z.record(z.string().max(100), z.string().max(500)).default({}),
     page_url: optionalText(2000).refine(
@@ -79,6 +80,7 @@ export type NormalizedLead = {
   guests: number | null;
   budget_grosze: number | null;
   message: string;
+  topic: string | null;
   custom_fields: Record<string, z.infer<ReturnType<typeof z.json>>>;
   utm: Record<string, string>;
   page_url: string | null;
@@ -96,6 +98,12 @@ export type IngestRepository = {
   saveLead(context: IngestContext, lead: NormalizedLead): Promise<IngestResult>;
 };
 
+/** Starsze formularze przysyłają temat w custom_fields.temat — przenosimy go do pola topic. */
+function topicFromCustom(fields: Record<string, unknown>) {
+  const raw = fields.topic ?? fields.temat;
+  return typeof raw === "string" && raw.trim() ? raw.trim().slice(0, 80) : null;
+}
+
 export function normalizeLead(input: unknown): NormalizedLead {
   const value = leadInputSchema.parse(input);
   return {
@@ -109,6 +117,7 @@ export function normalizeLead(input: unknown): NormalizedLead {
     guests: value.guests,
     budget_grosze: value.budget_grosze,
     message: value.message,
+    topic: value.topic || topicFromCustom(value.custom_fields),
     custom_fields: value.custom_fields,
     utm: value.utm,
     page_url: value.page_url || null,
