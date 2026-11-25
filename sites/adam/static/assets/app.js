@@ -107,3 +107,70 @@ for (const box of document.querySelectorAll("[data-calc]")) {
   form.addEventListener("submit", (e) => e.preventDefault());
   run();
 }
+
+// ───── Ścieżki procesu: przerywana linia rysowana w tempie przewijania ─────
+// Geometria liczona z rzeczywistych pozycji kropek (pozioma krzywa na desktopie, pionowa na telefonie),
+// przeliczana przy zmianie rozmiaru. Postęp = położenie sekcji względem okna, aktualizacja w requestAnimationFrame.
+function initJourneys() {
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const items = [...document.querySelectorAll("[data-journey]")].map((section) => {
+    const wrap = section.querySelector(".j-wrap"), svg = wrap.querySelector(".j-svg");
+    return { section, wrap, svg, base: svg.querySelector(".j-base"), line: svg.querySelector(".j-line"), mask: svg.querySelector(".j-mask"),
+      steps: [...wrap.querySelectorAll(".j-step")], len: 0, stops: [] };
+  });
+  if (!items.length) return;
+  const measure = document.createElementNS("http://www.w3.org/2000/svg", "path");
+
+  function layout(j) {
+    const box = j.wrap.getBoundingClientRect();
+    const pts = j.steps.map((st) => {
+      const r = st.querySelector(".j-dot").getBoundingClientRect();
+      return { x: r.left + r.width / 2 - box.left, y: r.top + r.height / 2 - box.top };
+    });
+    const vertical = Math.abs(pts.at(-1).x - pts[0].x) < 40;
+    let d = `M ${pts[0].x} ${pts[0].y}`;
+    const prefixes = [d];
+    for (let i = 1; i < pts.length; i++) {
+      const a = pts[i - 1], b = pts[i];
+      d += vertical
+        ? ` C ${a.x + 22} ${a.y + (b.y - a.y) * 0.35}, ${b.x - 22} ${a.y + (b.y - a.y) * 0.65}, ${b.x} ${b.y}`
+        // Desktop: linia biegnie na wysokości kropek i zmienia poziom w pustym miejscu nad niższym krokiem,
+        // żeby nie przecinać tekstów.
+        : b.y >= a.y
+          ? ` C ${a.x + (b.x - a.x) * 0.55} ${a.y}, ${b.x - (b.x - a.x) * 0.12} ${a.y}, ${b.x} ${b.y}`
+          : ` C ${a.x + (b.x - a.x) * 0.12} ${b.y}, ${b.x - (b.x - a.x) * 0.55} ${b.y}, ${b.x} ${b.y}`;
+      prefixes.push(d);
+    }
+    j.svg.setAttribute("viewBox", `0 0 ${box.width} ${box.height}`);
+    for (const p of [j.base, j.line, j.mask]) p.setAttribute("d", d);
+    j.len = j.mask.getTotalLength();
+    j.stops = prefixes.map((pd) => { measure.setAttribute("d", pd); return pd.includes("C") ? measure.getTotalLength() : 0; });
+    j.mask.style.strokeDasharray = `${j.len} ${j.len}`;
+  }
+
+  function paint(j) {
+    let p = 1;
+    if (!reduce.matches) {
+      const r = j.wrap.getBoundingClientRect(), vh = window.innerHeight;
+      // Linia startuje, gdy początek ścieżki wchodzi w dolną część okna, i kończy się, gdy koniec mija ~60% wysokości.
+      p = Math.min(1, Math.max(0, (vh * 0.85 - r.top) / (r.height + vh * 0.25)));
+    }
+    const drawn = j.len * p;
+    j.mask.style.strokeDashoffset = String(j.len - drawn);
+    j.steps.forEach((st, i) => st.classList.toggle("is-on", drawn >= j.stops[i] - 1));
+  }
+
+  let ticking = false;
+  const frame = () => { ticking = false; items.forEach(paint); };
+  const request = () => { if (!ticking) { ticking = true; requestAnimationFrame(frame); } };
+  const relayout = () => { items.forEach(layout); request(); };
+
+  relayout();
+  window.addEventListener("scroll", request, { passive: true });
+  window.addEventListener("resize", request, { passive: true });
+  if ("ResizeObserver" in window) { const ro = new ResizeObserver(relayout); items.forEach((j) => ro.observe(j.wrap)); }
+  else window.addEventListener("resize", relayout);
+  reduce.addEventListener?.("change", request);
+  document.fonts?.ready.then(relayout); // po wczytaniu fontów zmieniają się wysokości kroków
+}
+initJourneys();

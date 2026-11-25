@@ -39,12 +39,6 @@ export const facts = [
   { value: "Expander", label: "wsparcie w finansowaniu", confirmed: true },
 ];
 
-/** Banki w ofercie Expander — same nazwy, bez logotypów (logotypy wymagają zgody). */
-export const banks = {
-  names: ["PKO Bank Polski", "Bank Pekao", "Santander Bank Polska", "mBank", "ING Bank Śląski", "BNP Paribas"],
-  logosAllowed: false,
-};
-
 /**
  * Oferty nieruchomości. Puste do czasu przekazania prawdziwych danych przez Adama.
  * status: "active" | "reserved" | "sold" | "hidden". Na stronie katalogu tylko "active".

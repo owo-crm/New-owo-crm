@@ -1,5 +1,5 @@
 // Wspólne elementy: <head>, nawigacja, stopka, okruszki, formularz, FAQ, blok Expander.
-import { site, crm, adam, banks } from "./config.mjs";
+import { site, crm, adam } from "./config.mjs";
 
 export const esc = (s) =>
   String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
@@ -88,16 +88,15 @@ export function faq(items, title = "Najczęściej zadawane pytania") {
     .join("")}</div></section>`;
 }
 
-/** Podział ról Adam ↔ Expander — powtarzany wszędzie tam, gdzie pojawia się finansowanie. */
-export function expander({ compact = false } = {}) {
-  const roles = `<div class="diagram"><div class="node"><div class="c a">Adam</div><h3>Nieruchomość</h3><p>Poznaje Twoje plany, prezentuje nieruchomości, koordynuje kontakt.</p></div>
-<div class="arrow"><span>kontakt za Twoją zgodą</span></div>
-<div class="node"><div class="c k">Ty</div><h3>Jedna rozmowa</h3><p>Jeden punkt kontaktu przy zakupie.</p></div>
-<div class="arrow"><span>analiza i wniosek</span></div>
-<div class="node"><div class="c e">Expander</div><h3>Finansowanie</h3><p>Eksperci Expander analizują możliwości, porównują oferty banków i prowadzą proces kredytowy.</p></div></div>`;
-  const bankList = `<div class="stones"><div><p class="lbl">banki</p><h3>Oferty banków dostępne przez Expander</h3><p class="muted">Expander współpracuje z bankami działającymi w Polsce. Banki nie są partnerami Adama — to oferty dostępne w ramach współpracy z Expander.</p></div>
-<ul class="s">${banks.names.map((b) => `<li>${b}</li>`).join("")}<li><em>i inne</em></li></ul></div>`;
-  return compact ? roles : roles + bankList;
+/**
+ * Ścieżka procesu: kroki + przerywana linia SVG rysowana wraz z przewijaniem (static/assets/app.js → initJourneys).
+ * steps: [{ title, text, note? }]. Każda strona podaje własne teksty.
+ */
+export function journey({ id, label, title, lead, steps }) {
+  return `<section class="journey" id="${id}" data-journey><p class="lbl">${label}</p><h2>${title}</h2>${lead ? `<p class="lead j-lead">${lead}</p>` : ""}
+<div class="j-wrap"><svg class="j-svg" aria-hidden="true" focusable="false"><defs><mask id="${id}-mask" maskUnits="userSpaceOnUse"><path class="j-mask" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round"/></mask></defs>
+<path class="j-base" fill="none"/><path class="j-line" fill="none" mask="url(#${id}-mask)"/></svg>
+<ol class="j-steps">${steps.map((st, i) => `<li class="j-step"><span class="j-dot" aria-hidden="true"></span><span class="j-n">${String(i + 1).padStart(2, "0")}</span><h3>${st.title}</h3><p>${st.text}</p>${st.note ? `<p class="j-note">${st.note}</p>` : ""}</li>`).join("")}</ol></div></section>`;
 }
 
 export function footer() {

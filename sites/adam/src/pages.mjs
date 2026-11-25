@@ -1,6 +1,6 @@
 // Treść i kompozycja stron. Każda strona: { path, title, description, nav, crumbs, noindex, html }.
 import { site, adam, facts, offers, reviews } from "./config.mjs";
-import { esc, page, crumbs, contact, faq, expander } from "./layout.mjs";
+import { esc, page, crumbs, contact, faq, journey } from "./layout.mjs";
 import { fixtures } from "./fixtures.mjs";
 
 const prod = site.env === "production";
@@ -35,39 +35,23 @@ const home = {
     "Szukasz mieszkania w Gdańsku, Sopocie lub Gdyni? Porozmawiaj z Adamem o zakupie lub sprzedaży nieruchomości oraz o finansowaniu we współpracy z ekspertami Expander.",
   html: () => `
 <section class="hero"><div class="hero-t"><p class="lbl">agent nieruchomości · trójmiasto</p>
-<h1>Znajdź nieruchomość w Trójmieście. <em>Kup ją z odpowiednim wsparciem.</em></h1>
-<p class="lead">Pomagam kupić i sprzedać mieszkanie w Gdańsku, Sopocie i Gdyni. Gdy w grę wchodzi kredyt — także refinansowanie obecnego — łączę Cię z ekspertami Expander.</p>
-<div class="cta"><a class="btn" href="/zakup-mieszkania-trojmiasto/">Szukam mieszkania</a><a class="btn o" href="/refinansowanie-kredytu-hipotecznego/">Mam kredyt — sprawdź refinansowanie</a></div></div>
+<h1>Cześć, jestem Adam. <em>Pomagam kupić i sprzedać mieszkanie w Trójmieście.</em></h1>
+<p class="lead">Gdańsk, Sopot, Gdynia i okolice. Zaczynam od rozmowy o Twoich planach — a potem prowadzę Cię spokojnie przez kolejne kroki.</p>
+<div class="cta"><a class="btn" href="/zakup-mieszkania-trojmiasto/">Szukam mieszkania</a><a class="btn o" href="/sprzedaz-nieruchomosci-trojmiasto/">Sprzedaję mieszkanie</a></div></div>
 ${adam.photo ? `<img class="hero-img arch" src="${adam.photo}" alt="Adam — agent nieruchomości" fetchpriority="high">` : img("gdansk-motlawa", "Kamienice nad Motławą w Gdańsku", "hero-img arch", false)}</section>
 <section class="facts"><ul>${shownFacts.map((f) => `<li><strong>${f.value}</strong>${f.label}</li>`).join("")}</ul></section>
 ${activeOffers.length ? `<section><div class="sec-h"><div><p class="lbl">nieruchomości</p><h2>Aktualne oferty</h2></div><a class="u" href="/nieruchomosci/">Wszystkie oferty →</a></div><div class="offers">${activeOffers.slice(0, 3).map(offerCard).join("")}</div></section>` : ""}
-<section class="duo"><p class="lbl">usługi</p><h2>W czym mogę Ci pomóc</h2><div class="duo-g three-up">
-${svc("/zakup-mieszkania-trojmiasto/", "01", "usługa główna", "Zakup mieszkania w Trójmieście", "Od rozmowy o planach, przez prezentacje, po finał transakcji.", "salon-drewno", "Przestronny salon z drewnianymi meblami")}
-${svc("/sprzedaz-nieruchomosci-trojmiasto/", "02", "dla właścicieli", "Sprzedaż nieruchomości", "Przygotowanie oferty, kontakt z kupującymi i prezentacje.", "salon-jasny", "Jasny salon z dużymi oknami")}
-${svc("/refinansowanie-kredytu-hipotecznego/", "03", "z ekspertami Expander", "Refinansowanie kredytu hipotecznego", "Sprawdź, czy obecne warunki kredytu są dla Ciebie korzystne.", "salon-bez", "Beżowy salon z sofą", true)}</div></section>
-<section class="flow"><div class="flow-top"><div><p class="lbl">finansowanie</p><h2>Finansowanie z pomocą ekspertów Expander</h2></div>
-<div><p>Zakup nieruchomości to również decyzja finansowa. W sprawach kredytów hipotecznych współpracuję z Expander — eksperci tej firmy porównują oferty banków, pomagają przygotować dokumenty i prowadzą proces kredytowy.</p><p><a class="u" href="/refinansowanie-kredytu-hipotecznego/">Jak wygląda współpraca →</a></p></div></div>${expander({ compact: true })}</section>
+<section class="duo"><p class="lbl">w czym pomagam</p><h2>Kupujesz czy sprzedajesz?</h2><div class="duo-g">
+${svc("/zakup-mieszkania-trojmiasto/", "01", "kupujący", "Zakup mieszkania", "Szukasz miejsca do życia, mieszkania nad morzem albo pod wynajem.", "salon-drewno", "Przestronny salon z drewnianymi meblami")}
+${svc("/sprzedaz-nieruchomosci-trojmiasto/", "02", "właściciele", "Sprzedaż nieruchomości", "Chcesz sprzedać mieszkanie lub dom spokojnie i w uporządkowany sposób.", "salon-jasny", "Jasny salon z dużymi oknami", true)}</div>
+<a class="aside-card" href="/refinansowanie-kredytu-hipotecznego/"><span class="lbl">masz już kredyt hipoteczny?</span><strong>Sprawdź, czy jego warunki można poprawić</strong><span class="go">Refinansowanie kredytu →</span></a></section>
 <section class="band">${img("gdansk-nabrzeze", "Nabrzeże Motławy i Żuraw w Gdańsku")}<p>Gdańsk · Sopot · Gdynia<em>rynek, który znam na co dzień</em></p></section>
-<section id="jak"><p class="lbl">jak działam</p><h2>Spokojna droga do zakupu</h2>${steps([
-    ["Konsultacja", "Rozmawiamy o planach, budżecie, lokalizacji i oczekiwaniach.", "Adam"],
-    ["Dobór nieruchomości", "Przedstawiam nieruchomości, które mogą odpowiadać Twoim potrzebom, i umawiam prezentacje.", "Adam"],
-    ["Finansowanie", "Jeśli potrzebujesz kredytu, łączę Cię z ekspertami Expander.", "eksperci Expander"],
-    ["Finalizacja", "Towarzyszę Ci w zakupie w zakresie uzgodnionym podczas współpracy.", "Adam"],
-  ])}</section>
 <section class="about" id="o-mnie">${adam.photo ? `<img class="arch" src="${adam.photo}" alt="Adam" loading="lazy">` : img("pokoj-okna", "Jasne wnętrze mieszkania z dużymi oknami", "arch")}
-<div><p class="lbl">o mnie</p><h2>Poznajmy się. <em>Jestem Adam.</em></h2>
-<p>Od pięciu lat rozwijam doświadczenie w sprzedaży i pracy z klientami. Wspieram osoby, które szukają nieruchomości w Trójmieście — zarówno na własne potrzeby, jak i z myślą o inwestycji.</p>
-<p>Zależy mi na tym, aby dobrze zrozumieć Twoje plany, przedstawić dostępne możliwości i pomóc Ci przejść przez kolejne etapy zakupu. W sprawach finansowania współpracuję z ekspertami Expander.</p></div></section>
+<div><p class="lbl">o mnie</p><h2>Poznajmy się.</h2>
+<p>Od pięciu lat pracuję w sprzedaży i z klientami. Dziś pomagam osobom, które kupują lub sprzedają nieruchomości w Trójmieście — na własne potrzeby albo z myślą o inwestycji.</p>
+<p>Zależy mi na tym, żeby dobrze zrozumieć Twoje plany i uczciwie powiedzieć, co jest możliwe. Jedna osoba do kontaktu od pierwszej rozmowy do finału.</p></div></section>
 ${shownReviews.length ? `<section><p class="lbl">opinie</p><h2>Słowa klientów</h2><div class="notes">${shownReviews.map((r) => `<figure><blockquote>${esc(r.text)}</blockquote><figcaption>— ${esc(r.author)}${r.city ? `, ${esc(r.city)}` : ""}</figcaption></figure>`).join("")}</div></section>` : ""}
-<section><div class="sec-h"><div><p class="lbl">narzędzia</p><h2>Policz, zanim porozmawiamy</h2></div><a class="u" href="/kalkulatory/">Wszystkie kalkulatory →</a></div>
-<ul class="tools"><li><a href="/kalkulator-raty-kredytu-hipotecznego/"><strong>Rata kredytu hipotecznego</strong><span>Raty równe i malejące, harmonogram.</span></a></li><li><a href="/kalkulator-zdolnosci-kredytowej/"><strong>Zdolność kredytowa</strong><span>Orientacyjny zakres kwoty kredytu.</span></a></li><li><a href="/kalkulator-refinansowania-kredytu/"><strong>Refinansowanie</strong><span>Różnica w racie i zwrot kosztów.</span></a></li></ul></section>
-${faq([
-    ["Czy konsultacja jest płatna?", "Rozmowa i moja pomoc przy zakupie są bezpłatne. W procesie kredytowym mogą pojawić się koszty zewnętrzne, np. wycena nieruchomości — ich wysokość zależy od sytuacji i potwierdza ją specjalista."],
-    ["W jakich miejscowościach pomagasz?", "Głównie w Gdańsku, Sopocie, Gdyni i okolicach Trójmiasta."],
-    ["Czy mogę się skontaktować, mieszkając poza Trójmiastem?", "Tak. Część rozmów i wstępny przegląd ofert możemy przeprowadzić zdalnie, a na prezentacje umówić się na konkretne dni."],
-    ["Kto zajmuje się kredytem?", "Analizą możliwości, porównaniem ofert banków i procesem kredytowym zajmują się eksperci Expander. Ja pomagam w kontakcie i koordynacji."],
-  ])}
-${contact({ source: "strona główna" })}`,
+${contact({ source: "strona główna", lead: "Zostaw kontakt — oddzwonię, poznam Twoje plany i powiem, jak mogę pomóc. Pierwsza rozmowa jest bezpłatna i do niczego nie zobowiązuje." })}`,
 };
 
 // ───────────────────────── Usługi ─────────────────────────
@@ -98,13 +82,14 @@ const zakup = {
 <section class="cols"><div><h2>Dla kogo</h2><ul class="list"><li><strong>Pierwsze mieszkanie.</strong> Wyjaśnię kolejne kroki i pomogę uniknąć chaosu.</li><li><strong>Kupujący spoza Trójmiasta.</strong> Część klientów przyjeżdża m.in. z Warszawy — wstępny wybór robimy zdalnie, prezentacje planujemy na konkretne dni.</li><li><strong>Zakup inwestycyjny.</strong> Omówimy lokalizacje i rodzaje nieruchomości pod najem długoterminowy lub wakacyjny — bez obietnic konkretnej rentowności.</li></ul></div>
 <div><h2>Co robię</h2><ul class="list"><li>Rozmawiam o budżecie, lokalizacji i priorytetach.</li><li>Przedstawiam nieruchomości, których sprzedaż prowadzę, i pomagam porównać je z innymi opcjami.</li><li>Umawiam i prowadzę prezentacje.</li><li>Koordynuję kolejne kroki aż do umowy — w zakresie, który ustalimy.</li></ul>
 <p class="muted small">Nie wykonuję ekspertyz prawnych, technicznych ani analiz kredytowych — w razie potrzeby wskażę, z kim warto porozmawiać.</p></div></section>
-<section id="jak"><p class="lbl">proces</p><h2>Jak wygląda zakup ze mną</h2>${steps([
-    ["Rozmowa", "Poznaję Twoje plany: do kiedy, za ile, gdzie i po co kupujesz.", "Adam"],
-    ["Wybór i prezentacje", "Przedstawiam dopasowane nieruchomości i umawiam oglądanie.", "Adam"],
-    ["Finansowanie", "Jeśli potrzebujesz kredytu — kontakt z ekspertami Expander, którzy analizują możliwości i prowadzą wniosek.", "eksperci Expander"],
-    ["Umowa i przekazanie", "Pomagam w organizacji kolejnych etapów aż do odbioru kluczy.", "Adam"],
-  ])}</section>
-<section class="flow"><div class="flow-top"><div><p class="lbl">kredyt</p><h2>Kupujesz na kredyt?</h2></div><div><p>Sprawdź orientacyjną ratę i zdolność w kalkulatorach, a szczegóły omów z ekspertami Expander.</p></div></div>${expander()}</section>
+${journey({ id: "droga-zakupu", label: "jak działam", title: "Spokojna droga do zakupu", steps: [
+    { title: "Rozmowa o Twoich potrzebach", text: "Poznajemy się i rozmawiamy o budżecie, lokalizacji, terminie i oczekiwaniach." },
+    { title: "Dobór nieruchomości", text: "Przedstawiam nieruchomości z ofert, których sprzedaż prowadzę, dopasowane do tego, czego szukasz." },
+    { title: "Prezentacje i wybór", text: "Umawiam oglądanie, porównujemy warianty i pomagam Ci podjąć decyzję." },
+    { title: "Formalności i finalizacja", text: "Koordynuję kolejne etapy transakcji i pomagam doprowadzić ją do końca — w uzgodnionym zakresie." },
+  ] })}
+<section class="aside-note"><div><p class="lbl">finansowanie</p><h3>Kupujesz na kredyt?</h3></div><div><p>Jeśli planujesz zakup z wykorzystaniem kredytu hipotecznego, mogę połączyć Cię z ekspertami Expander, którzy pomogą dobrać odpowiednie finansowanie i przejść przez formalności.</p>
+<p><a class="u" href="#kontakt" data-topic="Finansowanie zakupu" data-ev="consultation_cta_click">Zapytaj o kontakt w sprawie kredytu</a></p></div></section>
 ${related([
     ["/nieruchomosci/", "Aktualne nieruchomości", "Oferty, których sprzedaż prowadzę."],
     ["/kalkulator-raty-kredytu-hipotecznego/", "Kalkulator raty", "Ile wyniesie rata przy danej kwocie?"],
@@ -156,16 +141,16 @@ const refi = {
   crumbs: [["/uslugi/", "Usługi"], ["/refinansowanie-kredytu-hipotecznego/", "Refinansowanie kredytu"]],
   ogImage: "/img/salon-bez.webp",
   html: () => `${crumbs(refi.crumbs)}
-<section class="split">${intro("refinansowanie · z ekspertami Expander", "Masz kredyt hipoteczny? <em>Sprawdź, czy obecne warunki są dla Ciebie korzystne.</em>", "Refinansowanie to przeniesienie kredytu do innego banku albo zmiana jego warunków. Czy się opłaca — zależy od Twojej sytuacji i kosztów zmiany. Ocenę przygotowują eksperci Expander.")}${img("salon-bez", "Spokojny, beżowy salon", "arch", false)}</section>
+<section class="split">${intro("refinansowanie kredytu", "Masz kredyt hipoteczny? <em>Sprawdź, czy obecne warunki są dla Ciebie korzystne.</em>", "Refinansowanie to przeniesienie kredytu do innego banku albo zmiana jego warunków. Czy się opłaca — zależy od Twojej sytuacji i kosztów zmiany. Ocenę przygotowują eksperci Expander.")}${img("salon-bez", "Spokojny, beżowy salon", "arch", false)}</section>
 <section class="cols"><div><h2>Kiedy warto sprawdzić</h2><ul class="list"><li>Od uruchomienia kredytu minęło co najmniej kilka miesięcy.</li><li>Przed Tobą jeszcze długi okres spłaty lub znaczny kapitał.</li><li>Marża lub oprocentowanie wyraźnie odbiegają od obecnych ofert.</li><li>Twoja sytuacja dochodowa jest stabilna.</li></ul><p class="muted small">To nie są warunki kwalifikacji — ostateczną ocenę przygotowuje specjalista, a decyzję podejmuje bank.</p></div>
 <div><h2>Co jest analizowane</h2><ul class="list"><li>pozostały kapitał i okres spłaty,</li><li>obecna marża, oprocentowanie i rata,</li><li>prowizje, ubezpieczenia i produkty dodatkowe,</li><li>koszty zmiany: wycena, opłaty sądowe i notarialne,</li><li>dochody i inne zobowiązania.</li></ul><p class="muted small">Tych danych nie podajesz w formularzu na stronie — omówisz je bezpośrednio z ekspertem.</p></div></section>
-<section class="flow"><div class="flow-top"><div><p class="lbl">podział ról</p><h2>Kto czym się zajmuje</h2></div><div><p>Ja pomagam w kontakcie i koordynacji. Analizę, porównanie ofert banków i cały proces kredytowy prowadzą eksperci Expander.</p></div></div>${expander()}</section>
-<section id="jak"><p class="lbl">proces</p><h2>Jak to wygląda</h2>${steps([
-    ["Zgłoszenie", "Zostawiasz kontakt — bez danych finansowych.", "Ty"],
-    ["Rozmowa", "Ustalamy, czego dotyczy sprawa, i przekazuję kontakt ekspertom.", "Adam"],
-    ["Analiza", "Eksperci Expander porównują Twój kredyt z dostępnymi ofertami i liczą koszty zmiany.", "eksperci Expander"],
-    ["Decyzja", "Decydujesz, czy chcesz złożyć wniosek. Decyzję kredytową podejmuje bank.", "Ty i bank"],
-  ])}</section>
+<section class="aside-note"><div><p class="lbl">współpraca</p><h3>Kto analizuje kredyt?</h3></div><div><p>W sprawach refinansowania współpracuję z Expander. Eksperci tej firmy analizują obecne warunki kredytu, porównują dostępne oferty banków i pomagają przejść przez proces.</p></div></section>
+${journey({ id: "droga-refinansowania", label: "jak to wygląda", title: "Sprawdźmy, czy Twój kredyt można poprawić", steps: [
+    { title: "Zostawiasz kontakt", text: "Wystarczy imię i telefon. Na tym etapie nie potrzebuję dokumentów ani danych o kredycie." },
+    { title: "Rozmowa z Adamem", text: "Poznaję Twoją sytuację, wyjaśniam, jak wygląda dalszy proces, i organizuję kontakt ze specjalistami." },
+    { title: "Analiza kredytu", text: "Eksperci Expander analizują obecny kredyt i porównują możliwe warianty finansowania." },
+    { title: "Możliwe rozwiązania", text: "Dowiadujesz się o możliwych warunkach, kosztach i korzyściach — i decydujesz, czy chcesz iść dalej.", note: "Ostateczną decyzję kredytową podejmuje bank." },
+  ] })}
 ${related([
     ["/kalkulator-refinansowania-kredytu/", "Kalkulator refinansowania", "Policz różnicę w racie i zwrot kosztów zmiany."],
     ["/kalkulator-raty-kredytu-hipotecznego/", "Kalkulator raty", "Sprawdź ratę przy innym oprocentowaniu."],
@@ -176,7 +161,7 @@ ${faq([
     ["Czy muszę zmieniać bank?", "Niekoniecznie. Czasem wystarczy renegocjacja warunków w obecnym banku. Eksperci pomogą porównać obie drogi."],
     ["Kto podejmuje decyzję?", "Decyzję kredytową podejmuje bank. Eksperci Expander przygotowują analizę i prowadzą proces, Ty decydujesz, czy z niego skorzystać."],
   ], "Pytania o refinansowanie")}
-${contact({ topic: "Refinansowanie kredytu hipotecznego", heading: "Poproś o analizę możliwości.", lead: "Zostaw kontakt — oddzwonię, omówimy sprawę i przekażę ją ekspertom Expander. Nie podawaj teraz danych o kredycie.", source: "refinansowanie" })}`,
+${contact({ topic: "Refinansowanie kredytu hipotecznego", heading: "Porozmawiajmy o Twoim kredycie.", lead: "Zostaw imię i telefon — oddzwonię, poznam Twoją sytuację i wyjaśnię kolejne kroki. Nie podawaj teraz danych o kredycie.", source: "refinansowanie" })}`,
 };
 
 // ───────────────────────── Katalog ─────────────────────────
