@@ -43,15 +43,12 @@ export const facts = [
 ];
 
 /**
- * Oferty nieruchomości. Puste do czasu przekazania prawdziwych danych przez Adama.
- * status: "active" | "reserved" | "sold" | "hidden". Na stronie katalogu tylko "active".
- * {
- *   id, slug: "gdansk-wrzeszcz-3-pokoje-z-balkonem", title, city, district, price, currency: "PLN",
- *   area, rooms, type: "mieszkanie", description, features: [], images: [{ src, alt }],
- *   status, published: "2026-12-01", updated: "2026-12-01"
- * }
+ * Oferty nieruchomości — w pliku data/offers.json (format i walidacja: src/offers.mjs, opis: README).
+ * Pusty plik = pusty katalog (noindex). Na stronie katalogu tylko status "active".
  */
-export const offers = [];
+export { loaded as offersSource } from "./offers.mjs";
+import { loaded } from "./offers.mjs";
+export const offers = loaded.offers;
 
 /** Opinie — tylko prawdziwe, za zgodą klienta: { text, author: "Marta K.", city, date, consent: true }. */
 export const reviews = [];

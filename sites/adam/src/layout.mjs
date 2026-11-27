@@ -64,18 +64,20 @@ export function crumbs(list) {
 const TOPICS = ["Zakup mieszkania", "Sprzedaż nieruchomości", "Refinansowanie kredytu hipotecznego", "Finansowanie zakupu", "Chcę omówić swoją sytuację"];
 
 /** Formularz kontaktowy. topic — temat zaznaczony domyślnie; heading/lead — teksty strony. */
-export function contact({ topic = TOPICS[0], heading = "Porozmawiajmy o Twoich planach.", lead, source, button = "Poproś o kontakt" }) {
+/** propertySlug — formularz ze strony oferty: zgłoszenie trafia do CRM z tematem „Pytanie o ofertę” i slugiem oferty. */
+export function contact({ topic = TOPICS[0], heading = "Porozmawiajmy o Twoich planach.", lead, source, button = "Poproś o kontakt", propertySlug }) {
+  const topics = propertySlug ? ["Pytanie o ofertę", ...TOPICS] : TOPICS;
   const ready = Boolean(crm.intakeKey);
   return `<section class="end" id="kontakt"><div class="end-t"><p class="lbl lbl-light">kontakt</p>
 <h2>${heading}</h2><p>${lead || "Zostaw kontakt — oddzwonię i ustalimy, jaki powinien być następny krok. Konsultacja jest bezpłatna."}</p>
 ${adam.phone ? `<p class="end-phone"><a href="tel:${adam.phone.replace(/\s/g, "")}" data-ev="phone_click">${esc(adam.phone)}</a></p>` : ""}
 ${adam.email ? `<p><a href="mailto:${esc(adam.email)}">${esc(adam.email)}</a></p>` : ""}</div>
-<form class="lead" novalidate data-endpoint="${ready ? `${crm.url}/api/intake/${crm.intakeKey}` : ""}" data-source="${esc(source)}"><div class="fields">
+<form class="lead" novalidate data-endpoint="${ready ? `${crm.url}/api/intake/${crm.intakeKey}` : ""}" data-source="${esc(source)}"${propertySlug ? ` data-property-slug="${esc(propertySlug)}"` : ""}><div class="fields">
 <div class="fl"><label for="f-name">Imię</label><input id="f-name" name="name" autocomplete="given-name" required></div>
 <div class="fl"><label for="f-phone">Numer telefonu</label><input id="f-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" required></div>
 <div class="fl"><label for="f-email">E-mail (opcjonalnie)</label><input id="f-email" name="email" type="email" autocomplete="email"></div>
 <input name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
-<fieldset class="pills"><legend>W czym mogę pomóc?</legend>${TOPICS.map((t) => `<label><input type="radio" name="temat" value="${t}"${t === topic ? " checked" : ""}><span>${t}</span></label>`).join("")}</fieldset>
+<fieldset class="pills"><legend>W czym mogę pomóc?</legend>${topics.map((t) => `<label><input type="radio" name="temat" value="${t}"${t === topic ? " checked" : ""}><span>${t}</span></label>`).join("")}</fieldset>
 <div class="fl"><label for="f-msg">Dodatkowa wiadomość (opcjonalnie)</label><textarea id="f-msg" name="message" rows="2"></textarea></div>
 <label class="cs"><input type="checkbox" name="consent" required><span>Wyrażam zgodę na kontakt telefoniczny lub mailowy w sprawie mojego zapytania. Szczegóły w <a href="/polityka-prywatnosci/">polityce prywatności</a>.</span></label>
 <button class="btn full" type="submit">${button}</button><p class="msg" role="status" aria-live="polite">${ready ? "" : "Formularz jest w przygotowaniu."}</p>

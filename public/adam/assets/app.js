@@ -48,13 +48,14 @@ for (const form of document.querySelectorAll("form.lead")) {
       message: [`Temat: ${temat}`, String(d.get("message") || "").trim()].filter(Boolean).join("\n"),
       topic: temat, consent: true, page_url: location.href, referrer: document.referrer || undefined,
       submission_id: crypto.randomUUID?.(),
+      property_slug: form.dataset.propertySlug || undefined,
       custom_fields: { temat, zrodlo: `strona Adama — ${form.dataset.source}`, strona_wejscia: u.landing },
       utm: Object.fromEntries(Object.entries(u).filter(([k]) => k.startsWith("utm_"))),
     };
     try {
       const res = await fetch(form.dataset.endpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
       if (!res.ok) throw new Error(String(res.status));
-      track("lead_form_submit", { source: form.dataset.source, topic: temat });
+      track(form.dataset.propertySlug ? "property_inquiry_submit" : "lead_form_submit", { source: form.dataset.source, topic: temat });
       form.querySelector(".fields").innerHTML = '<div class="ok"><h3>Dziękuję!</h3><p>Zapytanie dotarło. Skontaktuję się z Tobą najszybciej, jak to możliwe.</p></div>';
     } catch {
       btn.disabled = false; btn.textContent = label;
@@ -174,3 +175,14 @@ function initJourneys() {
   document.fonts?.ready.then(relayout); // po wczytaniu fontów zmieniają się wysokości kroków
 }
 initJourneys();
+
+// ───── Filtr miast w katalogu ─────
+for (const bar of document.querySelectorAll(".city-filter")) {
+  const cards = document.querySelectorAll("[data-offers] .offer");
+  bar.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-city]");
+    if (!btn) return;
+    bar.querySelectorAll("[data-city]").forEach((b) => b.classList.toggle("on", b === btn));
+    cards.forEach((c) => { c.hidden = Boolean(btn.dataset.city) && c.dataset.city !== btn.dataset.city; });
+  });
+}

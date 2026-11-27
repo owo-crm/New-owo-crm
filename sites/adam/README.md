@@ -43,3 +43,24 @@ poradnik (6 artykułów z TZ); strony lokalne tylko z oryginalną treścią; Sea
 ## Podgląd w OWO CRM (owocrm.com/adam)
 Zbudowana strona jest trzymana w `public/adam/` i podawana przez CRM pod `/adam` (rewrites w `next.config.ts`, ścieżka publiczna w `lib/auth/paths.ts`).
 Po każdej zmianie w `sites/adam` odśwież kopię: `cd sites/adam && npm run build:crm` (z `INTAKE_KEY=<klucz kanału>`, żeby formularz wysyłał zgłoszenia do tego samego CRM). Wersja ma noindex.
+
+## Oferty (katalog i strony ofert)
+
+Źródło: `data/offers.json` (albo plik wskazany w `OFFERS_FILE`). Lista obiektów:
+
+```json
+[{
+  "id": "A-1", "slug": "gdansk-wrzeszcz-3-pokoje", "title": "Mieszkanie 3 pokoje z balkonem",
+  "city": "Gdańsk", "district": "Wrzeszcz", "type": "mieszkanie", "area": 58.4, "rooms": 3,
+  "price": 759000, "status": "active", "description": "…", "updated": "2026-12-01",
+  "images": [{ "src": "/img/oferty/a1-salon.webp", "alt": "Salon z balkonem" }],
+  "features": [["Balkon", "tak"], ["Piętro", "3/4"]]
+}]
+```
+
+- `price` w złotych albo `null` („cena na zapytanie”); `status`: active / reserved / sold / hidden — na stronie tylko `active`, pozostałe nie mają strony (404) i nie są w sitemap.
+- Build sprawdza plik (`src/offers.mjs`) i przerywa się przy błędzie — błędna oferta nigdy nie trafia na stronę.
+- Formularz na stronie oferty wysyła do CRM temat „Pytanie o ofertę” i `property_slug`.
+- Zdjęcia: `static/img/oferty/…` (WebP) albo adres https z CRM Adama.
+
+**Import z CRM Adama — do ustalenia.** Adam ma już CRM dla nieruchomości. Do automatycznego importu potrzebne: nazwa systemu; czy ma eksport ofert na portale (XML/feed Otodom, OLX itp.) albo API; adres feedu lub dane dostępu. Importer będzie tylko zamieniał ten feed na `data/offers.json` — szablony strony się nie zmienią.

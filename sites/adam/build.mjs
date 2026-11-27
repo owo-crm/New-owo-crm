@@ -2,9 +2,13 @@
 import { mkdir, rm, writeFile, cp } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { site, crm } from "./src/config.mjs";
+import { site, crm, offersSource } from "./src/config.mjs";
 import { pages, notFound, render } from "./src/pages.mjs";
 
+if (offersSource.errors.length) {
+  console.error("Błędy w pliku ofert:\n- " + offersSource.errors.join("\n- "));
+  process.exit(1);
+}
 const root = dirname(fileURLToPath(import.meta.url));
 const out = process.env.OUT_DIR ? join(process.cwd(), process.env.OUT_DIR) : join(root, "dist");
 // W podkatalogu (BASE_PATH=/adam) przepisujemy linki i zasoby z „/…” na „/adam/…”.

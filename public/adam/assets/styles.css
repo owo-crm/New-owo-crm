@@ -189,3 +189,5 @@ main>section,main>article{padding:64px var(--pad)}
 }
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.svc,.j-dot,.j-n{transition:none}}
 main>.intro{max-width:var(--max);margin:0 auto;padding:40px var(--pad) 0}main>.intro>*{max-width:900px}
+
+.city-filter{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 28px}.chip{border:1px solid var(--line);background:none;border-radius:30px;padding:9px 16px;font:400 14px var(--sans);cursor:pointer;color:var(--text)}.chip.on{background:var(--forest);color:var(--ivory);border-color:var(--forest)}

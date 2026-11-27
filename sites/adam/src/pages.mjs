@@ -19,11 +19,20 @@ const steps = (list) =>
 const related = (links) =>
   `<section class="related"><p class="lbl">zobacz też</p><ul>${links.map(([u, t, d]) => `<li><a href="${u}"><strong>${t}</strong><span>${d}</span></a></li>`).join("")}</ul></section>`;
 
+/** Filtr miast w katalogu — tylko po stronie przeglądarki (bez nowych adresów do indeksu). */
+function cityFilter(list) {
+  const cities = [...new Set(list.map((o) => o.city))].sort((a, b) => a.localeCompare(b, "pl"));
+  if (cities.length < 2) return "";
+  return `<div class="pills city-filter" role="group" aria-label="Miasto"><button type="button" class="chip on" data-city="">Wszystkie</button>${cities
+    .map((c) => `<button type="button" class="chip" data-city="${esc(c)}">${esc(c)}</button>`)
+    .join("")}</div>`;
+}
+
 function offerCard(o) {
   const cover = o.images?.[0];
-  return `<article class="offer"><a href="/nieruchomosci/${o.slug}/" data-ev="property_card_click">
+  return `<article class="offer" data-city="${esc(o.city)}"><a href="/nieruchomosci/${o.slug}/" data-ev="property_card_click">
 ${cover ? `<img src="${cover.src}" alt="${esc(cover.alt)}" loading="lazy">` : ""}${o.demo ? '<span class="demo">dane testowe</span>' : ""}
-<h3>${esc(o.city)} · ${esc(o.district)}</h3><p class="price">${o.price ? pln(o.price) : "cena na zapytanie"}</p>
+<h3>${esc(o.city)} · ${esc(o.district)}</h3><p class="price">${o.price ? pln(o.price) : "cena na zapytanie"}</p>${o.status === "reserved" ? '<p class="pill">rezerwacja</p>' : ""}
 <p class="muted">${esc(o.type)} · ${o.area} m² · ${o.rooms} ${o.rooms === 1 ? "pokój" : o.rooms < 5 ? "pokoje" : "pokoi"}</p></a></article>`;
 }
 
@@ -175,7 +184,7 @@ const katalog = {
   noindex: offers.filter((o) => o.status === "active").length === 0, // pusty katalog nie trafia do indeksu
   html: () => `${crumbs(katalog.crumbs)}
 ${intro("nieruchomości", "Nieruchomości w Trójmieście", "Oferty, których sprzedaż prowadzę. Szczegóły, dostępność i termin prezentacji omówimy bezpośrednio.")}
-${activeOffers.length ? `<section><div class="offers">${activeOffers.map(offerCard).join("")}</div></section>`
+${activeOffers.length ? `<section>${cityFilter(activeOffers)}<div class="offers" data-offers>${activeOffers.map(offerCard).join("")}</div></section>`
     : `<section class="empty"><h2>Nowe oferty pojawią się wkrótce</h2><p>Część nieruchomości prezentuję, zanim trafią do publicznych ogłoszeń. Napisz, czego szukasz — dam znać, gdy pojawi się coś odpowiedniego.</p><a class="btn" href="#kontakt">Powiedz, czego szukasz</a></section>`}
 ${contact({ topic: "Zakup mieszkania", heading: "Zapytaj o nieruchomość.", source: "katalog" })}`,
 };
@@ -194,7 +203,7 @@ function offerPage(o) {
 <div class="gallery">${(o.images || []).map((im, i) => `<img src="${im.src}" alt="${esc(im.alt)}"${i ? ' loading="lazy"' : ""}>`).join("")}</div>
 <div class="cols"><div><h2>Opis</h2><p>${esc(o.description)}</p></div><div><h2>Parametry</h2><dl class="params"><dt>Typ</dt><dd>${esc(o.type)}</dd><dt>Powierzchnia</dt><dd>${o.area} m²</dd><dt>Pokoje</dt><dd>${o.rooms}</dd>${(o.features || []).map((f) => `<dt>${esc(f[0])}</dt><dd>${esc(f[1])}</dd>`).join("")}</dl>
 <p class="muted small">Ofertę prezentuje Adam — agent nieruchomości. Aktualizacja: ${esc(o.updated)}.</p></div></div></article>
-${contact({ topic: "Zakup mieszkania", heading: "Zapytaj o tę ofertę.", source: `oferta ${o.id}` })}`,
+${contact({ topic: "Pytanie o ofertę", heading: "Zapytaj o tę ofertę.", source: `oferta ${o.id}`, propertySlug: o.slug, button: "Zapytaj o ofertę", lead: "Zostaw kontakt — oddzwonię, opowiem o szczegółach i umówimy prezentację." })}`,
   };
 }
 
