@@ -31,8 +31,9 @@ export async function createOrganization(
       ]),
     );
     orgId = row!.id;
-    // Пока регистрация открыта для Barowo: новая фирма сразу получает генератор документов.
-    if (process.env.DEFAULT_DOCUMENT_ENGINE)
+    // Генератор документов Barowo (оферты/договоры/меню мероприятий) — только бизнесам мероприятий.
+    // Агентству и агенту недвижимости он не подходит.
+    if (process.env.DEFAULT_DOCUMENT_ENGINE && parsed.data.preset === "event-services")
       await getDb().query(
         "update public.organizations set document_engine=$1 where id=$2 and document_engine is null",
         [process.env.DEFAULT_DOCUMENT_ENGINE, orgId],

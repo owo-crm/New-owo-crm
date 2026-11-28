@@ -16,6 +16,7 @@ import { AvatarUpload } from "@/components/settings/avatar-upload";
 import { uploadProfileAvatar } from "@/lib/avatars/actions";
 import { avatarUrl } from "@/lib/avatars/image";
 import { requireOrganization } from "@/lib/auth/session";
+import { isRealEstate } from "@/lib/presets";
 import { signOut } from "@/lib/auth/actions";
 import { t, type MessageKey } from "@/lib/i18n";
 
@@ -58,12 +59,16 @@ const LINKS: Partial<Record<string, string>> = {
 };
 
 export default async function SettingsPage() {
-  const { user } = await requireOrganization();
+  const { user, organization } = await requireOrganization();
+  // Agent nieruchomości: bez szablonu umowy eventowej i bez importu z arkusza bota Barowo.
+  const hidden: MessageKey[] = isRealEstate(organization.industryPreset)
+    ? ["settings.templates", "settings.import"]
+    : [];
   return (
     <>
       <PageHeader title={t("settings.title")} />
       <ul className="divide-line border-line bg-surface divide-y overflow-hidden rounded-xl border">
-        {SECTIONS.map(({ title, text, icon: Icon }) => (
+        {SECTIONS.filter((s) => !hidden.includes(s.title)).map(({ title, text, icon: Icon }) => (
           <li key={title} className="flex items-center gap-4 px-5 py-4">
             <span
               className="flex size-9 shrink-0 items-center justify-center rounded-lg"

@@ -109,6 +109,7 @@ export const IMPORT: NavItem = {
   label: "settings.import",
   icon: Upload,
   admin: true,
+  hideFor: ["real-estate"],
 };
 export const SETTINGS: NavItem = {
   href: "/ustawienia",

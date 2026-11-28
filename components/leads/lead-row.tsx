@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CalendarDays, ChevronRight, Clock } from "lucide-react";
+import { CalendarDays, ChevronRight, Clock, MessageSquareText } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { listTime, timeAgo } from "@/lib/format";
 import { hasKnownResponse } from "@/lib/leads/response";
@@ -88,7 +88,11 @@ export function LeadCardRow({
           <StagePill stage={stage} label={stage?.label_pl ?? lead.stage_key} size="sm" />
         </span>
         <span className="text-ink-soft mt-1 flex items-center gap-1.5 text-[13px]">
-          <CalendarDays className="text-ink-faint size-3.5 shrink-0" />
+          {lead.event_type || lead.event_date ? (
+            <CalendarDays className="text-ink-faint size-3.5 shrink-0" />
+          ) : (
+            <MessageSquareText className="text-ink-faint size-3.5 shrink-0" />
+          )}
           <span className="truncate">{eventLine(lead)}</span>
         </span>
         <span
